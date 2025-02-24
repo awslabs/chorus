@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 [project]
 name = "chorus"
 version = "0.2.0"
-description = "Chorus - A scalable framework for Multi-Agent Collaboration."
+description = "Chorus - A Framework for Collaborating and Orchestrating Teams of Autonomous Agents."
 
 readme = "README.md"
 requires-python = ">=3.11"
