@@ -1,0 +1,1 @@
+from .stop_conditions import NoActivityStopper

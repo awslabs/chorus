@@ -1,0 +1,155 @@
+[build-system]
+requires = [
+  "hatchling"
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "chorus"
+version = "0.2.0"
+description = "Chorus - A scalable framework for Multi-Agent Collaboration."
+
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "jsonpath-ng>=1.5.3",
+    "openapi-spec-validator>=0.7.1",
+    "pydantic>=2.4.1",
+    "jsonref>=1.1.0",
+    "boto3>=1.34.14",
+    "jinja2>=3.1.2",
+    "python-dotenv>=1.0.1",
+    "arxiv>=2.1.0",
+    "jsonnet>=0.20.0",
+    "duckduckgo_search>=5.3.0",
+    "beautifulsoup4>=4.12.3",
+    "tenacity>=8.2.2",
+    "flask>=2.0.0",
+    "jupyter_core",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "requests>=2.31.0",
+]
+
+[tool.hatch.envs.default]
+# This controls what version of Python you want to be the default
+# when running any scripts or tools to do things like debug test failures
+# or do general development.  It's lockfile is ./requirements.txt
+python = "3.11"
+dependencies = [
+    "pytest",
+    "mypy",
+    "pytest-cov",
+    "coverage",
+    "black",
+    "isort",
+    "flake8",
+    "pep8-naming",
+    "PyYAML"
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--durations=5",
+    "--color=yes",
+]
+testpaths = [ "tests" ]
+
+[tool.coverage.run]
+source_pkgs = ["chorus"]
+branch = true
+parallel = true
+# fail_under = 99
+
+[tool.coverage.paths]
+"amzn_llm_formatter" = ["src/chorus", "**/site-packages/chorus"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+show_missing = true
+
+[tool.coverage.xml]
+output = "private/brazil-documentation/coverage/coverage.xml"
+
+[tool.coverage.html]
+directory = "private/brazil-documentation/coverage/"
+
+[tool.poetry.dev-dependencies]
+black = "^24.4"
+flake8 = "^7.0"
+isort = "^5.13"
+mypy = "^1.10"
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+known_first_party = ["chorus"]
+profile = "black"
+line_length = 100
+force_single_line = true
+
+[tool.hatch.build]
+directory = "./build"
+
+[tool.hatch.env]
+requires = [ "hatch-pip-compile" ]
+
+[tool.hatch.envs.default.scripts]
+# These are scripts you can run using `brazil-build run <script-name>`
+typing = [
+  "mkdir -p .mypy_cache",
+  "mypy --install-types --non-interactive src/chorus tests/chorus"
+]
+
+type = "pip-compile"
+pip-compile-args = [
+    "--no-emit-index-url",
+    "--no-emit-trusted-host"
+]
+
+# This command is for updating all your lock files across all environments 
+update = [ "hatch-pip-compile --upgrade --all" ]
+
+release = [
+    #"typing",
+    "hatch test --all --cover",
+]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+# This defines multiple variables you can generate combinations
+# to test underneath different environments.  A separate environment and 
+# lock file will be created for every combination located in `./requirements/`
+python = ["3.11"]
+
+## This environment is used solely to generate a lock file on hatch,
+# and hatch-pip-compile that can be automatically updated
+[tool.hatch.envs.build-tools]
+# This version states what version your build tools build with.  To change it,
+# you will need to:
+# * Remove the `requirements/requirements-build-tools.txt` file
+# * Run `brazil-build run update` to generate a new lock file for the environment
+python = "3.11"
+detached = true
+skip-install = true
+dependencies = [
+  "hatch",
+  "hatch-pip-compile",
+]
+
+# PeruHatch repository and package locking plugin
+[tool.hatch.env.collectors.custom]
+path = ".hatch/hatch_plugin.py"
+
+# This is necessary to use 'uv' as the resolver if this is the top-level package
+# in a monorepo (which is usually the case).  Remove this if copying the
+# package into a monorepo
+[tool.uv.workspace]

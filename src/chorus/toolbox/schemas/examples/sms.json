@@ -1,0 +1,104 @@
+{
+  "tool_name": "SMS",
+  "name": "SMS",
+  "tool_type": "Module",
+  "description": "With the SMS API you can send SMS from your account.",
+  "actions": [
+    {
+      "name": "send_sms",
+      "description": "Send an outbound SMS",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "title": "from",
+            "description": "From number or name - where the message comes 'from'."
+          },
+          "message": {
+            "type": "string",
+            "title": "message",
+            "description": "The body of the message being sent."
+          },
+          "to": {
+            "type": "string",
+            "title": "to",
+            "description": "Mobile phone number to send to. Can be in local or international format. Must be in international (E.164) format if sending to another country. e.g +61411111111."
+          }
+        },
+        "required": [
+          "message",
+          "to"
+        ]
+      },
+      "output_schema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "200",
+            "description": "Success response",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "description": "Internal status"
+              },
+              "message": {
+                "type": "string",
+                "description": "message of response"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "message-count": {
+                    "type": "string"
+                  },
+                  "messages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "message-price": {
+                          "type": "string",
+                          "description": "unit price of message"
+                        },
+                        "remaining-balance": {
+                          "type": "string",
+                          "description": "Remaining balance in account"
+                        },
+                        "status": {
+                          "type": "string",
+                          "description": "Status of the message"
+                        },
+                        "to": {
+                          "type": "string",
+                          "description": "Recipient's number"
+                        },
+                        "error-text": {
+                          "type": "string",
+                          "description": "Error message"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "message-count",
+                  "messages"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "message"
+            ]
+          },
+          {
+            "title": "400",
+            "description": "Error response"
+          }
+        ]
+      },
+      "requires_confirmation": false
+    }
+  ]
+}

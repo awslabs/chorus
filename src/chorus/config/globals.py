@@ -1,0 +1,1 @@
+DEFAULT_AGENT_LLM_NAME = "anthropic.claude-3-5-sonnet-20241022-v2:0"

@@ -1,0 +1,252 @@
+{
+  "tool_name": "Weather",
+  "name": "Weather",
+  "tool_type": "Module",
+  "description": "Weather Forecast",
+  "actions": [
+    {
+      "name": "current_weather_by_city",
+      "description": "Gets the current weather conditions for a city.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "title": "city",
+            "description": "City to get weather for"
+          },
+          "country": {
+            "type": "string",
+            "title": "country",
+            "description": "Country to get weather for"
+          },
+          "units": {
+            "type": "string",
+            "title": "units",
+            "description": "Must be Celsius or Fahrenheit. Default is Celsius.",
+            "default": "Celsius",
+            "enum": [
+              "Celsius",
+              "Fahrenheit"
+            ]
+          }
+        },
+        "required": [
+          "city",
+          "country"
+        ]
+      },
+      "output_schema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "200",
+            "description": "Success response",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "description": "api response status"
+              },
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "weather": {
+                    "type": "object",
+                    "properties": {
+                      "main": {
+                        "type": "string",
+                        "description": "Main weather"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Forecast description"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "main"
+                    ]
+                  },
+                  "temperature": {
+                    "type": "object",
+                    "properties": {
+                      "temp": {
+                        "type": "number",
+                        "description": "Forecast temperature"
+                      },
+                      "temp_min": {
+                        "type": "number",
+                        "description": "Forecast minimum temperature"
+                      },
+                      "temp_max": {
+                        "type": "number",
+                        "description": "Forecast maximum temperature"
+                      },
+                      "pressure": {
+                        "type": "number",
+                        "description": "Forecast atmospheric pressure in Pascals"
+                      },
+                      "humidity": {
+                        "type": "number",
+                        "description": "Forecast atmospheric humidity in percent"
+                      }
+                    },
+                    "required": [
+                      "humidity",
+                      "pressure",
+                      "temp",
+                      "temp_max",
+                      "temp_min"
+                    ]
+                  }
+                },
+                "required": [
+                  "temperature",
+                  "weather"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "message"
+            ]
+          },
+          {
+            "title": "400",
+            "description": "Error response"
+          },
+          {
+            "title": "404",
+            "description": "Error response"
+          }
+        ]
+      },
+      "requires_confirmation": false
+    },
+    {
+      "name": "get_tomorrow_weather_by_city",
+      "description": "Get the forcast for a city.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "title": "city",
+            "description": "City to get weather for"
+          },
+          "country": {
+            "type": "string",
+            "title": "country",
+            "description": "Country to get weather for"
+          },
+          "units": {
+            "type": "string",
+            "title": "units",
+            "description": "Must be Celsius or Fahrenheit. Default is Celsius.",
+            "default": "Celsius",
+            "enum": [
+              "Celsius",
+              "Fahrenheit"
+            ]
+          }
+        },
+        "required": [
+          "city",
+          "country"
+        ]
+      },
+      "output_schema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "200",
+            "description": "Success response",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "description": "api response status"
+              },
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "weather": {
+                    "type": "object",
+                    "properties": {
+                      "main": {
+                        "type": "string",
+                        "description": "Main weather"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Forecast description"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "main"
+                    ]
+                  },
+                  "temperature": {
+                    "type": "object",
+                    "properties": {
+                      "temp": {
+                        "type": "number",
+                        "description": "Forecast temperature"
+                      },
+                      "temp_min": {
+                        "type": "number",
+                        "description": "Forecast minimum temperature"
+                      },
+                      "temp_max": {
+                        "type": "number",
+                        "description": "Forecast maximum temperature"
+                      },
+                      "pressure": {
+                        "type": "number",
+                        "description": "Forecast atmospheric pressure in Pascals"
+                      },
+                      "humidity": {
+                        "type": "number",
+                        "description": "Forecast atmospheric humidity in percent"
+                      }
+                    },
+                    "required": [
+                      "humidity",
+                      "pressure",
+                      "temp",
+                      "temp_max",
+                      "temp_min"
+                    ]
+                  }
+                },
+                "required": [
+                  "temperature",
+                  "weather"
+                ]
+              }
+            },
+            "required": [
+              "data",
+              "message"
+            ]
+          },
+          {
+            "title": "400",
+            "description": "Error response"
+          },
+          {
+            "title": "404",
+            "description": "Error response"
+          }
+        ]
+      },
+      "requires_confirmation": false
+    }
+  ]
+}
