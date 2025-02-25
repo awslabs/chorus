@@ -118,13 +118,17 @@ class BedrockConverseAPIClient(LanguageModelClient):
                              \nhttps://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html\x1b[0m\n"
                 )
             elif error.response["Error"]["Code"] == "ValidationException":
-                print("\x1b[1;31m" + "=" * os.get_terminal_size().columns + "\x1b[0m")
+                try:
+                    terminal_size = os.get_terminal_size().columns
+                except OSError:
+                    terminal_size = 80
+                print("\x1b[1;31m" + "=" * terminal_size + "\x1b[0m")
                 print(f"\x1b[1;31mValidation Error when calling Bedrock Converse API.\x1b[0m")
                 print(f"\x1b[1;34m[Error Message]\x1b[0m")
                 print(f"{error}")
                 print(f"\x1b[1;34m[Prompt]\x1b[0m")
                 print(json.dumps(prompt_dict, indent=2))
-                print("\x1b[1;31m" + "=" * os.get_terminal_size().columns + "\x1b[0m")
+                print("\x1b[1;31m" + "=" * terminal_size + "\x1b[0m")
                 sys.exit(1)
             elif error.response["Error"]["Code"] == "UnrecognizedClientException":
                 print("Encountered UnrecognizedClientException error when calling Bedrock Converse API.")
@@ -133,13 +137,17 @@ class BedrockConverseAPIClient(LanguageModelClient):
             else:
                 raise error
         except botocore.exceptions.ParamValidationError as error:
-            print("\x1b[1;31m" + "=" * os.get_terminal_size().columns + "\x1b[0m")
+            try:
+                terminal_size = os.get_terminal_size().columns
+            except OSError:
+                terminal_size = 80
+            print("\x1b[1;31m" + "=" * terminal_size + "\x1b[0m")
             print(f"\x1b[1;31mParameter Validation Error when calling Bedrock Converse API.\x1b[0m")
             print(f"\x1b[1;34m[Error Message]\x1b[0m")
             print(f"{error}")
             print(f"\x1b[1;34m[Prompt]\x1b[0m")
             print(json.dumps(prompt_dict, indent=2))
-            print("\x1b[1;31m" + "=" * os.get_terminal_size().columns + "\x1b[0m")
+            print("\x1b[1;31m" + "=" * terminal_size + "\x1b[0m")
             sys.exit(1)
         return completion
 

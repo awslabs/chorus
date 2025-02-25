@@ -89,7 +89,6 @@ class MessageService(BaseModel):
                     return message
                     
             time.sleep(0.1)
-            time.sleep(3)
             
         return None
 

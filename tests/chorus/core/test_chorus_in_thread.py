@@ -14,12 +14,14 @@ class TestChorusInThread(unittest.TestCase):
             instruction="Coordinate with other agents to answer questions.",
             reachable_agents={
                 "Assistant": "A simple chat agent that can answer basic questions."
-            }
+            },
+            model_name="anthropic.claude-3-5-haiku-20241022-v1:0"
         )
         
         self.assistant = ToolChatAgent(
             "Assistant",
-            instruction="Answer basic questions directly and concisely."
+            instruction="Answer basic questions directly and concisely.",
+            model_name="anthropic.claude-3-5-haiku-20241022-v1:0"
         )
 
         self.team = Team(
@@ -68,7 +70,7 @@ class TestChorusInThread(unittest.TestCase):
         # Wait for response with timeout
         response = comm.wait(
             source="Coordinator",
-            timeout=10  # 10 seconds timeout
+            timeout=180  # 180 seconds timeout
         )
         
         # Verify we got a response
@@ -81,6 +83,7 @@ class TestChorusInThread(unittest.TestCase):
     def test_multiple_start_stop_cycles(self):
         # Test that chorus can be started and stopped multiple times
         for _ in range(3):
+            print("Starting chorus")
             self.chorus.start()
             self.assertTrue(self.chorus._chorus_thread.is_alive())
             
@@ -89,6 +92,8 @@ class TestChorusInThread(unittest.TestCase):
             
             self.chorus.stop()
             self.assertFalse(self.chorus._chorus_thread.is_alive())
-
+            print("Chorus stopped")
+            time.sleep(3)
+        
 if __name__ == '__main__':
     unittest.main()

@@ -69,7 +69,11 @@ class SimpleToolExecutor(ToolExecutor):
                 action_name=action.action_name, parameters=action.parameters
             )
         except Exception as e:
-            print("\033[1;31m" + "=" * os.get_terminal_size().columns + "\033[0m")
+            try:
+                terminal_size = os.get_terminal_size().columns
+            except OSError:
+                terminal_size = 80
+            print("\033[1;31m" + "=" * terminal_size + "\033[0m")
             print(f"\033[1;31m[Tool Execution Error Recorded] Error tolerance is set to {self._tolerate_error}. \033[0m")
             if self._tolerate_error:
                 print("Agent will react to this error message rather than raise an exception.")
@@ -80,7 +84,7 @@ class SimpleToolExecutor(ToolExecutor):
             print(f"\033[1;31mError details:\033[0m {str(e)}")
             print(f"\033[1;31mError type:\033[0m {type(e).__name__}")
             print(f"\033[1;31mTraceback:\033[0m {traceback.format_exc()}")
-            print("\033[1;31m" + "=" * os.get_terminal_size().columns + "\033[0m")
+            print("\033[1;31m" + "=" * terminal_size + "\033[0m")
             if self._tolerate_error:
                 observation = {"error": str(e)}
             else:

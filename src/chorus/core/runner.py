@@ -213,9 +213,13 @@ class Chorus(object):
                     if not proc.is_alive():
                         if proc.pid not in return_dict:
                             # Error is detected, clean up all processes and exit
-                            print("\033[1;41m" + "=" * os.get_terminal_size().columns + "\033[0m")
+                            try:
+                                terminal_size = os.get_terminal_size().columns
+                            except OSError:
+                                terminal_size = 80
+                            print("\033[1;41m" + "=" * terminal_size + "\033[0m")
                             print(f"\033[1;41m Chorus Agent Crashed: {agent_id} \033[0m")
-                            print("\033[1;41m" + "=" * os.get_terminal_size().columns + "\033[0m")
+                            print("\033[1;41m" + "=" * terminal_size + "\033[0m")
                             for proc, _ in self.alive_processes:
                                 if proc.is_alive():
                                     proc.terminate()
@@ -374,6 +378,10 @@ class Chorus(object):
             return
         self._chorus_thread = threading.Thread(target=self.run)
         self._chorus_thread.start()
+        # Wait for the thread to start
+        time.sleep(1)
+        while not self._chorus_thread.is_alive():
+            time.sleep(0.1)
     
     def stop(self):
         """Stop Chorus and wait for it to finish.
@@ -384,6 +392,8 @@ class Chorus(object):
         self._stopping = True
         if self._chorus_thread and self._chorus_thread.is_alive():
             self._chorus_thread.join()
+        self._stopping = False
+        
     
     def cleanup(self, *args, **kwargs):
         """Clean up chorus resources and terminate all processes.
