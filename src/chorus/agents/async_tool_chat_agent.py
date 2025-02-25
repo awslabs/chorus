@@ -50,7 +50,7 @@ class AsyncToolChatAgent(ToolChatAgent):
 
     def __init__(
         self,
-        name: str,
+        name: Optional[str] = None,
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
         multi_agent_instruction: Optional[str] = None,

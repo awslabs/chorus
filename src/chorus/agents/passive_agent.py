@@ -10,7 +10,6 @@ from chorus.data.agent_status import AgentStatus
 from chorus.data.dialog import Message
 from chorus.data.dialog import Role
 from chorus.data.state import PassiveAgentState
-from chorus.util.agents_util import generate_agent_id
 
 logger = logging.getLogger(__name__)
 
@@ -22,18 +21,17 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
     agents, it does not initiate interactions on its own.
 
     Args:
-        default_agent_id: Optional string ID to use for this agent. If not provided,
-            one will be generated based on the class name.
+        name: Optional name for the agent. If not provided, a default name will be generated.
         no_response_sources: Optional list of source IDs that this agent should ignore
             messages from.
     """
 
     def __init__(
         self,
-        default_agent_id: Optional[str] = None,
+        name: Optional[str] = None,
         no_response_sources: Optional[List[str]] = None,
     ):
-        self._default_agent_id = default_agent_id
+        super().__init__(name)
         self._no_response_sources = no_response_sources
 
     def init_state(self) -> PassiveAgentState:
@@ -43,22 +41,6 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
             PassiveAgentState: A new state object for this passive agent.
         """
         return PassiveAgentState()
-
-    def init_context(self) -> AgentContext:
-        """Initialize the agent's context with an ID.
-
-        Uses the provided default_agent_id if available, otherwise generates one
-        based on the class name.
-
-        Returns:
-            AgentContext: A new context object with the agent's ID.
-        """
-        if self._default_agent_id is not None:
-            agent_id = self._default_agent_id
-        else:
-            agent_id = generate_agent_id(self.__class__.__name__)
-
-        return AgentContext(agent_id=agent_id)
 
     @abc.abstractmethod
     def respond(
