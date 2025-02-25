@@ -5,10 +5,11 @@ on:
   push:
     branches:
       - nightly  # Trigger when changes are pushed to the 'nightly' branch
+      - main  # Trigger when changes are pushed to the 'main' branch
   pull_request:
     branches:
       - nightly  # Trigger on pull requests to the 'nightly' branch
-
+      - main  # Trigger on pull requests to the 'main' branch
 jobs:
   test:
     runs-on: self-hosted  # Use the self-hosted runner
