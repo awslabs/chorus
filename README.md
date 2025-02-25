@@ -43,6 +43,13 @@ export AWS_SECRET_ACCESS_KEY=...
 export AWS_SESSION_TOKEN=...
 ```
 
+## Running the unit tests
+1. Install pytest using pip:
+```pip install pytest```
+2. Execute the tests in tests/ folder using:
+```pytest tests/```
+
+
 ## Hello World Example
 
 In the Chorus package, we provide a hello world example allows you to get started with Chorus quickly.
