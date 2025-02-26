@@ -29,7 +29,7 @@ class ToolChatAgent(PassiveAgent):
     language models and prompters.
 
     Args:
-        name: The name identifier for this agent.
+        name: The name for this agent.
         model_name: The name of the language model to use. Defaults to DEFAULT_AGENT_LLM_NAME.
         instruction: Custom instructions for the agent's behavior. Defaults to None.
         tools: List of executable tools available to the agent. Defaults to None.
@@ -42,7 +42,7 @@ class ToolChatAgent(PassiveAgent):
 
     def __init__(
         self,
-        name: str,
+        name: Optional[str] = None,
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
         tools: List[ExecutableTool] = None,
@@ -53,12 +53,11 @@ class ToolChatAgent(PassiveAgent):
         tool_executor_class: Type[SimpleToolExecutor] = SimpleToolExecutor,
         context_switchers: Optional[List[Tuple[MessageTrigger, ChorustionContext]]] = None,
     ):
-        super().__init__(no_response_sources=no_response_sources)
+        super().__init__(name=name, no_response_sources=no_response_sources)
         self._prompter = prompter
         self._planner = planner
         self._tool_executor_class = tool_executor_class
         self._lm = lm
-        self._name = name
         self._tools = tools
         self._model_name = model_name
         self._instruction = instruction
