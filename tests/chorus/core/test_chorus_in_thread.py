@@ -1,3 +1,4 @@
+import multiprocessing
 import unittest
 import time
 from unittest.mock import MagicMock
@@ -6,6 +7,8 @@ from chorus.agents import ToolChatAgent, SynchronizedCoordinatorAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.helpers.communication import CommunicationHelper
+
+multiprocessing.set_start_method('fork')
 
 class TestChorusInThread(unittest.TestCase):
     def setUp(self):
