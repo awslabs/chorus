@@ -1,6 +1,6 @@
-from typing import Dict, Optional, Set
+from typing import Any, Dict, Optional, Set
 from pydantic import BaseModel, Field
-
+from langchain_core.memory import BaseMemory
 
 class AgentState(BaseModel):
     """Base class for agent state.
@@ -53,3 +53,22 @@ class TeamState(PassiveAgentState):
         """Gets the data store for a given collaboration.
         """
         return self.collaboration_data_store
+    
+class LangchainAgentState(PassiveAgentState):
+    """State for LangChain agents.
+
+    A class that represents the state of a LangChain agent, extending AgentState
+    with a last message.
+
+    Attributes:
+        last_message: The last message processed by the agent
+    """
+    def __init__(self, memory:BaseMemory):
+        self.conversation_context = memory
+
+    def get_conversation_context(self, input) -> Dict[str, Any]:
+        return self.conversation_context.load_memory_variables(input)
+    
+    def save_conversation_context(self, input, ouput) -> None:
+        self.conversation_context.save_context(input, ouput)
+

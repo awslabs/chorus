@@ -28,3 +28,7 @@ After build successfully, the executable under
 .venv/bin/python3.11
 ```
 shall come with the Chorus package installed (i.e. you can `import chorus`).
+
+## Hetrogenous Agent
+Install the needed dependencies with:
+1. langchain : ```pip install ".[langchain]"```
