@@ -1,0 +1,33 @@
+name: Type Check with PyPI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly  # Trigger when changes are pushed to the 'nightly' branch
+      - main  # Trigger when changes are pushed to the 'main' branch
+  pull_request:
+    branches:
+      - nightly  # Trigger on pull requests to the 'nightly' branch
+      - main  # Trigger on pull requests to the 'main' branch
+jobs:
+  type-check:
+    runs-on: self-hosted  # Use the self-hosted runner
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'  # You can specify your Python version here
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch
+          python -m pip install mypy types-all
+          
+      - name: Run type checking
+        run: |
+          python -m hatch run typing

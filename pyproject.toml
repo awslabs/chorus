@@ -66,27 +66,22 @@ parallel = true
 # fail_under = 99
 
 [tool.coverage.paths]
-"amzn_llm_formatter" = ["src/chorus", "**/site-packages/chorus"]
+"chorus" = ["src/chorus", "**/site-packages/chorus"]
 
 [tool.coverage.report]
 exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise AssertionError"
 ]
 show_missing = true
 
-[tool.coverage.xml]
-output = "private/brazil-documentation/coverage/coverage.xml"
-
 [tool.coverage.html]
-directory = "private/brazil-documentation/coverage/"
-
-[tool.poetry.dev-dependencies]
-black = "^24.4"
-flake8 = "^7.0"
-isort = "^5.13"
-mypy = "^1.10"
+directory = "./coverage"
 
 [tool.black]
 line-length = 100
@@ -104,52 +99,7 @@ directory = "./build"
 requires = [ "hatch-pip-compile" ]
 
 [tool.hatch.envs.default.scripts]
-# These are scripts you can run using `brazil-build run <script-name>`
 typing = [
   "mkdir -p .mypy_cache",
   "mypy --install-types --non-interactive src/chorus tests/chorus"
 ]
-
-type = "pip-compile"
-pip-compile-args = [
-    "--no-emit-index-url",
-    "--no-emit-trusted-host"
-]
-
-# This command is for updating all your lock files across all environments 
-update = [ "hatch-pip-compile --upgrade --all" ]
-
-release = [
-    #"typing",
-    "hatch test --all --cover",
-]
-
-[[tool.hatch.envs.hatch-test.matrix]]
-# This defines multiple variables you can generate combinations
-# to test underneath different environments.  A separate environment and 
-# lock file will be created for every combination located in `./requirements/`
-python = ["3.12"]
-
-## This environment is used solely to generate a lock file on hatch,
-# and hatch-pip-compile that can be automatically updated
-[tool.hatch.envs.build-tools]
-# This version states what version your build tools build with.  To change it,
-# you will need to:
-# * Remove the `requirements/requirements-build-tools.txt` file
-# * Run `brazil-build run update` to generate a new lock file for the environment
-python = "3.12"
-detached = true
-skip-install = true
-dependencies = [
-  "hatch",
-  "hatch-pip-compile",
-]
-
-# PeruHatch repository and package locking plugin
-[tool.hatch.env.collectors.custom]
-path = ".hatch/hatch_plugin.py"
-
-# This is necessary to use 'uv' as the resolver if this is the top-level package
-# in a monorepo (which is usually the case).  Remove this if copying the
-# package into a monorepo
-[tool.uv.workspace]
