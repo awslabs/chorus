@@ -1,3 +1,4 @@
+import arxiv
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema
@@ -37,8 +38,6 @@ class ArxivRetrieverTool(SimpleExecutableTool):
         super().__init__(ToolSchema.model_validate(schema))
 
     def search(self, query: str, num_results: int = 10):
-        import arxiv
-
         client = arxiv.Client()
         search = arxiv.Search(query=query, max_results=num_results)
         results = client.results(search)

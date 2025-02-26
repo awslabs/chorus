@@ -25,6 +25,6 @@ Note the current version hasn't split up unit tests and integrational tests prop
 
 After build successfully, the executable under
 ```
-.venv/bin/python3.11
+.venv/bin/python3.12
 ```
 shall come with the Chorus package installed (i.e. you can `import chorus`).

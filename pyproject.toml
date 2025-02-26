@@ -10,7 +10,7 @@ version = "0.2.0"
 description = "Chorus - A Framework for Collaborating and Orchestrating Teams of Autonomous Agents."
 
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 dependencies = [
     "jsonpath-ng>=1.5.3",
@@ -39,7 +39,7 @@ test = [
 # This controls what version of Python you want to be the default
 # when running any scripts or tools to do things like debug test failures
 # or do general development.  It's lockfile is ./requirements.txt
-python = "3.11"
+python = "3.12"
 dependencies = [
     "pytest",
     "mypy",
@@ -128,7 +128,7 @@ release = [
 # This defines multiple variables you can generate combinations
 # to test underneath different environments.  A separate environment and 
 # lock file will be created for every combination located in `./requirements/`
-python = ["3.11"]
+python = ["3.12"]
 
 ## This environment is used solely to generate a lock file on hatch,
 # and hatch-pip-compile that can be automatically updated
@@ -137,7 +137,7 @@ python = ["3.11"]
 # you will need to:
 # * Remove the `requirements/requirements-build-tools.txt` file
 # * Run `brazil-build run update` to generate a new lock file for the environment
-python = "3.11"
+python = "3.12"
 detached = true
 skip-install = true
 dependencies = [
