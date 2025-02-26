@@ -3,10 +3,9 @@ import os
 import shutil
 import sys
 import uuid
-from typing import Dict
 
 from chorus.config.params import Params
-from chorus.data.workspace import Workspace
+from chorus.workspace.workspace import Workspace
 
 TMP_CODE_PATH = "/tmp/custom_agents_code"
 sys.path.append(TMP_CODE_PATH)
