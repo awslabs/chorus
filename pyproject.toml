@@ -26,13 +26,19 @@ dependencies = [
     "beautifulsoup4>=4.12.3",
     "tenacity>=8.2.2",
     "flask>=2.0.0",
-    "jupyter_core",
+    "jupyter_core"
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
     "requests>=2.31.0",
+]
+langchain = [
+  "langchain-core",
+  "langchain",
+  "langchain-community",
+  "langchain-aws"
 ]
 
 [tool.hatch.envs.default]

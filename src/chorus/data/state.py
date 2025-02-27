@@ -1,6 +1,5 @@
-from typing import Dict, Optional, Set
+from typing import Any, Dict, Optional, Set
 from pydantic import BaseModel, Field
-
 
 class AgentState(BaseModel):
     """Base class for agent state.
@@ -53,3 +52,4 @@ class TeamState(PassiveAgentState):
         """Gets the data store for a given collaboration.
         """
         return self.collaboration_data_store
+    
