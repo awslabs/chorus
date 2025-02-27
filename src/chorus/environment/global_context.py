@@ -189,7 +189,7 @@ class ChorusGlobalContext(BaseModel):
         self.sync_agent_messages(agent_id)
 
     def send_message(
-        self, message: Optional[Message] = None , source: str = None, destination: str = None, channel: str = None, content: str = None
+        self, message: Optional[Message] = None , source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, content: Optional[str] = None
     ):
         """Send a message through the global context.
 
@@ -240,7 +240,7 @@ class ChorusGlobalContext(BaseModel):
         """
         return self.message_service.fetch_all_messages()
     
-    def filter_messages(self, source: str = None, destination: str = None, channel: str = None) -> List[Message]:
+    def filter_messages(self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None) -> List[Message]:
         """Filter messages based on source, destination, and channel.
 
         Args:

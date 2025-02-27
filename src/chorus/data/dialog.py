@@ -52,7 +52,7 @@ class BaseEvent(BaseModel):
         meta: Optional metadata dictionary for the event
     """
     event_type: str = "event"
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
 
 class Message(BaseEvent):
@@ -91,7 +91,7 @@ class Message(BaseEvent):
     content: Optional[str] = None
     structured_content: Optional[JsonData] = None
     content_type: Optional[str] = None
-    artifacts: Optional[Dict[str, JsonData]] = None
+    artifacts: Optional[Dict[str, Dict]] = None
 
     def extract_actions(self) -> List[ActionData]:
         """Extract actions from this message turn.
@@ -178,7 +178,7 @@ class Dialog(BaseModel):
     dialog_id: str
     turns: List[Message]
     toolbox: List[str]
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
     def hash(self):
         """Generate a unique hash for this dialog.
@@ -202,7 +202,7 @@ class DialogSet(BaseModel):
     dialogset_id: str
     dialogs: List[Dialog]
     tool_db: Optional[ToolDB] = None
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
 
 def read_dialogset(dialogset_path: Path):

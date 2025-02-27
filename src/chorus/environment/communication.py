@@ -27,7 +27,7 @@ class MessageService(BaseModel):
         return self.message_history
 
     def filter_messages(
-        self, source: str = None, destination: str = None, channel: str = None, exclude_actions_observations: bool = True
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, exclude_actions_observations: bool = True
     ) -> List[Message]:
         return [
             msg
@@ -57,7 +57,7 @@ class MessageService(BaseModel):
         self.message_history = messages
     
     def wait_for_response(
-        self, source: str = None, destination: str = None, channel: str = None, event_type: str = None, timeout: int = 300
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, event_type: Optional[str] = None, timeout: int = 300
     ) -> Optional[Message]:
         """Wait for a response message matching the given criteria.
         
@@ -106,7 +106,7 @@ class MultiAgentMessageService(MessageService):
         return [Message.model_validate_json(msg) for msg in self.message_history]
 
     def filter_messages(
-        self, source: str = None, destination: str = None, channel: str = None
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None
     ) -> List[Message]:
         all_messages = self.fetch_all_messages()
         return [
@@ -134,7 +134,7 @@ class MultiAgentMessageService(MessageService):
             self.send_message(msg)
 
     def wait_for_response(
-        self, source: str = None, destination: str = None, channel: str = None, event_type: str = None, timeout: int = 300
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, event_type: Optional[str] = None, timeout: int = 300
     ) -> Optional[Message]:
         if source is None and channel is None:
             return None

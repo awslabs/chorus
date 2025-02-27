@@ -86,10 +86,10 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
     def get_prompt(
         self,
         messages: List[Message],
-        tools: List[ToolSchema] = None,
-        agent_instruction: str = None,
-        resources: List[Resource] = None,
-        reference_time: str = None,
+        tools: Optional[List[ToolSchema]] = None,
+        agent_instruction: Optional[str] = None,
+        resources: Optional[List[Resource]] = None,
+        reference_time: Optional[str] = None,
         planner_instruction: Optional[str] = None,
     ) -> Prompt:
         """Generates a structured prompt for multi-agent conversation.

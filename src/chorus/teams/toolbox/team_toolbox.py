@@ -25,7 +25,7 @@ class TeamToolClient(ExecutableTool):
         self._tool_schema = tool.get_schema()
         super().__init__(self._tool_schema)
     
-    def execute(self, action_name: Optional[str] = None, parameters: JsonData = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Dict = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
@@ -60,7 +60,7 @@ class AsyncTeamToolClient(TeamToolClient):
     A client for executing tools in the team's toolbox asynchronously.
     """
 
-    def execute(self, action_name: Optional[str] = None, parameters: JsonData = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Dict = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
@@ -133,7 +133,7 @@ class TeamToolboxClient(SimpleExecutableTool):
         }
         super().__init__(ToolSchema.model_validate(schema))
 
-    def execute_tool(self, action_name: str, tool_name: Optional[str] = None, parameters: JsonData = None, async_mode: bool = False, tool_use_id: Optional[str] = None) -> JsonData:
+    def execute_tool(self, action_name: str, tool_name: Optional[str] = None, parameters: Optional[Dict] = None, async_mode: bool = False, tool_use_id: Optional[str] = None) -> JsonData:
         """
         Execute a tool from the team's toolbox.
         """

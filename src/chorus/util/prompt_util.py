@@ -13,7 +13,7 @@ class PrompterUtil:
 
     @staticmethod
     def get_prompter(
-        prompter_name: str = None, config_path: str = None, prompter_type: str = "interact"
+        prompter_name: Optional[str] = None, config_path: Optional[str] = None, prompter_type: str = "interact"
     ):
         """Get a prompter instance.
 

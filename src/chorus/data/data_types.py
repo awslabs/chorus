@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +39,6 @@ class ActionData(BaseModel):
 
     tool_name: str
     action_name: Optional[str] = None
-    parameters: Optional[JsonData] = Field(default_factory=dict)
+    parameters: Optional[Dict] = Field(default_factory=dict)
     tool_use_id: Optional[str] = None
     async_execution_id: Optional[str] = None

@@ -58,7 +58,7 @@ class AsyncToolChatAgent(ToolChatAgent):
         tools: Optional[List[ExecutableTool]] = None,
         prompter: Optional[InteractPrompter] = None,
         lm: Optional[LanguageModelClient] = None,
-        no_response_sources: List[str] = None,
+        no_response_sources: Optional[List[str]] = None,
         planner: Optional[MultiAgentPlanner] = None,
         tool_executor_class: Type[SimpleToolExecutor] = SimpleToolExecutor,
         allow_waiting: bool = False,

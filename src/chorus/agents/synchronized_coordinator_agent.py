@@ -39,7 +39,7 @@ class SynchronizedCoordinatorAgent(ToolChatAgent):
         reachable_agents: Dict[str, str],
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
-        tools: List[ExecutableTool] = None,
+        tools: Optional[List[ExecutableTool]] = None,
         prompter: Optional[InteractPrompter] = None,
         lm: Optional[LanguageModelClient] = None,
         no_response_sources: Optional[List[str]] = None,

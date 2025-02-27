@@ -1,5 +1,4 @@
-from chorus.data.context import AgentContext
-from chorus.data.dialog import Role
+from typing import Optional
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema
 from chorus.helpers.communication import CommunicationHelper
@@ -151,7 +150,7 @@ Tool for asynchronized multi-agent communication. Notes:
             schema["actions"].pop(1)
         super().__init__(ToolSchema.model_validate(schema))
 
-    def send(self, recipient_agent: str=None, content: str="", channel: str = None):
+    def send(self, recipient_agent: Optional[str] = None, content: str="", channel: Optional[str] = None):
         """Sends a message to a specific agent or channel.
 
         Args:
@@ -172,7 +171,7 @@ Tool for asynchronized multi-agent communication. Notes:
         verse.send(destination=recipient_agent, content=content, channel=channel)
         return None
 
-    def wait(self, source: str, channel: str = None, timeout: int = None):
+    def wait(self, source: str, channel: Optional[str] = None, timeout: Optional[int] = None):
         """Waits for a message from a specific agent or channel.
 
         Args:

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from chorus.data.state import TeamState
 from chorus.data.data_types import ObservationData
@@ -69,7 +69,7 @@ class TeamStorage(TeamService):
         team_context.message_service.send_message(outbound_event)
 
 
-    def list_files(self, temp_folder: str, prefix: str = None) -> List:
+    def list_files(self, temp_folder: str, prefix: Optional[str] = None) -> List:
         """
         List all files in the team storage, return a list of file paths.
         """

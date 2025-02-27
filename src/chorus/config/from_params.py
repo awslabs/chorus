@@ -119,7 +119,7 @@ def remove_optional(annotation: type):
 
 
 def infer_constructor_params(
-    cls: Type[T], constructor: Union[Callable[..., T], Callable[[T], None]] = None
+    cls: Type[T], constructor: Optional[Union[Callable[..., T], Callable[[T], None]]] = None
 ) -> Dict[str, inspect.Parameter]:
     if constructor is None:
         constructor = cls.__init__
@@ -503,8 +503,8 @@ class FromParams:
     def from_params(
         cls: Type[T],
         params: Params,
-        constructor_to_call: Callable[..., T] = None,
-        constructor_to_inspect: Union[Callable[..., T], Callable[[T], None]] = None,
+        constructor_to_call: Optional[Callable[..., T]] = None,
+        constructor_to_inspect: Optional[Union[Callable[..., T], Callable[[T], None]]] = None,
         **extras,
     ) -> T:
         """
