@@ -74,14 +74,16 @@ if __name__ == "__main__":
             visual_port=args.visual_port
         )
         for message in ws.start_messages:
-            runner.get_environment().send_message(
-                Message(
-                    source=message.get("source", None),
-                    destination=message.get("destination", None),
-                    channel=message.get("channel", None),
-                    content=message.get("content", None),
+            env = runner.get_environment()
+            if env is not None:
+                env.send_message(
+                    Message(
+                        source=message.get("source", None),
+                        destination=message.get("destination", None),
+                        channel=message.get("channel", None),
+                        content=message.get("content", None),
+                    )
                 )
-            )
 
         if ws.main_channel is None:
             raise ValueError("No default channel specified in workspace.")
@@ -96,11 +98,13 @@ if __name__ == "__main__":
                 human_input = input(f"Human -> {ws.main_channel}: ")
             if not human_input.strip() or human_input.strip().lower() == "exit":
                 break
-            runner.get_environment().send_message(
-                source="human",
-                destination=ws.main_channel,
-                message=Message(content=human_input),
-            )
+            env = runner.get_environment()
+            if env is not None:
+                env.send_message(
+                    source="human",
+                    destination=ws.main_channel,
+                    message=Message(content=human_input),
+                )
             runner.run()
     else:
         print(f"{args.command} is not a valid command or not implemented yet.")

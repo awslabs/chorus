@@ -1,18 +1,14 @@
-from typing import TYPE_CHECKING, List, Optional, Dict
-from datetime import datetime, timedelta
-import time
-from collections import deque
+from typing import List, Optional, Dict
+from datetime import datetime
 
 from chorus.collaboration.base import Collaboration
 from chorus.data.dialog import Message
 from chorus.helpers.communication import CommunicationHelper
 from chorus.teams.services.team_voting import TeamVoting
 from chorus.data.team_info import TeamInfo
-
-if TYPE_CHECKING:
-    from chorus.data.context import TeamContext
-    from chorus.data.state import TeamState
-    from chorus.teams.services.base import TeamService
+from chorus.data.context import TeamContext
+from chorus.data.state import TeamState
+from chorus.teams.services.base import TeamService
 
 class TaskInfo:
     """Information about a queued task."""
@@ -64,7 +60,7 @@ class DecentralizedCollaboration(Collaboration):
         self._voting_service = None
         self._team_info = None
 
-    def _get_data_store(self, team_state: "TeamState") -> Dict:
+    def _get_data_store(self, team_state: TeamState) -> Dict:
         """Get or initialize the collaboration data store."""
         data_store = team_state.get_collaboration_data_store()
         if "task_start_time" not in data_store:
@@ -85,7 +81,7 @@ class DecentralizedCollaboration(Collaboration):
                 self._voting_service = service
                 break
 
-    def process_message(self, team_context: "TeamContext", team_state: "TeamState", inbound_message: Message):
+    def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
         """Process incoming messages and manage the decentralized collaboration."""
         if inbound_message.event_type == "team_service":
             return
@@ -125,7 +121,7 @@ class DecentralizedCollaboration(Collaboration):
                 source=self._team_info.get_identifier()
             )
 
-    def iterate(self, team_context: "TeamContext", team_state: "TeamState") -> Optional["TeamState"]:
+    def iterate(self, team_context: TeamContext, team_state: TeamState) -> Optional[TeamState]:
         """Periodically check for voting results and time limits."""
         data_store = self._get_data_store(team_state)
         if data_store["current_task_id"] is None or not self._voting_service:
@@ -175,7 +171,7 @@ class DecentralizedCollaboration(Collaboration):
 
         return team_state
 
-    def _notify_collaboration_end(self, team_context: "TeamContext", message: str):
+    def _notify_collaboration_end(self, team_context: TeamContext, message: str):
         """Send notification to all team agents about collaboration end."""
         helper = CommunicationHelper(team_context)
         for agent_id in self._team_info.agent_ids:
@@ -185,7 +181,7 @@ class DecentralizedCollaboration(Collaboration):
                 source=self._team_info.get_identifier()
             )
 
-    def _start_task(self, task: TaskInfo, team_context: "TeamContext", team_state: "TeamState"):
+    def _start_task(self, task: TaskInfo, team_context: TeamContext, team_state: TeamState):
         """Start processing a new task."""
         data_store = self._get_data_store(team_state)
         data_store.update({
@@ -206,7 +202,7 @@ class DecentralizedCollaboration(Collaboration):
             for agent_id in self._team_info.agent_ids:
                 helper.send(agent_id, task.content, source=task.requester)
 
-    def _end_current_task(self, team_context: "TeamContext", team_state: "TeamState"):
+    def _end_current_task(self, team_context: TeamContext, team_state: TeamState):
         """End current task and start next task if available."""
         data_store = self._get_data_store(team_state)
         self._reset_task(data_store)

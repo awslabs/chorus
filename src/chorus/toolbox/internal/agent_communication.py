@@ -45,7 +45,7 @@ class AgentAsATool(SimpleExecutableTool):
         }
         super().__init__(ToolSchema.model_validate(schema))
 
-    def call(self, message: str) -> str:
+    def call(self, message: str) -> Optional[str]:
         """Sends a message to the wrapped agent and returns their response.
 
         Args:
@@ -62,6 +62,8 @@ class AgentAsATool(SimpleExecutableTool):
         verse = CommunicationHelper(self.get_context())
         verse.send(destination=self._agent_name, content=message)
         return_message = verse.wait(source=self._agent_name)
+        if return_message is None:
+            return None
         return return_message.content
 
 

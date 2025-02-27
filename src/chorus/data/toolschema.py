@@ -184,7 +184,7 @@ class ToolSchema(BaseModel):
                         input_schema["required"].append(param_name)
 
                 # Build output schema
-                output_schema = {"oneOf": []}
+                output_schema: Dict = {"oneOf": []}
                 for response_status, response in verb_obj.get("responses", {}).items():
                     schema = cls._get_nested_key(
                         response, ["content", "application/json", "schema"], {}

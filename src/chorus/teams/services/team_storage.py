@@ -25,6 +25,8 @@ class TeamStorage(TeamService):
             return
         data_store = team_state.get_service_data_store(self.get_name())
         observations = []
+        if inbound_message.actions is None:
+            return
         for action in inbound_message.actions:
             if action.tool_name == self.get_name():
                 if action.action_name == "list_files":
