@@ -1,7 +1,6 @@
 import os
 import json
 import tempfile
-import pytest
 from chorus.util.visual_debugger import VisualDebugger
 import requests
 import time

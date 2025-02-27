@@ -34,7 +34,12 @@ test = [
     "pytest>=7.0.0",
     "requests>=2.31.0",
 ]
-
+langchain = [
+  "langchain-core",
+  "langchain",
+  "langchain-community",
+  "langchain-aws"
+]
 [tool.hatch.envs.default]
 # This controls what version of Python you want to be the default
 # when running any scripts or tools to do things like debug test failures
