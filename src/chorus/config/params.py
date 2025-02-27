@@ -463,7 +463,7 @@ class Params(MutableMapping):
         cls,
         params_file: Union[str, PathLike],
         params_overrides: Union[str, Dict[str, Any]] = "",
-        ext_vars: dict = None,
+        ext_vars: Optional[Dict] = None,
     ) -> "Params":
         """Create a Params instance from a configuration file.
 

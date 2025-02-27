@@ -22,8 +22,8 @@ class CommunicationHelper(AgentHelper):
         self,
         destination: str,
         content: str,
-        channel: str = None,
-        source: str = None,
+        channel: Optional[str] = None,
+        source: Optional[str] = None,
         timeout: int = 300,
     ) -> Message:
         """Send a message and wait for a response.

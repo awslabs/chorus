@@ -42,8 +42,8 @@ class BedrockConverseAPIClient(LanguageModelClient):
     @retry(wait=wait_exponential(multiplier=2, min=5, max=60), stop=stop_after_attempt(5))
     def generate(
         self,
-        prompt: StructuredPrompt = None,
-        prompt_dict: Dict = None,
+        prompt: Optional[StructuredPrompt] = None,
+        prompt_dict: Optional[Dict] = None,
         options: Optional[Dict] = None,
         model_name: Optional[str] = None,
         region: Optional[str] = AWS_DEFAULT_REGION,

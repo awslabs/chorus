@@ -133,7 +133,7 @@ class TeamToolboxClient(SimpleExecutableTool):
         }
         super().__init__(ToolSchema.model_validate(schema))
 
-    def execute_tool(self, action_name: str, tool_name: Optional[str] = None, parameters: Dict = None, async_mode: bool = False, tool_use_id: Optional[str] = None) -> JsonData:
+    def execute_tool(self, action_name: str, tool_name: Optional[str] = None, parameters: Optional[Dict] = None, async_mode: bool = False, tool_use_id: Optional[str] = None) -> JsonData:
         """
         Execute a tool from the team's toolbox.
         """

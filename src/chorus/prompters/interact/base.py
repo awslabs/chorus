@@ -22,7 +22,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
     and conversation state tracking.
     """
 
-    def __init__(self, prompt_adapter: str = None):
+    def __init__(self, prompt_adapter: Optional[str] = None):
         """Initialize the InteractPrompter.
 
         Args:
@@ -96,10 +96,10 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
     def get_prompt(
         self,
         messages: List[Message],
-        tools: List[ToolSchema] = None,
-        agent_instruction: str = None,
-        resources: List[Resource] = None,
-        reference_time: str = None,
+        tools: Optional[List[ToolSchema]] = None,
+        agent_instruction: Optional[str] = None,
+        resources: Optional[List[Resource]] = None,
+        reference_time: Optional[str] = None,
         planner_instruction: Optional[str] = None,
     ) -> Prompt:
         """Generate a prompt from conversation messages and context.
@@ -121,10 +121,10 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
     def get_target(
         self,
         messages: List[Message],
-        tools: List[ToolSchema] = None,
-        agent_instruction: str = None,
-        resources: List[Resource] = None,
-        reference_time: str = None,
+        tools: Optional[List[ToolSchema]] = None,
+        agent_instruction: Optional[str] = None,
+        resources: Optional[List[Resource]] = None,
+        reference_time: Optional[str] = None,
     ) -> Completion:
         """Generate a target completion from conversation messages and context.
 

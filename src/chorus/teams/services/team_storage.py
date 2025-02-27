@@ -69,7 +69,7 @@ class TeamStorage(TeamService):
         team_context.message_service.send_message(outbound_event)
 
 
-    def list_files(self, temp_folder: str, prefix: str = None) -> List:
+    def list_files(self, temp_folder: str, prefix: Optional[str] = None) -> List:
         """
         List all files in the team storage, return a list of file paths.
         """
