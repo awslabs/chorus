@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from chorus.data.state import TeamState
 from chorus.data.data_types import ObservationData
