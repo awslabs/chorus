@@ -20,7 +20,6 @@ from openapi_spec_validator.readers import read_from_filename
 from pydantic import BaseModel
 from pydantic import Field
 
-from chorus.data.schema import JsonData
 from chorus.data.schema import JsonSchema
 
 logger = logging.getLogger(__file__)
@@ -57,7 +56,7 @@ class Action(BaseModel):
     input_schema: JsonSchema
     output_schema: JsonSchema
     requires_confirmation: bool = False
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
 
 class Tool(BaseModel):
@@ -79,7 +78,7 @@ class Tool(BaseModel):
     description: str
     actions: List[Action]
     tool_type: ToolType = ToolType.MODULE
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
     def actions_by_name(self) -> Dict[str, Action]:
         """Gets a mapping of action names to actions.
@@ -227,7 +226,7 @@ class ToolDB(BaseModel):
     """
 
     tools: List[Tool]
-    meta: Optional[Dict[str, JsonData]] = Field(default_factory=dict)
+    meta: Optional[Dict[str, Dict]] = Field(default_factory=dict)
 
     def tools_by_id(self) -> Dict[str, Tool]:
         """Gets a mapping of tool IDs to tools.
