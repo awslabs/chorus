@@ -1,11 +1,9 @@
-from typing import TYPE_CHECKING
 from chorus.collaboration.base import Collaboration
 from chorus.data.dialog import Message
 from chorus.helpers.communication import CommunicationHelper
-import copy
 
-if TYPE_CHECKING:
-    from chorus.data.context import TeamContext, TeamState
+from chorus.data.context import TeamContext
+from chorus.data.state import TeamState
 
 
 @Collaboration.register('CentralizedCollaboration')
@@ -17,7 +15,7 @@ class CentralizedCollaboration(Collaboration):
 
     """
 
-    def process_message(self, team_context: "TeamContext", team_state: "TeamState", inbound_message: Message):
+    def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
         if inbound_message.event_type == "team_service":
             return
         requester = inbound_message.source

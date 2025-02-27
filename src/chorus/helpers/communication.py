@@ -25,7 +25,7 @@ class CommunicationHelper(AgentHelper):
         channel: Optional[str] = None,
         source: Optional[str] = None,
         timeout: int = 300,
-    ) -> Message:
+    ) -> Optional[Message]:
         """Send a message and wait for a response.
         
         Args:
@@ -67,7 +67,7 @@ class CommunicationHelper(AgentHelper):
 
     def wait(
         self, source: str, destination: Optional[str] = None, channel: Optional[str] = None, timeout: int = 300
-    ) -> Message:
+    ) -> Optional[Message]:
         """Wait for a response message from another agent.
         
         Args:

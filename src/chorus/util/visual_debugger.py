@@ -995,9 +995,9 @@ class VisualDebugger:
         log.setLevel(logging.ERROR)
         self.port = port
         self.log_files: Dict[str, str] = {}
-        self.teams = []
-        self.channels = []
-        self._states = {}  # Store agent and team states
+        self.teams: List = []
+        self.channels: List = []
+        self._states: Dict = {}  # Store agent and team states
         self._setup_routes()
         self.server_thread: Optional[threading.Thread] = None
         
@@ -1055,7 +1055,7 @@ class VisualDebugger:
 
     def _get_team_scratchpads(self, team) -> List[Dict]:
         """Get all scratchpads from a team's scratchpad service."""
-        scratchpads = []
+        scratchpads: List = []
         try:
             team_state = self._get_team_state(team)
             if not team_state:

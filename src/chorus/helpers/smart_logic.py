@@ -38,7 +38,7 @@ class SmartLogicHelper(AgentHelper):
             lm = BedrockConverseAPIClient(DEFAULT_AGENT_LLM_NAME)
         self._lm_client = lm
 
-    def prompt(self, prompt: str) -> str:
+    def prompt(self, prompt: str) -> Optional[str]:
         """Send a prompt to the language model and get the response.
 
         Args:
@@ -86,7 +86,7 @@ class SmartLogicHelper(AgentHelper):
         else:
             return response == "TRUE"
 
-    def smart_extract(self, content: str, target: str) -> str:
+    def smart_extract(self, content: str, target: str) -> Optional[str]:
         """Use the language model to extract specific information from content.
 
         Args:

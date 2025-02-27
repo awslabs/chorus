@@ -15,7 +15,7 @@ from typing import Union
 from pydantic import BaseModel
 from pydantic import Field
 
-JsonData = Union[str, int, float, bool, None, List[Any], Dict[str, Any]]
+JsonData = Optional[Union[str, int, float, bool, List[Any], Dict[str, Any]]]
 
 
 class JsonTypes(str, Enum):

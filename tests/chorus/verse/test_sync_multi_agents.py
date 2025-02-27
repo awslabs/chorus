@@ -29,7 +29,9 @@ if __name__ == '__main__':
     simulator = Chorus(teams=[team], stop_conditions=[NoActivityStopper()])
     # human_input = input("Human:")
     human_input = "How to solve 3x^2 + 5 = 13?"
-    simulator.get_envrionment().send_message(
-        Message(source="human", destination="team:myteam", content=human_input)
-    )
+    env = simulator.get_environment()
+    if env is not None:
+        env.send_message(
+            Message(source="human", destination="team:myteam", content=human_input)
+        )
     simulator.run()
