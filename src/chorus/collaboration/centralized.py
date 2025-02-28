@@ -28,6 +28,9 @@ class CentralizedCollaboration(Collaboration):
     """
 
     def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
+        data_store = team_state.get_collaboration_data_store()
+        helper = CommunicationHelper(team_context)
+
         if inbound_message.event_type == "team_service":
             return
 
