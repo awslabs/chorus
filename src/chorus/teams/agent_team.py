@@ -28,7 +28,7 @@ class Team(BaseTeam):
         return super().iterate(context, state)
 
     def init_context(self) -> TeamContext:
-        return TeamContext(agent_id=f"team:{self._name}")
+        return TeamContext(agent_id=f"team:{self._name}", team_info=self._team_info)
     
     def init_state(self) -> TeamState:
         state = TeamState()

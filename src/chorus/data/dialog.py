@@ -7,6 +7,7 @@ complete dialogs, and sets of dialogs with associated tools.
 
 from enum import Enum
 from pathlib import Path
+import time
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -86,7 +87,7 @@ class Message(BaseEvent):
     actions: Optional[List[ActionData]] = None
     observations: Optional[List[ObservationData]] = None
     message_id: Optional[str] = None
-    message_timestamp: Optional[int] = None
+    message_timestamp: Optional[int] = Field(default_factory=lambda: int(time.time()))
     # Artifacts
     content: Optional[str] = None
     structured_content: Optional[JsonData] = None
@@ -133,6 +134,17 @@ class Message(BaseEvent):
             return self.observations[0] if self.observations else None
         else:
             return None
+    
+    def clone(self):
+        """Clone the message.
+
+        Returns:
+            A new Message object with the same content and metadata.
+        """
+        new_message = Message(**self.model_dump())
+        new_message.message_id = None
+        new_message.message_timestamp = int(time.time())
+        return new_message
 
     speaker_id: Optional[str] = None
     skip_for_inference: Optional[bool] = Field(default=False)

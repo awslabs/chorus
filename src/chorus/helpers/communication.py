@@ -91,3 +91,14 @@ class CommunicationHelper(AgentHelper):
             source=source, destination=destination, channel=channel, timeout=timeout
         )
         return response
+    
+
+    def send_raw_message(self, message: Message):
+        """Send a raw message to another agent.
+        
+        Args:
+            message: The message to send.
+        """
+        context = self.get_context()
+        message_service = context.get_message_service()
+        return message_service.send_message(message)
