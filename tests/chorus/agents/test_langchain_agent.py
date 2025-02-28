@@ -36,7 +36,7 @@ You are a math assistant that helps users solve mathematical calculations. You c
 as well as more complex mathematical calculations. Please show your work and explain the steps when solving problems.
 """
 
-def test_basic_langchain_agent():
+def create_agent(memory):
     bedrock_client = boto3.client(
         service_name='bedrock-runtime',
         region_name='us-east-1'  # or your preferred region
@@ -57,22 +57,25 @@ def test_basic_langchain_agent():
         func=calculator,
         description="Useful for performing mathematical calculations. Input should be a mathematical expression (e.g. '2 * 3 + 4')"
     )
-    agent_type = AgentType.ZERO_SHOT_REACT_DESCRIPTION
-    # Initialize default tools
-    memory = ConversationBufferMemory(memory_key="chat_history")
+    agent_type = AgentType.CONVERSATIONAL_REACT_DESCRIPTION
 
-    langchain_agent = initialize_agent(
-            tools=[tool],
-            llm=llm,
-            agent=agent_type,
-            memory=memory,
-            verbose=True,
-            agent_kwargs={"system_message": instruction}
-        )
+    return initialize_agent(
+        tools=[tool],
+        llm=llm,
+        agent=agent_type,
+        memory=memory,
+        verbose=True,
+        agent_kwargs={"system_message": instruction}
+    )
 
+def create_memory():
+    return ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+def test_basic_langchain_agent():
     agent = LangChainAgent(
         name="MyLangChainAgent",
-        langchain_agent=langchain_agent,
+        init_agent_func=create_agent,
+        init_memory_func=create_memory,
     )
 
     chorus = Chorus(agents=[agent])
@@ -82,7 +85,7 @@ def test_basic_langchain_agent():
     
     # Send message through message service
     test_expression = "(15 * 27) + (45 / 3)"
-    expected_result = int(eval(test_expression))  # 420
+    expected_result = str(int(eval(test_expression)))  # 420
     response = comm.send_and_wait(
         destination="MyLangChainAgent",
         content=f"What is the result of {test_expression}?"

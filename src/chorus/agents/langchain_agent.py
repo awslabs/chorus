@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable
 from chorus.agents.base import Agent
 from chorus.agents.passive_agent import PassiveAgent
 from chorus.data.context import AgentContext
@@ -21,12 +21,15 @@ class LangChainAgent(PassiveAgent):
     def __init__(
         self,   
         name: str,
-        langchain_agent: "AgentExecutor"):  # type: ignore
+        init_agent_func: Callable[["BaseMemory"], "AgentExecutor"],
+        init_memory_func: Callable[[], "BaseMemory"]):  # type: ignore
         """
         Initialize Langchain Agent
         
         Args:
-            langchain_config: LangChain configuration
+            name: Name of the agent
+            init_agent_func: Function that takes a memory instance and returns a LangChain AgentExecutor
+            init_memory_func: Function that creates and returns LangChain Memory
             
         Raises:
             ImportError: If langchain is not installed
@@ -38,7 +41,18 @@ class LangChainAgent(PassiveAgent):
             )
         
         super().__init__(name)
-        self.langchain_agent = langchain_agent
+        self._init_agent_func = init_agent_func
+        self._init_memory_func = init_memory_func
+        self.langchain_agent = None
+
+    def _ensure_agent_initialized(self, memory: "BaseMemory"):
+        """Ensures the LangChain agent is initialized in the current process.
+        
+        Args:
+            memory: The memory instance to use for agent initialization
+        """
+        if self.langchain_agent is None:
+            self.langchain_agent = self._init_agent_func(memory)
 
     def init_state(self) -> LangchainAgentState:
         """Initialize the agent's state.
@@ -47,9 +61,9 @@ class LangChainAgent(PassiveAgent):
             LangchainAgentState: A new state object for this Langchain agent.
         """
         state = LangchainAgentState()
-        if hasattr(self.langchain_agent, 'memory'):
-            state.memory = self.langchain_agent.memory
+        state.memory = self._init_memory_func()
         return state
+
     def respond(
         self, context: AgentContext, state: LangchainAgentState, inbound_message: Message
     ) -> LangchainAgentState:
@@ -63,9 +77,10 @@ class LangChainAgent(PassiveAgent):
         Returns:
             PassiveAgentState: The updated agent state after processing the message.
         """
-        # Recover memory from state
-        if state.memory is not None:
-            self.langchain_agent.memory = state.memory
+        # Initialize agent if needed with current memory
+        if state.memory is None:
+            state.memory = self._init_memory_func()
+        self._ensure_agent_initialized(state.memory)
 
         query = inbound_message.content
         agent_response = self.langchain_agent.run(query)
@@ -82,6 +97,6 @@ class LangChainAgent(PassiveAgent):
 
         # Save memory back to state
         if hasattr(self.langchain_agent, 'memory'):
-            state.memory = self.langchain_agent.memory
+            state.memory = self.langchain_agent.memory.model_copy()
 
         return state
