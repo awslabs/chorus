@@ -8,10 +8,19 @@ from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.helpers.communication import CommunicationHelper
 
-multiprocessing.set_start_method('fork')
-
 class TestChorusInThread(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Store the original start method
+        try:
+            cls.original_start_method = multiprocessing.get_start_method()
+        except RuntimeError:
+            cls.original_start_method = 'spawn'  # Default to spawn if not set
+
     def setUp(self):
+        # Set start method to fork
+        multiprocessing.set_start_method('fork', force=True)
+
         lm = MagicMock()
         lm.generate.return_value = MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
 
@@ -47,6 +56,9 @@ class TestChorusInThread(unittest.TestCase):
         # Ensure chorus is stopped
         if hasattr(self, 'chorus'):
             self.chorus.stop()
+        
+        # Reset the start method to original
+        multiprocessing.set_start_method(self.original_start_method, force=True)
 
     def test_start_stop_thread(self):
         # Test that chorus starts properly in a thread

@@ -3,9 +3,10 @@ from chorus.data.dialog import Message
 from chorus.helpers.communication import CommunicationHelper
 from collections import deque
 from pydantic import BaseModel
-
-from chorus.data.context import TeamContext
-from chorus.data.state import TeamState
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from chorus.data.context import TeamContext
+    from chorus.data.state import TeamState
 
 LAST_REQUESTER_KEY = "last_requester"
 TASK_QUEUE_KEY = "task_queue"
@@ -27,7 +28,7 @@ class CentralizedCollaboration(Collaboration):
     requests come in, ensuring they are processed in order.
     """
 
-    def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
+    def process_message(self, team_context: "TeamContext", team_state: "TeamState", inbound_message: Message):
         data_store = team_state.get_collaboration_data_store()
         helper = CommunicationHelper(team_context)
 
