@@ -126,7 +126,7 @@ class JsonSchema(BaseModel):
         default=None, alias="additionalProperties"
     )
     # list of required properties
-    required: Optional[List[str]] = Field(default_factory=list)
+    required: Optional[List[str]] = Field(default=None)
     # property name validation against regex
     property_names: Optional["JsonSchema"] = Field(default=None, alias="propertyNames")
     # minimum and maximum number of properties allowed

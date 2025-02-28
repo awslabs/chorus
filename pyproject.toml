@@ -101,5 +101,6 @@ requires = [ "hatch-pip-compile" ]
 [tool.hatch.envs.default.scripts]
 typing = [
   "mkdir -p .mypy_cache",
+  "python -m pip install boto3-stubs botocore-stubs",
   "mypy --install-types --non-interactive src/chorus tests/chorus"
 ]

@@ -12,9 +12,9 @@ class TeamInfo(BaseModel):
         service_names: List of service names available to this team
     """
     name: str
-    agent_ids: Optional[List[str]] = Field(default_factory=list)
+    agent_ids: List[str] = Field(default_factory=list)
     collaboration_name: Optional[str] = None
-    service_names: Optional[List[str]] = Field(default_factory=list)
+    service_names: List[str] = Field(default_factory=list)
 
     def get_identifier(self) -> str:
         """Gets a unique identifier string for this team.
