@@ -17,7 +17,7 @@ from chorus.data.prompt import StructuredPrompt
 from chorus.lms.base import LanguageModelClient
 
 AWS_DEFAULT_REGION = "us-west-2"
-BEDROCK_DEFAULT_CONFIG = {}
+BEDROCK_DEFAULT_CONFIG: Dict = {}
 ACCEPT = "application/json"
 CONTENT_TYPE = "application/json"
 

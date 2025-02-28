@@ -1,4 +1,5 @@
 import arxiv
+from typing import Dict
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema
@@ -41,7 +42,7 @@ class ArxivRetrieverTool(SimpleExecutableTool):
         client = arxiv.Client()
         search = arxiv.Search(query=query, max_results=num_results)
         results = client.results(search)
-        response = {"articles": []}
+        response: Dict = {"articles": []}
         for result in results:
             response["articles"].append(
                 {

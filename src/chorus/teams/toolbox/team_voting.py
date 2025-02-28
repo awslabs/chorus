@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-
+from chorus.data.schema import JsonData
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
 from chorus.data import ToolSchema
@@ -66,7 +66,7 @@ class TeamVotingClient(SimpleExecutableTool):
         }
         super().__init__(ToolSchema.model_validate(schema))
 
-    def propose(self, proposal_content: str, reasoning: Optional[str] = "") -> Dict:
+    def propose(self, proposal_content: str, reasoning: Optional[str] = "") -> Optional[JsonData]:
         """Create a new proposal for the team to vote on."""
         context = self.get_context()
         if context.team_info is None:
@@ -95,7 +95,7 @@ class TeamVotingClient(SimpleExecutableTool):
             return observation_message.observations[0].data
         return None
 
-    def vote(self, proposal_id: str) -> Dict:
+    def vote(self, proposal_id: str) -> Optional[JsonData]:
         """Cast a vote in favor of a proposal."""
         context = self.get_context()
         if context.team_info is None:
@@ -124,7 +124,7 @@ class TeamVotingClient(SimpleExecutableTool):
             return observation_message.observations[0].data
         return None
 
-    def get_proposal(self, proposal_id: str) -> Dict:
+    def get_proposal(self, proposal_id: str) -> Optional[JsonData]:
         """Get details of a specific proposal including current votes."""
         context = self.get_context()
         if context.team_info is None:
@@ -153,7 +153,7 @@ class TeamVotingClient(SimpleExecutableTool):
             return observation_message.observations[0].data
         return None
 
-    def list_active_proposals(self) -> Dict:
+    def list_active_proposals(self) -> Optional[JsonData]:
         """List all currently active proposals."""
         context = self.get_context()
         if context.team_info is None:

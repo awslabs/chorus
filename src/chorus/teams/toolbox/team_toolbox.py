@@ -1,7 +1,4 @@
-import os
-from datetime import datetime
-from datetime import timedelta
-from typing import Optional
+from typing import Optional, Dict
 
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
@@ -25,7 +22,7 @@ class TeamToolClient(ExecutableTool):
         self._tool_schema = tool.get_schema()
         super().__init__(self._tool_schema)
     
-    def execute(self, action_name: Optional[str] = None, parameters: Dict = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Optional[Dict] = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
@@ -52,6 +49,10 @@ class TeamToolClient(ExecutableTool):
             source=team_name,
             timeout=TIMEOUT
         )
+        if observation_message is None:
+            return None
+        if observation_message.observations is None:
+            return None
         return observation_message.observations[0].data
 
 
@@ -60,7 +61,7 @@ class AsyncTeamToolClient(TeamToolClient):
     A client for executing tools in the team's toolbox asynchronously.
     """
 
-    def execute(self, action_name: Optional[str] = None, parameters: Dict = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Optional[Dict] = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
@@ -158,7 +159,7 @@ class TeamToolboxClient(SimpleExecutableTool):
                 source=team_name,
                 timeout=TIMEOUT
             )
-            if observation_message is not None:
+            if observation_message is not None and observation_message.observations is not None:
                 return observation_message.observations[0].data
         return None
     
@@ -180,4 +181,8 @@ class TeamToolboxClient(SimpleExecutableTool):
             source=team_name,
             timeout=TIMEOUT
         )
+        if observation_message is None:
+            return None
+        if observation_message.observations is None:
+            return None
         return observation_message.observations[0].data

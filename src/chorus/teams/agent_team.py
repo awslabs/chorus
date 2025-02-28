@@ -22,7 +22,7 @@ class Team(BaseTeam):
             self._collaboration.process_message(context, state, inbound_message)
         return state
     
-    def iterate(self, context: TeamContext, state: TeamState) -> PassiveAgentState:
+    def iterate(self, context: TeamContext, state: TeamState) -> Optional[PassiveAgentState]:
         if self._collaboration:
             state = self._collaboration.iterate(context, state)
         return super().iterate(context, state)

@@ -274,4 +274,4 @@ def _get_suggestion(name: str, available: List[str]) -> Optional[str]:
         suggestion = name.replace(ch, repl_ch)
         if suggestion in available:
             return suggestion
-    return
+    return None

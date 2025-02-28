@@ -113,7 +113,7 @@ class Message(BaseEvent):
         if self.role == Role.OBSERVATION:
             return self.observations if self.observations else []
 
-    def extract_action(self) -> ActionData:
+    def extract_action(self) -> Optional[ActionData]:
         """Extract a single action from this message turn.
 
         Returns:

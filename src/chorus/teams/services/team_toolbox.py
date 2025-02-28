@@ -21,10 +21,12 @@ class TeamToolbox(TeamService):
         if inbound_message.event_type != "team_service":
             return
         observations = []
+        if inbound_message.actions is None:
+            return
         for action in inbound_message.actions:
             if action.tool_name == "team_toolbox":
                 if action.action_name == "execute_tool":
-                    action_input = action.parameters
+                    action_input = action.parameters if action.parameters is not None else {}
                     tool_name = action_input.get("tool_name", None)
                     action_name = action_input.get("action_name", None)
                     action_parameters = action_input.get("parameters", None)

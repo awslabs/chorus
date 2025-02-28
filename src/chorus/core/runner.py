@@ -110,8 +110,8 @@ class Chorus(object):
         self._teams = teams if teams is not None else []
         if len(self._agents) + len(self._teams) > MAX_INSTNACE_LIMIT:
             raise ValueError(f"The number of agents and teams exceeds the maximum limit: {MAX_INSTNACE_LIMIT}")
-        self._agent_map = {}
-        self._agent_team_map = {}
+        self._agent_map: Dict = {}
+        self._agent_team_map: Dict = {}
         self._global_context = global_context
         self._proc_manager = multiprocessing.Manager()
         self._is_busy = False
@@ -120,7 +120,7 @@ class Chorus(object):
         self._visual = visual
         self._visual_debugger = None
         self._chorus_thread = None
-        self._logged_message_ids = set()  # Track which messages have been logged
+        self._logged_message_ids: set = set()  # Track which messages have been logged
         if self._visual:
             self._visual_debugger = VisualDebugger(port=visual_port)
             # Register teams and channels with the visual debugger
@@ -157,18 +157,21 @@ class Chorus(object):
                     agent_ids.append(agent_id)
                 team_info.agent_ids = agent_ids
         self.register_signal_handler()
-        self.alive_processes = []
+        self.alive_processes: List = []
         self._stopping = False
         self._global_run_uuid = str(uuid.uuid4())[:8]
 
     def spawn_agent(self, agent: Agent, team_info: Optional[TeamInfo] = None) -> str:
         context = agent.init_context()
-        context.artifacts = self._proc_manager.dict(**context.artifacts)
+        if context.artifacts is not None:
+            context.artifacts = self._proc_manager.dict(**context.artifacts)
         if team_info is not None:
             context.team_info = team_info
         state = agent.init_state()
-        self._global_context.register_agent_context(context)
-        self._simulator_state.update_agent_state(context.agent_id, state)
+        if self._global_context is not None:
+            self._global_context.register_agent_context(context)
+        if self._simulator_state is not None:
+            self._simulator_state.update_agent_state(context.agent_id, state)
         self._agent_map[context.agent_id] = agent
         if team_info is not None:
             self._agent_team_map[context.agent_id] = team_info.get_identifier()
@@ -323,19 +326,23 @@ class Chorus(object):
             finally:
                 tee.close()
 
-    def get_environment(self) -> ChorusGlobalContext:
+    def get_environment(self) -> Optional[ChorusGlobalContext]:
         return self._global_context
     
-    def get_global_context(self) -> ChorusGlobalContext:
+    def get_global_context(self) -> Optional[ChorusGlobalContext]:
         return self._global_context
     
-    def get_global_state(self) -> RunnerState:
+    def get_global_state(self) -> Optional[RunnerState]:
         return self._simulator_state
     
     def get_agent_context(self, agent_id: str) -> Optional[AgentContext]:
+        if self._global_context is None:
+            return None
         return self._global_context.get_agent_context(agent_id)
     
     def get_agent_state(self, agent_id: str) -> Optional[AgentState]:
+        if self._simulator_state is None:
+            return None
         return self._simulator_state.get_agent_state(agent_id)
 
     def dump_environment_state(self):
@@ -345,6 +352,8 @@ class Chorus(object):
         agent_status_map = {}
         for agent_id, agent in self._agent_map.items():
             agent_status_map[agent_id] = AgentStatus.AVAILABLE
+        if self._global_context is None:
+            return agent_status_map
         sm = self._global_context.status_manager()
         for _, agent_id, status in sm.get_records():
             agent_status_map[agent_id] = status
@@ -357,6 +366,8 @@ class Chorus(object):
             Optional[int]: The Unix timestamp of the last activity. Returns the last busy timestamp
                           if no status records exist, or None if no activity has occurred.
         """
+        if self._global_context is None:
+            return None
         sm = self._global_context.status_manager()
         records = sm.get_records()
         if records:
