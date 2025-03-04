@@ -1,25 +1,40 @@
+import multiprocessing
 import unittest
-from chorus.data import Message
 from chorus.agents import ToolChatAgent, SynchronizedCoordinatorAgent
 from chorus.core.runner import Chorus
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
-from chorus.workspace.stop_conditions import NoActivityStopper
 from chorus.helpers.communication import CommunicationHelper
 
 class TestCentralizedCollaboration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Store the original start method
+        try:
+            cls.original_start_method = multiprocessing.get_start_method()
+        except RuntimeError:
+            cls.original_start_method = 'spawn'  # Default to spawn if not set
+
     def setUp(self):
+        # Set start method to fork
+        multiprocessing.set_start_method('fork', force=True)
+
+        lm = unittest.mock.MagicMock()
+        lm.generate.return_value = unittest.mock.MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
+    
         # Set up agents and team before each test
         self.sub_agents = {
             "MathExpert": "This is a MathExpert can answer your math questions."
         }
         self.router = SynchronizedCoordinatorAgent(
             name="Router",
-            reachable_agents=self.sub_agents
+            reachable_agents=self.sub_agents,
+            lm=lm
         )
         self.math_expert = ToolChatAgent(
             "MathExpert",
-            instruction="You are MathExpert, an expert that can answer any question about math."
+            instruction="You are MathExpert, an expert that can answer any question about math.",
+            lm=lm
         )
         self.team = Team(
             name="myteam",

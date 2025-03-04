@@ -55,7 +55,7 @@ class Team(BaseTeam):
         self._services = services if services is not None else []
         self._team_info = TeamInfo(
             name=self._name,
-            agent_ids=None,
+            agent_ids=[],
             collaboration_name=self._collaboration.get_name(),
             service_names=[service.get_name() for service in self._services]
         )
