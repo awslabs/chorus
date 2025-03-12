@@ -9,7 +9,7 @@ class ResourceType(str, Enum):
     Attributes:
         FILE: Represents a file resource type
     """
-    FILE: str = "file"
+    FILE = "file"
 
 
 class Resource(BaseModel):

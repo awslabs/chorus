@@ -36,7 +36,8 @@ class TeamVoting(TeamService):
         
         data_store = team_state.get_service_data_store(self.get_name())
         observations = []
-        
+        if inbound_message.actions is None:
+            return
         for action in inbound_message.actions:
             if action.tool_name == self.get_name():
                 if action.action_name == "propose":
@@ -108,13 +109,15 @@ class TeamVoting(TeamService):
 
         # Notify all team members about the new proposal
         reasoning_text = f"\nReasoning: {reasoning}" if reasoning else ""
-        if self.get_team_info() and self.get_team_info().agent_ids:
-            for agent_id in self.get_team_info().agent_ids:
-                comm.send(
-                    destination=agent_id,
-                    content=f"New proposal created by {proposer}:\nContent: {content}{reasoning_text}\nProposal ID: {proposal_id}"
-                )
-        
+        team_info = self.get_team_info()
+        if team_info is not None:
+            if team_info.agent_ids:
+                for agent_id in team_info.agent_ids:
+                    comm.send(
+                        destination=agent_id,
+                        content=f"New proposal created by {proposer}:\nContent: {content}{reasoning_text}\nProposal ID: {proposal_id}"
+                    )
+
         return {"proposal_id": proposal_id, "proposal": proposal}
 
     def cast_vote(self, data_store: Dict, proposal_id: str, voter: str) -> Dict:
