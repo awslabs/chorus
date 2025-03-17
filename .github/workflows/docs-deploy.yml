@@ -28,12 +28,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: docs/package-lock.json
 
       - name: Install dependencies
         run: cd docs && npm ci
+
+      - name: Update browserslist database
+        run: cd docs && npx update-browserslist-db@latest
 
       - name: Build
         run: cd docs && npm run build
