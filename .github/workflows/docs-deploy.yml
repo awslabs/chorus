@@ -38,6 +38,12 @@ jobs:
       - name: Update browserslist database
         run: cd docs && npx update-browserslist-db@latest
 
+      - name: Prepare directory structure
+        run: cd docs && ./prepare-structure.sh
+
+      - name: Verify imports
+        run: cd docs && ./verify-imports.sh
+
       - name: Build
         run: cd docs && npm run build
 

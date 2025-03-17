@@ -16,7 +16,7 @@ import { createAutocomplete } from '@algolia/autocomplete-core'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import clsx from 'clsx'
 
-import { navigation } from '@/lib/navigation'
+import { navigation } from '../lib/navigation'
 
 function SearchIcon(props) {
   return (
