@@ -1,5 +1,6 @@
 import { Callout } from '../components/Callout'
 import { QuickLink, QuickLinks } from '../components/QuickLinks'
+import { ReferenceGrid } from '../components/ReferenceGrid'
 
 const tags = {
   callout: {
@@ -41,6 +42,9 @@ const tags = {
       icon: { type: String },
       href: { type: String },
     },
+  },
+  'reference-grid': {
+    render: ReferenceGrid,
   },
 }
 

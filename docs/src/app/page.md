@@ -22,6 +22,14 @@ Chorus is a generalizable framework for collaborating with and orchestrating tea
 
 ---
 
+## Quick Reference
+
+Explore major collaboration patterns to jump-start your multi-agent systems:
+
+{% reference-grid /%}
+
+---
+
 ## Core Value Proposition
 
 Chorus provides a comprehensive framework focused on solving the collaboration problem, enabling developers to prototype and perfect multi-agent solutions with maximum flexibility for agent autonomy and behavior.
