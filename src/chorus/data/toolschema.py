@@ -4,8 +4,10 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Mapping
+from typing import Hashable
 
-from jsonref import replace_refs
+from jsonref import replace_refs  # type: ignore
 from openapi_spec_validator import OpenAPIV30SpecValidator
 from openapi_spec_validator import validate
 from openapi_spec_validator.readers import read_from_filename
@@ -113,7 +115,7 @@ class ToolSchema(BaseModel):
         return ToolSchema.model_validate_json(content)
 
     @staticmethod
-    def _get_nested_key(mapping: dict, keys: list, default=None) -> Any:
+    def _get_nested_key(mapping: Mapping[Hashable, Any], keys: list, default=None) -> Any:
         """Gets a value from a nested dictionary using a list of keys.
 
         Args:
@@ -164,7 +166,7 @@ class ToolSchema(BaseModel):
                     logging.warning(f"'summary' key is not found for {path}::{verb}")
 
                 # Build input schema
-                input_schema = {"type": "object", "properties": {}, "required": []}
+                input_schema: Dict[str, Any] = {"type": "object", "properties": {}, "required": []}
                 if verb == "post":
                     input_schema = (
                         cls._get_nested_key(

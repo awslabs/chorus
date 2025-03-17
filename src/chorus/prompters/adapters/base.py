@@ -12,7 +12,7 @@ from chorus.prompters.base_prompter import BasePrompter
 class PromptAdapter(BasePrompter, metaclass=ABCMeta):
 
     def get_prompt(self, prompt: str) -> Prompt:
-        return prompt
+        return Prompt(prompt)
 
     def get_target(self, target: str) -> str:
         return target

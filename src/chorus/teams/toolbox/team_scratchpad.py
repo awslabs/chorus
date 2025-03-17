@@ -164,7 +164,7 @@ class TeamScratchpadClient(SimpleExecutableTool):
             Message(
                 event_type="team_service",
                 destination=team_name,
-                actions=[ActionData(tool_name="team_scratchpad", action_name="delete_scratchpad", input={"scratchpad_id": scratchpad_id})]
+                actions=[ActionData(tool_name="team_scratchpad", action_name="delete_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
         )
         observation_message = context.message_service.wait_for_response(

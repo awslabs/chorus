@@ -110,8 +110,10 @@ class Message(BaseEvent):
         Returns:
             List of observation data if this is an observation message, empty list otherwise.
         """
-        if self.role == Role.OBSERVATION:
-            return self.observations if self.observations else []
+        if self.role == Role.OBSERVATION and self.observations:
+            return self.observations
+        else:
+            return []
 
     def extract_action(self) -> Optional[ActionData]:
         """Extract a single action from this message turn.

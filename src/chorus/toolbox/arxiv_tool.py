@@ -1,4 +1,4 @@
-import arxiv
+import arxiv  # type: ignore
 from typing import Dict
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.executable_tool import SimpleExecutableTool

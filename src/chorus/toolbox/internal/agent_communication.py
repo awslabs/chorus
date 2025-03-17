@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema
 from chorus.helpers.communication import CommunicationHelper
@@ -15,10 +15,12 @@ class AgentAsATool(SimpleExecutableTool):
         agent_name: The name of the agent to wrap.
         agent_description: A description of the agent's capabilities.
     """
+    agent_name: str
+    agent_description: str
 
     def __init__(self, agent_name: str, agent_description: str):
-        self._agent_name = agent_name
-        self._agent_description = agent_description
+        self.agent_name = agent_name
+        self.agent_description = agent_description
         schema = {
             "tool_name": f"agent_{agent_name}",
             "name": f"agent_{agent_name}",
@@ -60,8 +62,8 @@ class AgentAsATool(SimpleExecutableTool):
         if self.get_context() is None:
             raise ValueError("AgentAsATool requires agent context to be set.")
         verse = CommunicationHelper(self.get_context())
-        verse.send(destination=self._agent_name, content=message)
-        return_message = verse.wait(source=self._agent_name)
+        verse.send(destination=self.agent_name, content=message)
+        return_message = verse.wait(source=self.agent_name)
         if return_message is None:
             return None
         return return_message.content
@@ -82,7 +84,7 @@ class MultiAgentTool(SimpleExecutableTool):
     TOOL_NAME = "multi_agent"
 
     def __init__(self, allow_waiting: bool = True):
-        schema = {
+        schema: Dict[str, Any] = {
             "tool_name": "multi_agent",
             "name": "multi_agent",
             "description": """
@@ -165,12 +167,15 @@ Tool for asynchronized multi-agent communication. Notes:
         """
         if self.get_context() is None:
             raise ValueError("MultiAgentTool requires agent context to be set.")
-        if recipient_agent is None and channel is None:
-            raise ValueError("Either recipient_agent or channel must be provided.")
-        if recipient_agent is None and channel is not None:
-            recipient_agent = "all"
+        if recipient_agent is None:
+            if channel is None:
+                raise ValueError("Either recipient_agent or channel must be provided.")
+            else:
+                destination = "all"
+        else:
+            destination = recipient_agent
         verse = CommunicationHelper(self.get_context())
-        verse.send(destination=recipient_agent, content=content, channel=channel)
+        verse.send(destination=destination, content=content, channel=channel)
         return None
 
     def wait(self, source: str, channel: Optional[str] = None, timeout: Optional[int] = None):

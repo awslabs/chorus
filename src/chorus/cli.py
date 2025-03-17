@@ -16,7 +16,7 @@ else:
     logging.basicConfig(level=logging.ERROR)
 
 from chorus.data import Message
-from chorus.util.workspace_util import load_workspace
+from chorus.workspace.workspace_util import load_workspace
 from chorus.core.runner import Chorus
 from chorus.workspace.stop_conditions import NoActivityStopper
 

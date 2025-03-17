@@ -48,14 +48,13 @@ class AgentProcess:
         
         # Reconstruct agent tools
         if 'tools' in context_dict:
-            from chorus.data.tool import AgentAsATool
+            from chorus.toolbox.internal import AgentAsATool
             tools = []
             for tool in context_dict['tools']:
                 if isinstance(tool, dict) and tool.get('type') == 'agent_as_tool':
                     tools.append(AgentAsATool(
-                        name=tool['name'],
-                        description=tool['description'],
-                        agent_id=tool['agent_id']
+                        agent_name=tool['name'],
+                        agent_description=tool['description'],
                     ))
                 else:
                     tools.append(tool)

@@ -88,7 +88,7 @@ class AsyncToolChatAgent(ToolChatAgent):
             multi_agent_instruction = Template(MULTI_AGENT_INSTRUCTION, autoescape=True).render(reachable_agents=reachable_agents) # from jinja2 import Template
         if multi_agent_instruction is not None:
             agent_instruction = f"{multi_agent_instruction}\n\n{agent_instruction}"
-        agent_tools = [MultiAgentTool(allow_waiting=allow_waiting)]
+        agent_tools: List = [MultiAgentTool(allow_waiting=allow_waiting)]
         if tools is not None:
             agent_tools.extend(tools)
         super().__init__(

@@ -1,5 +1,5 @@
 import time
-from multiprocessing import Manager
+from multiprocessing.managers import SyncManager
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -16,11 +16,11 @@ class MultiAgentStatusManager(BaseModel):
     components in the system, including agents and their tasks.
     """
 
-    status_records: Optional[List[str]] = None
+    status_records: List[str] = []
 
-    def __init__(self, proc_manager: Manager):
+    def __init__(self, proc_manager: SyncManager):
         super().__init__()
-        self.status_records = proc_manager.list()
+        self.status_records = list(proc_manager.list())
 
     def record(self, agent_id: str, status: AgentStatus):
         timestamp = int(time.time())
@@ -39,8 +39,7 @@ class MultiAgentStatusManager(BaseModel):
         records = []
         for record in self.status_records:
             timestamp, agent_id, status = record.split(" ||| ")
-            timestamp = int(timestamp)
-            records.append((timestamp, agent_id, AgentStatus(status)))
+            records.append((int(timestamp), agent_id, AgentStatus(status)))
         return records
 
     def update_status(self, entity_id: str, status: AgentStatus):
