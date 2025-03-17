@@ -41,6 +41,16 @@ jobs:
       - name: Build
         run: cd docs && npm run build
 
+      - name: Verify build output
+        run: |
+          if [ -d "docs/out" ]; then
+            echo "Build output directory exists"
+            ls -la docs/out
+          else
+            echo "Build output directory does not exist"
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

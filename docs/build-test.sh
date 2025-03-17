@@ -13,7 +13,16 @@ NODE_OPTIONS="--trace-warnings" npm run build
 
 # Check build result
 if [ $? -eq 0 ]; then
-  echo "Build completed successfully. Check the 'out' directory for the generated files."
+  echo "Build completed successfully."
+  
+  # Check if the output directory exists and list its contents
+  if [ -d "out" ]; then
+    echo "Output directory exists. Contents:"
+    ls -la out
+    echo "Number of files in output directory: $(find out -type f | wc -l)"
+  else
+    echo "Warning: Output directory 'out' does not exist."
+  fi
 else
   echo "Build failed. Please check the error messages above."
 fi 

@@ -61,7 +61,7 @@ function useAutocomplete({ close }) {
         navigate,
       },
       getSources({ query }) {
-        return import('@/markdoc/search.mjs').then(({ search }) => {
+        return import('../markdoc/search.mjs').then(({ search }) => {
           return [
             {
               sourceId: 'documentation',
