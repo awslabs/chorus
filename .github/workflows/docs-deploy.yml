@@ -21,6 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTIONS: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,6 +48,11 @@ jobs:
 
       - name: Build
         run: cd docs && npm run build
+        env:
+          GITHUB_ACTIONS: true
+
+      - name: Fix static asset paths
+        run: cd docs && ./fix-static-paths.sh
 
       - name: Verify build output
         run: |

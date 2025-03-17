@@ -2,6 +2,10 @@
 
 echo "Testing GitHub Actions workflow locally..."
 
+# Set GitHub environment variables for testing
+export GITHUB_ACTIONS=true
+echo "Set GITHUB_ACTIONS=true to simulate GitHub environment"
+
 # Create a temporary directory
 TEMP_DIR=$(mktemp -d)
 echo "Created temporary directory: $TEMP_DIR"
@@ -238,6 +242,44 @@ npm run build
 # Check if the build was successful
 if [ $? -eq 0 ]; then
   echo "Build successful!"
+  
+  # Fix static asset paths
+  echo "Fixing static asset paths..."
+  
+  # Create fix-static-paths.sh if it doesn't exist
+  cat > fix-static-paths.sh << 'EOFFIX'
+#!/bin/bash
+
+echo "Fixing static asset paths for GitHub Pages deployment..."
+
+# Detect OS type for sed command
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  SED_CMD="sed -i ''"
+else
+  # Linux and others
+  SED_CMD="sed -i"
+fi
+
+# Check if out directory exists
+if [ ! -d "out" ]; then
+  echo "Error: 'out' directory not found. Run the build first."
+  exit 1
+fi
+
+# Fix paths in HTML files
+echo "Fixing paths in HTML files..."
+find out -type f -name "*.html" -exec $SED_CMD 's|src="/_next/|src="./chorus/_next/|g' {} \;
+find out -type f -name "*.html" -exec $SED_CMD 's|href="/_next/|href="./chorus/_next/|g' {} \;
+
+# Fix paths in CSS files
+echo "Fixing paths in CSS files..."
+find out -type f -name "*.css" -exec $SED_CMD 's|url(/_next/|url(./chorus/_next/|g' {} \;
+
+echo "Static asset paths fixed successfully"
+EOFFIX
+  chmod +x fix-static-paths.sh
+  ./fix-static-paths.sh
 else
   echo "Build failed. Please check the error messages above."
 fi

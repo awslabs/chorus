@@ -7,12 +7,18 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Determine if we're building for GitHub Pages or local development
+const isGithubActions = process.env.GITHUB_ACTIONS === 'true'
+const basePath = isGithubActions ? '/chorus' : ''
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'ts', 'tsx'],
   output: 'export',
-  // Set the base path if your site is not hosted at the root of the domain
-  // basePath: '/chorus',
+  // Set the base path for GitHub Pages
+  basePath: basePath,
+  // Set the asset prefix to match the base path
+  assetPrefix: basePath,
   // Disable image optimization since it's not compatible with 'output: export'
   images: {
     unoptimized: true,

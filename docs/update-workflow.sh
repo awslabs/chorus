@@ -6,6 +6,7 @@
 chmod +x prepare-structure.sh
 chmod +x verify-imports.sh
 chmod +x fix-icon-imports.sh
+chmod +x fix-static-paths.sh
 
 echo "All scripts are now executable and ready for the GitHub workflow."
 echo "Please commit and push all changes to update the workflow." 
