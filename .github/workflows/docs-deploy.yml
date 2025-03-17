@@ -2,11 +2,12 @@ name: Deploy Docs to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ nightly ]
     paths:
       - 'docs/**'
   # Allow manual trigger
   workflow_dispatch:
+
 
 permissions:
   contents: read
