@@ -27,6 +27,8 @@ dependencies = [
     "tenacity>=8.2.2",
     "flask>=2.0.0",
     "jupyter_core",
+    "llama-index",
+	  "llama-index-llms-bedrock",
 ]
 
 [project.optional-dependencies]
