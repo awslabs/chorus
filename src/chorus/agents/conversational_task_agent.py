@@ -3,10 +3,11 @@ from typing import Optional
 from typing import Type
 
 from chorus.agents import Agent
-from chorus.data.context import AgentContext, ChorustionContext
+from chorus.communication.message_view_selectors import DirectMessageViewSelector
+from chorus.data.context import AgentContext, OrchestrationContext
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.dialog import Message
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.trigger import BaseTrigger, MessageTrigger
 from chorus.executors import SimpleToolExecutor
 from chorus.lms import LanguageModelClient
@@ -16,12 +17,12 @@ from chorus.lms.bedrock_converse import BedrockConverseAPIClient
 from chorus.planners.base import MultiAgentPlanner
 from chorus.prompters import InteractPrompter
 from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverseToolChatPrompter
-from chorus.util.interact import extract_relevant_interaction_history
-from chorus.util.interact import orchestrate
+from chorus.util.communication import select_message_view
+from chorus.util.interact import orchestrate_generate_next_actions, orchestrate_execute_actions
 from chorus.config.globals import DEFAULT_AGENT_LLM_NAME
 
-@Agent.register("ToolChatAgent")
-class ToolChatAgent(PassiveAgent):
+@Agent.register("ConversationalTaskAgent")
+class ConversationalTaskAgent(PassiveAgent):
     """A chat agent that can use tools to assist with tasks.
 
     This agent extends PassiveAgent to enable tool usage and chat interactions. It can
@@ -51,7 +52,7 @@ class ToolChatAgent(PassiveAgent):
         no_response_sources: Optional[List[str]] = None,
         planner: Optional[MultiAgentPlanner] = None,
         tool_executor_class: Type[SimpleToolExecutor] = SimpleToolExecutor,
-        context_switchers: Optional[List[Tuple[MessageTrigger, ChorustionContext]]] = None,
+        context_switchers: Optional[List[Tuple[MessageTrigger, OrchestrationContext]]] = None,
     ):
         super().__init__(name=name, no_response_sources=no_response_sources)
         self._prompter = prompter
@@ -79,7 +80,9 @@ class ToolChatAgent(PassiveAgent):
             AgentContext: A new context object containing the agent's configuration.
         """
         context = AgentContext(
-            agent_id=self._name, agent_instruction=self._instruction
+            agent_id=self.create_agent_context_id(),
+            agent_instruction=self._instruction,
+            message_view_selector=DirectMessageViewSelector(include_internal_events=True),
         )
         if self._tools:
             context.tools = self._tools
@@ -170,10 +173,10 @@ class ToolChatAgent(PassiveAgent):
             List[ExecutableTool]: List of tools available to this agent.
         """
         return self._tools
-
+    
     def respond(
-        self, context: AgentContext, state: Optional[PassiveAgentState], inbound_message: Message
-    ) -> Optional[PassiveAgentState]:
+        self, context: AgentContext, state: PassiveAgentState, inbound_message: Message
+    ) -> PassiveAgentState:
         """Process and respond to an incoming message.
 
         Handles message processing, tool execution, and async observations. Generates
@@ -185,7 +188,7 @@ class ToolChatAgent(PassiveAgent):
             inbound_message: The message to respond to.
 
         Returns:
-            Optional[PassiveAgentState]: The updated agent state after processing.
+            PassiveAgentState: The updated agent state after processing.
         """
         # Check for context switches and switch if necessary
         for trigger, orch_context in reversed(self._context_switchers):
@@ -195,7 +198,11 @@ class ToolChatAgent(PassiveAgent):
                     setattr(context, field_name, field_value)
                 break
         
-        messages = extract_relevant_interaction_history(context, inbound_message)
+        # Create a message view
+        all_messages = context.message_service.fetch_all_messages()
+        message_view = select_message_view(context, state, all_messages)
+        history = message_view.messages
+        
         inbound_source = inbound_message.source
         # Process async observations
         if inbound_message.observations:
@@ -212,31 +219,70 @@ class ToolChatAgent(PassiveAgent):
                             destination=async_record.action_source,
                             channel=async_record.action_channel,
                             observations=[observation],
-                            role=Role.OBSERVATION
+                            event_type=EventType.INTERNAL_EVENT
                         )
                         async_messages.append(async_observe_message)
                         async_observation_detected = True
                         inbound_source = async_record.action_source
             if async_observation_detected and async_messages:
                 context.message_service.send_messages(async_messages)
-                messages = extract_relevant_interaction_history(context, Message(source=inbound_source, destination=context.agent_id))
+                # Refresh the message view after sending new messages
+                all_messages = context.message_service.fetch_all_messages()
+                new_inbound = Message(source=inbound_source, destination=context.agent_id)
+                message_view = context.message_view_selector.select(all_messages, new_inbound)
+                history = message_view.messages
 
-        output_turns = orchestrate(
+        # Initialize tool executor
+        executor = self._tool_executor_class(context.get_tools(), context)
+        
+        # Generate next actions
+        output_turns = orchestrate_generate_next_actions(
             context=context,
             state=state,
-            interaction_history=messages,
+            interaction_history=history,
             prompter=self._prompter,
             lm=self._lm,
-            auto_tool_execution=True,
             planner=self._planner,
-            tool_executor_class=self._tool_executor_class,
         )
+
+        while output_turns and output_turns[-1].actions:
+            # Execute the actions
+            observation_message = orchestrate_execute_actions(
+                context=context,
+                action_message=output_turns[-1],
+                executor=executor,
+            )
+            if observation_message is not None:
+                output_turns.append(observation_message)
+            
+            # Generate follow-up responses
+            follow_up_turns = orchestrate_generate_next_actions(
+                context=context,
+                state=state,
+                interaction_history=history + output_turns,
+                prompter=self._prompter,
+                lm=self._lm,
+                planner=self._planner,
+            )
+            
+            # Add the follow-up turns to the output
+            output_turns.extend(follow_up_turns)
+        
+        # Save internal events from output_turns into the state's internal_events
+        external_events = []
         for turn in output_turns:
-            turn.destination = inbound_source
-        context.message_service.send_messages(output_turns)
+            if turn.event_type == EventType.INTERNAL_EVENT:
+                turn.source = context.agent_id
+                turn.destination = context.agent_id
+                state.internal_events.append(turn)
+            else:
+                turn.destination = inbound_source
+                turn.source = context.agent_id
+                external_events.append(turn)
+        context.message_service.send_messages(external_events)
         return state
 
-    def on(self, trigger: BaseTrigger, orch_context: ChorustionContext) -> 'ToolChatAgent':
+    def on(self, trigger: BaseTrigger, orch_context: OrchestrationContext) -> 'ConversationalTaskAgent':
         """Add a context switcher for this agent.
 
         Args:
@@ -246,7 +292,7 @@ class ToolChatAgent(PassiveAgent):
         self._context_switchers.append((trigger, orch_context))
         return self
     
-    def remove_trigger(self, trigger: BaseTrigger, orch_context: ChorustionContext):
+    def remove_trigger(self, trigger: BaseTrigger, orch_context: OrchestrationContext):
         """Remove a context switcher for this agent.
 
         Args:

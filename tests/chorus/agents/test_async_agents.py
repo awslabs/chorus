@@ -2,14 +2,14 @@ import pytest
 import threading
 import time
 from chorus.data import Message
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.toolbox import ArxivRetrieverTool
 from chorus.core.runner import Chorus
 from chorus.workspace.stop_conditions import NoActivityStopper
 
 def test_async_message_delivery():
     # Create agents
-    charlie = AsyncToolChatAgent(
+    charlie = CollaborativeAgent(
         name="Charlie",
         reachable_agents={
             "Thomas": "This is another agent with name Thomas.",
@@ -17,7 +17,7 @@ def test_async_message_delivery():
         },
         allow_waiting=True
     )
-    thomas = AsyncToolChatAgent(
+    thomas = CollaborativeAgent(
         name="Thomas",
         reachable_agents={"Charlie": "This is another agent with name Charlie."},
         tools=[ArxivRetrieverTool()],

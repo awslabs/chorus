@@ -44,30 +44,30 @@ The workflow consists of four specialized agents:
 ### Basic Setup
 
 ```python
-from chorus.agents.tool_chat_agent import ToolChatAgent
+from chorus.agents.tool_chat_agent import ConversationalTaskAgent
 from chorus.core import Chorus
 from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
 from chorus.helpers.communication import CommunicationHelper
 from chorus.helpers.smart_logic import SmartLogicHelper
 
 # Create agents
-content_agent = ToolChatAgent(
+content_agent = ConversationalTaskAgent(
     "ContentWriter",
     instruction="You are a content writer specialized in creating engaging website content...",
     tools=[DuckDuckGoWebSearchTool(), WebRetrieverTool()]
 )
 
-designer_agent = ToolChatAgent(
+designer_agent = ConversationalTaskAgent(
     "Designer",
     instruction="You are a web designer specialized in creating modern, responsive design specifications..."
 )
 
-developer_agent = ToolChatAgent(
+developer_agent = ConversationalTaskAgent(
     "Developer",
     instruction="You are a web developer specialized in implementing websites using HTML5 and CSS3..."
 )
 
-qa_agent = ToolChatAgent(
+qa_agent = ConversationalTaskAgent(
     "QAEngineer",
     instruction="You are a QA engineer specialized in reviewing website implementations..."
 )

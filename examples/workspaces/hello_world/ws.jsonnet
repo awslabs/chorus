@@ -7,7 +7,7 @@ local workspace = {
             name: "HelloWorldTeam",
             agents: [
                 {
-                    type: "SynchronizedCoordinatorAgent",
+                    type: "TaskCoordinatorAgent",
                     name: "FitnessAnsweringAgent",
                     instruction: |||
                         Do not do any task by yourself, always try to call other agents. 
@@ -21,7 +21,7 @@ local workspace = {
                     }
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "FactResearchAgent",
                     instruction: "You can help user to find facts related to fitness and summarize them by search web and access pages.",
                     tools: [
@@ -30,7 +30,7 @@ local workspace = {
                     ]
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "KnowledgeAgent",
                     instruction: "Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
                 }

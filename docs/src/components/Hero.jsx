@@ -10,12 +10,12 @@ import blurIndigoImage from '@/images/blur-indigo.png'
 
 const codeLanguage = 'python'
 const code = `from chorus.core import Chorus
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 
 # Create specialized agents
-coordinator = SynchronizedCoordinatorAgent(
+coordinator = TaskCoordinatorAgent(
     "CoordinatorAgent",
     instruction="Coordinate the team to answer user questions",
     reachable_agents={

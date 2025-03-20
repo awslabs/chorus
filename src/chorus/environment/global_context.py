@@ -10,10 +10,10 @@ from typing import Union
 from pydantic import BaseModel
 from pydantic import Field
 
-from chorus.environment.communication import MessageService
-from chorus.environment.communication import MultiAgentMessageService
+from chorus.communication.message_service import MessageService
+from chorus.communication.message_service import MultiAgentMessageService
 from chorus.data.dialog import Message
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.context import AgentContext
 from chorus.util.status_manager import MultiAgentStatusManager
 from chorus.data.channel import Channel
@@ -131,7 +131,7 @@ class ChorusGlobalContext(BaseModel):
                 self.global_message_ids.add(msg.message_id)
                 channel_name = msg.channel if msg.channel is not None else "DM"
                 content = msg.content
-                if msg.role == Role.ACTION:
+                if msg.event_type == EventType.INTERNAL_EVENT and msg.actions:
                     action_thought_content = msg.content if msg.content is not None else ""
                     action_thought_content = re.sub(
                         r"<function_calls>.*?</function_calls>",
@@ -153,12 +153,12 @@ class ChorusGlobalContext(BaseModel):
                             )
                         )
                     )
-                if msg.role == Role.OBSERVATION:
+                if msg.event_type == EventType.INTERNAL_EVENT and msg.observations:
                     content = "[OBSERVATION]\n" + str(msg.observations)
                 logger.info(f"==== Received message from {agent_id} to global context ====")
                 logger.info(msg.model_dump_json(indent=2))
                 logger.info(f"==== *** =====")
-                if msg.role != Role.ACTION and msg.role != Role.OBSERVATION:
+                if msg.event_type != EventType.INTERNAL_EVENT:
                     print("===========================================")
                     if msg.actions:
                         content = ""

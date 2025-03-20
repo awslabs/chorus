@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from chorus.environment.communication import MessageService, MultiAgentMessageService
+from chorus.communication.message_service import MessageService, MultiAgentMessageService
 from chorus.data.dialog import Message
 from chorus.data.context import AgentContext
 from chorus.environment.global_context import ChorusGlobalContext

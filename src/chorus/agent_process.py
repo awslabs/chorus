@@ -36,7 +36,7 @@ class AgentProcess:
         context_dict = json.loads(self.agent_data["context"])
         
         # Initialize a new message service for this process
-        from chorus.environment.communication import MessageService
+        from chorus.communication.message_service import MessageService
         message_service = MessageService()
         if 'message_service' in context_dict:
             messages = context_dict['message_service'].get('message_history', [])

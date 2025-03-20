@@ -1,5 +1,5 @@
 from chorus.core import Chorus
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.data.channel import Channel
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     )
 
     # Create agents
-    news_anchor = AsyncToolChatAgent(
+    news_anchor = CollaborativeAgent(
         "NewsAnchor",
         instruction="""You are a news anchor who coordinates news broadcasts.
         - Monitor the news_channel for all updates
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         - Prioritize urgent news when received""",
     )
 
-    news_reporter = AsyncToolChatAgent(
+    news_reporter = CollaborativeAgent(
         "NewsReporter",
         instruction="""You are a news reporter who gathers and reports news.
         - Use web search to find current news
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         ]
     )
 
-    weather_reporter = AsyncToolChatAgent(
+    weather_reporter = CollaborativeAgent(
         "WeatherReporter",
         instruction="""You are a weather reporter who reports weather updates.
         - Use web search to find weather information

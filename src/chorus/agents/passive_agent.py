@@ -8,7 +8,7 @@ from chorus.agents.base import Agent
 from chorus.data.context import AgentContext
 from chorus.data.agent_status import AgentStatus
 from chorus.data.dialog import Message
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.state import PassiveAgentState
 
 logger = logging.getLogger(__name__)
@@ -59,8 +59,8 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
         pass
 
     def iterate(
-        self, context: AgentContext, state: Optional[PassiveAgentState]
-    ) -> Optional[PassiveAgentState]:
+        self, context: AgentContext, state: PassiveAgentState
+    ) -> PassiveAgentState:
         """Execute one iteration of the agent's message processing loop.
 
         Checks for new messages directed to this agent and processes the first valid one found.
@@ -75,8 +75,7 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
             state: The current state of the passive agent.
 
         Returns:
-            Optional[PassiveAgentState]: The updated agent state if a message was processed,
-                or the unchanged state if no valid messages were found.
+            PassiveAgentState: The updated agent state after message processing.
         """
         all_messages = context.message_service.fetch_all_messages()
         new_incoming_msg = None
@@ -85,7 +84,7 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
             if (
                 (msg.destination == agent_id or msg.channel is not None)
                 and msg.message_id not in state.processed_messages
-                and msg.role not in (Role.ACTION, Role.OBSERVATION)
+                and msg.event_type != EventType.INTERNAL_EVENT
             ):
                 if (
                     self._no_response_sources is not None
@@ -100,7 +99,7 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
             logger.info(
                 ", ".join(
                     [
-                        f"[{msg.channel if msg.channel is not None else 'DM'}] {msg.source}->{msg.destination}:{msg.role}:{msg.message_id}"
+                        f"[{msg.channel if msg.channel is not None else 'DM'}] {msg.source}->{msg.destination}:{msg.event_type}:{msg.message_id}"
                         for msg in all_messages
                     ]
                 )
@@ -112,6 +111,6 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
             context.report_status(context.agent_id, AgentStatus.BUSY)
             downstream_state = self.respond(context, state, new_incoming_msg)
             context.report_status(context.agent_id, AgentStatus.AVAILABLE)
-            return downstream_state if downstream_state is not None else state
+            return downstream_state
         else:
             return state

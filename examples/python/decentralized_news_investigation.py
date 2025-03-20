@@ -1,4 +1,4 @@
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.teams import Team
 from chorus.collaboration import DecentralizedCollaboration
 from chorus.core.runner import Chorus
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     )
 
     # Create investigator agents for different aspects
-    fact_checker = AsyncToolChatAgent(
+    fact_checker = CollaborativeAgent(
         "FactChecker",
         instruction="""
         Here are the channels available for communication:
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool()]
     )
 
-    main_news_investigator = AsyncToolChatAgent(
+    main_news_investigator = CollaborativeAgent(
         "MainNewsInvestigator",
         instruction="""
         Here are the channels available for communication:
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool()]
     )
 
-    source_analyzer = AsyncToolChatAgent(
+    source_analyzer = CollaborativeAgent(
         "SourceAnalyzer",
         instruction="""
         Here are the channels available for communication:
@@ -88,7 +88,7 @@ if __name__ == '__main__':
             tools=[SerperWebSearchTool()]
     )
 
-    summarizer = AsyncToolChatAgent(
+    summarizer = CollaborativeAgent(
         "Summarizer",
         instruction="""
         Here are the channels available for communication:

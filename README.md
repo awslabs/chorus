@@ -62,9 +62,9 @@ In the hello world example, we built a simple agent team for answering questions
 
 | Agent Name | Agent Type | Description |
 | --- | --- | --- |
-| FitnessAnsweringAgent | `SynchronizedCoordinatorAgent` | A coordinator agent that coordinates the other two agents to answer questions. |
-| FactResearchAgent | `ToolChatAgent` | A fact research agent that can search the web for facts related to fitness. |
-| KnowledgeAgent | `ToolChatAgent` | A knowledge agent that can answer general questions related to fitness. |
+| FitnessAnsweringAgent | `TaskCoordinatorAgent` | A coordinator agent that coordinates the other two agents to answer questions. |
+| FactResearchAgent | `ConversationalTaskAgent` | A fact research agent that can search the web for facts related to fitness. |
+| KnowledgeAgent | `ConversationalTaskAgent` | A knowledge agent that can answer general questions related to fitness. |
 
 
 ### Running the example

@@ -17,7 +17,7 @@ from chorus.data.data_types import ActionData
 from chorus.data.dialog import Message
 from chorus.data.prompt import Prompt
 from chorus.data.resource import Resource
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.prompt import StructuredPrompt
 from chorus.data.toolschema import ToolSchema
 from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverseToolChatPrompter
@@ -85,6 +85,7 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
 
     def get_prompt(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -95,6 +96,7 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
         """Generates a structured prompt for multi-agent conversation.
 
         Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
             messages: List of previous conversation messages.
             tools: Optional list of available tools and their schemas.
             agent_instruction: Optional instruction text for the agent.
@@ -133,17 +135,17 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
 
         interactions = []
         for turn in messages:
-            if turn.role == Role.ACTION or turn.actions:
+            if turn.event_type == EventType.INTERNAL_EVENT and turn.actions:
                 action = turn.actions[0]
                 content = self._get_action_prompt(action)
                 interactions.append(
                     Template(EVENT_TEMPLATE, autoescape=True).render(event_type="action", content=content)
                 )
-            elif turn.role == Role.OBSERVATION or turn.observations:
+            elif turn.event_type == EventType.INTERNAL_EVENT and turn.observations:
                 interactions.append(
                     Template(EVENT_TEMPLATE, autoescape=True).render(
                         event_type="observation",
-                        content=f"<function_results>\n<result>\n{json.dumps(turn.observations[0].data)}\n</result>\n</function_results>",
+                        content=f"<fnr>\n<r>\n{json.dumps(turn.observations[0].data)}\n</r>\n</fnr>",
                     )
                 )
             else:
@@ -171,3 +173,27 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
         if tool_config is not None:
             prompt_dict["toolConfig"] = tool_config
         return StructuredPrompt.from_dict(prompt_dict)
+
+    def get_target(
+        self,
+        current_agent_id: str,
+        messages: List[Message],
+        tools: Optional[List[ToolSchema]] = None,
+        agent_instruction: Optional[str] = None,
+        resources: Optional[List[Resource]] = None,
+        reference_time: Optional[str] = None,
+    ):
+        """Not implemented for this prompter.
+
+        Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
+            messages: List of conversation messages.
+            tools: Optional list of tool schemas.
+            agent_instruction: Optional instruction text.
+            resources: Optional list of resources.
+            reference_time: Optional reference time.
+
+        Raises:
+            NotImplementedError: This method is not implemented.
+        """
+        raise NotImplementedError()

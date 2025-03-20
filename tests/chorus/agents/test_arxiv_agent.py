@@ -2,20 +2,39 @@ import json
 import unittest
 from unittest.mock import patch, MagicMock
 from chorus.data import Message
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox.arxiv_tool import ArxivRetrieverTool
+from chorus.data.dialog import EventType
+from chorus.data.state import PassiveAgentState
 
 def mock_generate(prompt):
-    if len(json.loads(prompt)["messages"]) == 1:
-        return MagicMock(to_dict=lambda: {"message": {"role": "assistant", "content": [{"toolUse": {"toolUseId": "tooluse_zb7HDcODTf2elJIq6EWdSw", "name": "ArxivRetriever__search", "input": {"query": "constrained decoding", "num_results": 3}}}]}})
+    prompt_data = json.loads(prompt)
+    if len(prompt_data["messages"]) == 1:
+        # First call - return the tool use
+        return MagicMock(to_dict=lambda: {
+            "message": {
+                "role": "assistant", 
+                "content": [
+                    {"toolUse": {"toolUseId": "tooluse_zb7HDcODTf2elJIq6EWdSw", "name": "ArxivRetriever__search", "input": {"query": "constrained decoding", "num_results": 3}}}
+                ]
+            }
+        })
     else:
-        return MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
+        # Second call - return a text response that will be sent to the user
+        return MagicMock(to_dict=lambda: {
+            "message": {
+                "role": "assistant",
+                "content": [
+                    {"text": "Here are some papers on constrained decoding: Test Title by Test Author. The summary is: Test Summary"}
+                ]
+            }
+        })
 
 class TestArxivAgent(unittest.TestCase):
     def setUp(self):
         lm = MagicMock()
         lm.generate = mock_generate
-        self.agent = ToolChatAgent(
+        self.agent = ConversationalTaskAgent(
             "Charlie", 
             instruction="Do not search multiple times.", 
             tools=[ArxivRetrieverTool()],
@@ -27,6 +46,7 @@ class TestArxivAgent(unittest.TestCase):
 
     @patch("chorus.toolbox.arxiv_tool.arxiv")
     def test_arxiv_search(self, mock_arxiv):
+        # Mock the arxiv client
         mock_arxiv.Client.return_value = MagicMock()
         mock_arxiv.Client.return_value.results.return_value = [
             MagicMock(
@@ -51,11 +71,17 @@ class TestArxivAgent(unittest.TestCase):
         
         # Verify messages were exchanged
         messages = self.context.message_service.fetch_all_messages()
+        print(messages)
         self.assertGreater(len(messages), 0)
         
         # Verify agent responded
         agent_messages = [m for m in messages if m.source == "Charlie"]
         self.assertGreater(len(agent_messages), 0)
+        
+        # Verify response content
+        user_directed_messages = [m for m in agent_messages if m.destination == "human"]
+        self.assertGreater(len(user_directed_messages), 0)
+        self.assertIn("Test Title", user_directed_messages[0].content)
 
 if __name__ == '__main__':
     unittest.main()

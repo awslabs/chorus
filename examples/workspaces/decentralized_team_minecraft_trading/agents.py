@@ -5,7 +5,7 @@ from typing import Optional, Dict
 from jinja2 import Template
 from pydantic import BaseModel
 
-from chorus.agents import Agent, ClaudeAsynchronizedCoordinatorAgent
+from chorus.agents import Agent, ClaudeATaskCoordinatorAgent
 from chorus.data.state import PassiveAgentState
 from chorus.helpers.communication import CommunicationHelper
 from chorus.data import Message, AgentContext, AgentState, SimpleExecutableTool, ToolSchema
@@ -294,7 +294,7 @@ class MinecraftTradingTool(SimpleExecutableTool):
 
 
 @Agent.register("MinecraftPlayer")
-class MinecraftPlayer(ClaudeAsynchronizedCoordinatorAgent):
+class MinecraftPlayer(ClaudeATaskCoordinatorAgent):
 
     def __init__(self, name, players, organizer_name, admin_name, instruction=None):
         self.name = name

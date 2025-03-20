@@ -3,18 +3,18 @@ from typing import List
 from typing import Optional
 
 from chorus.agents.base import Agent
-from chorus.agents.tool_chat_agent import ToolChatAgent
+from chorus.agents.conversational_task_agent import ConversationalTaskAgent
 from chorus.data.executable_tool import ExecutableTool
 from chorus.executors import SimpleToolExecutor
 from chorus.lms import LanguageModelClient
 from chorus.planners.base import MultiAgentPlanner
 from chorus.prompters import InteractPrompter
-from chorus.toolbox.internal.agent_communication import AgentAsATool
+from chorus.toolbox.internal.task_agent_tools import AgentAsATool
 from chorus.config.globals import DEFAULT_AGENT_LLM_NAME
 from typing import Type
 
-@Agent.register("SynchronizedCoordinatorAgent")
-class SynchronizedCoordinatorAgent(ToolChatAgent):
+@Agent.register("TaskCoordinatorAgent")
+class TaskCoordinatorAgent(ConversationalTaskAgent):
     """A coordinating agent that orchestrates the agents with synchronous communication.
 
     This agent acts as a coordinator between multiple sub-agents, routing messages and tasks
@@ -46,7 +46,7 @@ class SynchronizedCoordinatorAgent(ToolChatAgent):
         planner: Optional[MultiAgentPlanner] = None,
         tool_executor_class: Type[SimpleToolExecutor] = SimpleToolExecutor,
     ):
-        """Initialize the SynchronizedCoordinatorAgent.
+        """Initialize the TaskCoordinatorAgent.
 
         Args:
             name: Name of the agent.

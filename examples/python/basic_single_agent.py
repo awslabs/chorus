@@ -1,10 +1,10 @@
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox import ArxivRetrieverTool
 from chorus.core import Chorus
 from chorus.workspace import NoActivityStopper
 
 if __name__ == '__main__':
-    paper_research_agent = ToolChatAgent(
+    paper_research_agent = ConversationalTaskAgent(
         name="PaperResearchAgent",
         tools=[ArxivRetrieverTool()],
         instruction="You are a paper research agent that can help find academic papers on Arxiv."

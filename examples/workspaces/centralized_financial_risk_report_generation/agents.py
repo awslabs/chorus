@@ -1,11 +1,11 @@
 import time
-from chorus.agents import Agent, SynchronizedCoordinatorAgent
+from chorus.agents import Agent, TaskCoordinatorAgent
 from chorus.helpers import CommunicationHelper
 from chorus.data import Message, AgentContext
 from chorus.data.state import PassiveAgentState
 
 @Agent.register("FinancialAnalysisCoordinatorAgent")
-class FinancialAnalysisCoordinatorAgent(SynchronizedCoordinatorAgent):
+class FinancialAnalysisCoordinatorAgent(TaskCoordinatorAgent):
 
     def respond(self, context: AgentContext, state: PassiveAgentState, inbound_message: Message) -> PassiveAgentState:
         comm = CommunicationHelper(context)

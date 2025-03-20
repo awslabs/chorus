@@ -5,7 +5,7 @@ from .channel import Channel
 from .team_info import TeamInfo
 from .collaboration_strategies import DecisionMakingStrategy
 from .dialog import Message
-from .dialog import Role
+from .dialog import EventType
 from .executable_tool import ExecutableTool
 from .executable_tool import SimpleExecutableTool
 from .planner_output import PlannerOutput
@@ -20,5 +20,6 @@ from .toolschema import ToolSchema
 from .toolschema import ToolType
 from .state import AgentState
 from .state import PassiveAgentState
-from .context import ChorustionContext, AgentContext
+from .context import OrchestrationContext, AgentContext
 from .trigger import MessageTrigger
+from .message_view import MessageView

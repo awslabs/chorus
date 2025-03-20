@@ -1,13 +1,14 @@
 import unittest
 from unittest.mock import MagicMock, patch, PropertyMock
 
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.data.trigger import MessageTrigger
-from chorus.data.dialog import Message, Role
-from chorus.data.context import ChorustionContext, AgentContext
+from chorus.data.dialog import Message, EventType
+from chorus.data.context import OrchestrationContext, AgentContext
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.channel import Channel
 from chorus.data.prompt import StructuredCompletion
+from chorus.data.state import PassiveAgentState
 from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverseToolChatPrompter
 
 
@@ -49,12 +50,12 @@ class TestAgentTriggers(unittest.TestCase):
         self.mock_tool.get_schema.return_value.tool_name = "test_tool"
 
         # Create test contexts
-        self.default_context = ChorustionContext(
+        self.default_context = OrchestrationContext(
             agent_instruction="Default mode instruction",
             tools=[self.mock_tool]
         )
 
-        self.special_context = ChorustionContext(
+        self.special_context = OrchestrationContext(
             agent_instruction="Special mode instruction",
             tools=[self.mock_tool]
         )
@@ -64,7 +65,7 @@ class TestAgentTriggers(unittest.TestCase):
         self.mock_lm.generate.return_value = StructuredCompletion('{"message": {"role": "assistant", "content": "Test response"}}')
 
         # Create test agent with mocked LM and prompter
-        self.agent = ToolChatAgent(
+        self.agent = ConversationalTaskAgent(
             name="TestAgent",
             instruction="Test instruction",
             tools=[self.mock_tool],
@@ -83,6 +84,9 @@ class TestAgentTriggers(unittest.TestCase):
         mock_context = MockContext(spec=AgentContext, instruction=instruction)
         mock_context.agent_id = "TestAgent"
         mock_context.message_service = MagicMock()
+        
+        # Mock message view selector
+        mock_context.message_view_selector = MagicMock()
         
         # Mock methods to return JSON-serializable values
         mock_context.get_agent_instruction = lambda: mock_context.agent_instruction
@@ -120,12 +124,12 @@ class TestAgentTriggers(unittest.TestCase):
         self.assertEqual(len(self.agent._context_switchers), 0)
 
     def test_context_switching_on_message(self):
-        """Test that context switches correctly when a matching message is received."""
-        # Create triggers
-        direct_trigger = MessageTrigger(source="OtherAgent", destination="TestAgent")
+        """Test that agent switches contexts when a matching message is received."""
+        # Create direct message and channel triggers
+        direct_trigger = MessageTrigger(source="OtherAgent")
         channel_trigger = MessageTrigger(channel="test_channel")
-
-        # Register triggers
+        
+        # Register triggers with different contexts
         self.agent.on(direct_trigger, self.special_context)
         self.agent.on(channel_trigger, self.default_context)
 
@@ -137,21 +141,24 @@ class TestAgentTriggers(unittest.TestCase):
             source="OtherAgent",
             destination="TestAgent",
             content="Test message",
-            role=Role.USER
+            event_type=EventType.MESSAGE
         )
         
-        # Mock extract_relevant_interaction_history to return a list with our message
-        with patch('chorus.util.interact.extract_relevant_interaction_history') as mock_extract:
-            mock_extract.return_value = [direct_message]
-            self.agent.respond(mock_agent_context, None, direct_message)
+        # Create a mock message view with our message
+        mock_message_view = MagicMock()
+        mock_message_view.messages = [direct_message]
+        mock_agent_context.message_view_selector.select.return_value = mock_message_view
+        
+        # Test the respond method with the direct message
+        self.agent.respond(mock_agent_context, PassiveAgentState(), direct_message)
 
-            # Verify context was updated with special context
-            mock_agent_context.message_service.send_messages.assert_called()
-            # Verify the agent instruction was updated
-            self.assertEqual(
-                mock_agent_context.agent_instruction,
-                self.special_context.agent_instruction
-            )
+        # Verify context was updated with special context
+        mock_agent_context.message_service.send_messages.assert_called()
+        # Verify the agent instruction was updated
+        self.assertEqual(
+            mock_agent_context.agent_instruction,
+            self.special_context.agent_instruction
+        )
 
         # Reset mock
         mock_agent_context = self.setup_mock_context()
@@ -161,20 +168,24 @@ class TestAgentTriggers(unittest.TestCase):
             source="OtherAgent",
             channel="test_channel",
             content="Test channel message",
-            role=Role.USER
+            event_type=EventType.MESSAGE
         )
         
-        with patch('chorus.util.interact.extract_relevant_interaction_history') as mock_extract:
-            mock_extract.return_value = [channel_message]
-            self.agent.respond(mock_agent_context, None, channel_message)
+        # Create a mock message view with our channel message
+        mock_message_view = MagicMock()
+        mock_message_view.messages = [channel_message]
+        mock_agent_context.message_view_selector.select.return_value = mock_message_view
+        
+        # Test the respond method with the channel message
+        self.agent.respond(mock_agent_context, PassiveAgentState(), channel_message)
 
-            # Verify context was updated with default context
-            mock_agent_context.message_service.send_messages.assert_called()
-            # Verify the agent instruction was updated
-            self.assertEqual(
-                mock_agent_context.agent_instruction,
-                self.default_context.agent_instruction
-            )
+        # Verify context was updated with default context (for channel message)
+        mock_agent_context.message_service.send_messages.assert_called()
+        # Verify the agent instruction was updated
+        self.assertEqual(
+            mock_agent_context.agent_instruction,
+            self.default_context.agent_instruction
+        )
 
     def test_trigger_priority(self):
         """Test that triggers are evaluated in the correct order (last registered first)."""
@@ -183,8 +194,8 @@ class TestAgentTriggers(unittest.TestCase):
         specific_trigger = MessageTrigger(source="OtherAgent", destination="TestAgent")
 
         # Create contexts with distinct instructions
-        general_context = ChorustionContext(agent_instruction="General instruction")
-        specific_context = ChorustionContext(agent_instruction="Specific instruction")
+        general_context = OrchestrationContext(agent_instruction="General instruction")
+        specific_context = OrchestrationContext(agent_instruction="Specific instruction")
 
         # Register triggers in order (specific last)
         self.agent.on(general_trigger, general_context)
@@ -198,19 +209,22 @@ class TestAgentTriggers(unittest.TestCase):
             source="OtherAgent",
             destination="TestAgent",
             content="Test message",
-            role=Role.USER
+            event_type=EventType.MESSAGE
         )
 
-        # Test response with mocked interaction history
-        with patch('chorus.util.interact.extract_relevant_interaction_history') as mock_extract:
-            mock_extract.return_value = [test_message]
-            self.agent.respond(mock_agent_context, None, test_message)
+        # Create a mock message view with our message
+        mock_message_view = MagicMock()
+        mock_message_view.messages = [test_message]
+        mock_agent_context.message_view_selector.select.return_value = mock_message_view
+        
+        # Test the respond method with the message
+        self.agent.respond(mock_agent_context, PassiveAgentState(), test_message)
 
-            # Verify the specific trigger's context was used (last registered)
-            self.assertEqual(
-                mock_agent_context.agent_instruction,
-                specific_context.agent_instruction
-            )
+        # Verify the specific trigger's context was used (last registered)
+        self.assertEqual(
+            mock_agent_context.agent_instruction,
+            specific_context.agent_instruction
+        )
 
     def test_no_matching_trigger(self):
         """Test that the agent maintains its current context when no triggers match."""
@@ -227,16 +241,19 @@ class TestAgentTriggers(unittest.TestCase):
             source="OtherAgent",
             destination="TestAgent",
             content="Test message",
-            role=Role.USER
+            event_type=EventType.MESSAGE
         )
 
-        # Test response with mocked interaction history
-        with patch('chorus.util.interact.extract_relevant_interaction_history') as mock_extract:
-            mock_extract.return_value = [test_message]
-            self.agent.respond(mock_agent_context, None, test_message)
+        # Create a mock message view with our message
+        mock_message_view = MagicMock()
+        mock_message_view.messages = [test_message]
+        mock_agent_context.message_view_selector.select.return_value = mock_message_view
+        
+        # Test the respond method with the message
+        self.agent.respond(mock_agent_context, PassiveAgentState(), test_message)
 
-            # Verify the instruction wasn't changed
-            self.assertEqual(
-                mock_agent_context.agent_instruction,
-                original_instruction
-            )
+        # Verify the instruction wasn't changed
+        self.assertEqual(
+            mock_agent_context.agent_instruction,
+            original_instruction
+        )

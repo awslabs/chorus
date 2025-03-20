@@ -3,7 +3,7 @@ import unittest
 import time
 from unittest.mock import MagicMock
 from chorus.core import Chorus
-from chorus.agents import ToolChatAgent, SynchronizedCoordinatorAgent
+from chorus.agents import ConversationalTaskAgent, TaskCoordinatorAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.helpers.communication import CommunicationHelper
@@ -25,7 +25,7 @@ class TestChorusInThread(unittest.TestCase):
         lm.generate.return_value = MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
 
         # Create a simple team with a coordinator and a chat agent
-        self.coordinator = SynchronizedCoordinatorAgent(
+        self.coordinator = TaskCoordinatorAgent(
             "Coordinator",
             instruction="Coordinate with other agents to answer questions.",
             reachable_agents={
@@ -35,7 +35,7 @@ class TestChorusInThread(unittest.TestCase):
             lm=lm
         )
         
-        self.assistant = ToolChatAgent(
+        self.assistant = ConversationalTaskAgent(
             "Assistant",
             instruction="Answer basic questions directly and concisely.",
             model_name="anthropic.claude-3-5-haiku-20241022-v1:0",

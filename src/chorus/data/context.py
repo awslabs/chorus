@@ -7,12 +7,13 @@ from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
 
+from chorus.communication.message_view_selectors import GlobalMessageViewSelector, MessageViewSelector
 from chorus.data.agent_status import AgentStatus
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.resource import Resource
 from chorus.data.team_info import TeamInfo
 from chorus.util.status_manager import MultiAgentStatusManager
-from chorus.environment.communication import MessageService
+from chorus.communication.message_service import MessageService
 
 
 class AsyncExecutionRecord(BaseModel):
@@ -27,7 +28,7 @@ class AsyncExecutionRecord(BaseModel):
     action_channel: Optional[str] = None
     tool_use_id: Optional[str] = None
 
-class ChorustionContext(BaseModel):
+class OrchestrationContext(BaseModel):
     """Base context for orchestration.
 
     This class provides the core context needed for orchestration, including tools,
@@ -49,10 +50,10 @@ class ChorustionContext(BaseModel):
     views: Optional[List[str]] = None
 
 
-class AgentContext(ChorustionContext):
+class AgentContext(OrchestrationContext):
     """Context and utilities for an agent.
 
-    This class extends ChorustionContext to provide additional context and helper 
+    This class extends OrchestrationContext to provide additional context and helper 
     methods needed by an agent to operate, including team information, messaging, 
     and status management.
 
@@ -69,6 +70,7 @@ class AgentContext(ChorustionContext):
     agent_id: str
     team_info: Optional[TeamInfo] = None
     message_service: MessageService = Field(default_factory=MessageService)
+    message_view_selector: MessageViewSelector = Field(default_factory=GlobalMessageViewSelector)
     status_manager: Optional[MultiAgentStatusManager] = None
     async_execution_cache: Dict[str, AsyncExecutionRecord] = Field(default_factory=dict)
 

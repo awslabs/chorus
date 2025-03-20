@@ -4,7 +4,7 @@ from typing import Optional
 from chorus.data.dialog import Message
 from chorus.data.prompt import Prompt
 from chorus.data.resource import Resource
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.prompt import StructuredPrompt
 from chorus.data.toolschema import ToolSchema
 from chorus.prompters.interact.base import InteractPrompter
@@ -22,6 +22,7 @@ class SimpleChatPrompter(InteractPrompter):
 
     def get_prompt(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -44,12 +45,17 @@ class SimpleChatPrompter(InteractPrompter):
                     }
                 )
             for msg in messages:
-                if msg.role == Role.USER:
-                    role = "user"
-                elif msg.role == Role.BOT:
-                    role = "assistant"
-                else:
+                # Determine role based on source/destination
+                if msg.event_type == EventType.INTERNAL_EVENT:
                     continue
+                
+                role = "user"
+                # Determine role based on if message is to/from current agent
+                if msg.source == current_agent_id:
+                    role = "assistant"
+                elif msg.destination == current_agent_id:
+                    role = "user"
+                    
                 output_messages.append(
                     {
                         "role": role,
@@ -62,12 +68,16 @@ class SimpleChatPrompter(InteractPrompter):
             # Assuming using converse API
             output_messages = []
             for msg in messages:
-                if msg.role == Role.USER:
-                    role = "user"
-                elif msg.role == Role.BOT:
-                    role = "assistant"
-                else:
+                if msg.event_type == EventType.INTERNAL_EVENT:
                     continue
+                
+                role = "user"
+                # Determine role based on if message is to/from current agent
+                if msg.source == current_agent_id:
+                    role = "assistant"
+                elif msg.destination == current_agent_id:
+                    role = "user"
+                    
                 output_messages.append(
                     {"role": role, "content": [{"text": msg.content}]}
                 )
@@ -80,6 +90,7 @@ class SimpleChatPrompter(InteractPrompter):
 
     def get_target(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -89,4 +100,4 @@ class SimpleChatPrompter(InteractPrompter):
         raise NotImplementedError
 
     def parse_generation(self, generated_text: str) -> List[Message]:
-        return [Message(role=Role.BOT, content=generated_text)]
+        return [Message(event_type=EventType.MESSAGE, content=generated_text)]

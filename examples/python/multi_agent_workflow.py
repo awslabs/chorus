@@ -1,4 +1,4 @@
-from chorus.agents.tool_chat_agent import ToolChatAgent
+from chorus.agents.tool_chat_agent import ConversationalTaskAgent
 from chorus.core import Chorus
 from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
 from chorus.helpers.communication import CommunicationHelper
@@ -7,7 +7,7 @@ from chorus.helpers.smart_logic import SmartLogicHelper
 
 if __name__ == '__main__':
     # Create specialized agents for different aspects of website creation
-    content_agent = ToolChatAgent(
+    content_agent = ConversationalTaskAgent(
         "ContentWriter",
         instruction="""
         You are a skilled content writer. Create engaging website content based on the requirements.
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         tools=[DuckDuckGoWebSearchTool(), WebRetrieverTool()]
     )
 
-    designer_agent = ToolChatAgent(
+    designer_agent = ConversationalTaskAgent(
         "Designer",
         instruction="""
         You are a website designer. Based on the content provided, create design specifications including:
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         """
     )
 
-    developer_agent = ToolChatAgent(
+    developer_agent = ConversationalTaskAgent(
         "Developer",
         instruction="""
         You are a web developer. Based on the content provided, create a preliminary implementation:
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         """
     )
 
-    qa_agent = ToolChatAgent(
+    qa_agent = ConversationalTaskAgent(
         "QAEngineer",
         instruction="""
         You are a QA engineer. Review the complete website implementation and check for:

@@ -17,13 +17,13 @@ local workspace = {
     ],
     agents: [
         {
-            type: 'SynchronizedCoordinatorAgent',
+            type: 'TaskCoordinatorAgent',
             name: 'MachineLearningQARoutingAgent',
             instruction: "Do not do any task by yourself, always try to call other agents. If there is no relevant agent available, tell the user that don't have a agent to answer the question.",
             reachable_agents: sub_agents,
         },
         {
-                type: 'ToolChatAgent',
+                type: 'ConversationalTaskAgent',
                 name: 'NewsSearchAgent',
                 instruction: 'You can help user to find news and summarize them by search web and access pages.',
                 tools: [
@@ -33,7 +33,7 @@ local workspace = {
                 model_name: 'anthropic.claude-3-haiku-20240307-v1:0'
         },
         {
-                type: 'ToolChatAgent',
+                type: 'ConversationalTaskAgent',
                 name: 'ResearchPaperSearchAgent',
                 instruction: 'Help user on arxiv related questions',
                 tools: [
@@ -42,7 +42,7 @@ local workspace = {
                 model_name: 'anthropic.claude-3-haiku-20240307-v1:0'
         },
         {
-                type: 'ToolChatAgent',
+                type: 'ConversationalTaskAgent',
                 name: 'MachineLearningQAAgent',
                 instruction: 'You can help you user expalaining the concept of machine learning and artificial intelligence. Please also attach useful code libraries whenever applicable.',
                 model_name: 'anthropic.claude-3-haiku-20240307-v1:0'

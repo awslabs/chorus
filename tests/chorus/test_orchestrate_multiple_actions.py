@@ -3,13 +3,13 @@ from unittest.mock import Mock, MagicMock
 
 from chorus.data import (
     Message,
-    Role,
+    EventType,
     ActionData,
     ObservationData,
     AgentContext,
     AgentState,
 )
-from chorus.util.interact import orchestrate
+from chorus.util.interact import orchestrate_generate_next_actions, orchestrate_execute_actions
 from chorus.executors import SimpleToolExecutor
 from chorus.prompters import InteractPrompter
 
@@ -39,7 +39,7 @@ def test_orchestrate_multiple_actions():
     
     # Setup initial interaction history
     interaction_history = [
-        Message(role=Role.USER, content="Execute multiple actions")
+        Message(event_type=EventType.MESSAGE, content="Execute multiple actions")
     ]
     
     # Track number of LLM calls to return different responses
@@ -65,7 +65,7 @@ def test_orchestrate_multiple_actions():
             # First parse: return action message
             return [
                 Message(
-                    role=Role.ACTION,
+                    event_type=EventType.INTERNAL_EVENT,
                     actions=[
                         ActionData(
                             tool_name="tool1",
@@ -84,7 +84,7 @@ def test_orchestrate_multiple_actions():
             ]
         else:
             # Subsequent parse: return completion message
-            return [Message(role=Role.BOT, content="All actions have been executed successfully.")]
+            return [Message(event_type=EventType.MESSAGE, content="All actions have been executed successfully.")]
     
     mock_prompter.parse_generation.side_effect = parse_generation_side_effect
     
@@ -98,17 +98,47 @@ def test_orchestrate_multiple_actions():
     mock_executor = MagicMock(spec=SimpleToolExecutor)
     mock_executor.execute.side_effect = mock_execute
     
-    # Execute orchestrate function
-    output_turns = orchestrate(
+    # Get available tools from context
+    tools = mock_context.get_tools()
+    if tools is None:
+        tools = []
+    
+    # Create a mapping of tool actions for easy lookup
+    tool_action_map = {}
+    for tool in tools:
+        schema = tool.get_schema()
+        for action in schema.actions:
+            tool_action_map[(schema.tool_name, action.name)] = action
+    
+    # Generate next actions
+    output_turns = orchestrate_generate_next_actions(
         context=mock_context,
         state=mock_state,
         interaction_history=interaction_history,
         prompter=mock_prompter,
         lm=mock_lm,
-        auto_tool_execution=True,
-        tool_executor_class=lambda *args: mock_executor
     )
     
+    # Execute the actions
+    observation_message = orchestrate_execute_actions(
+        context=mock_context,
+        action_message=output_turns[-1],
+        executor=mock_executor,
+    )
+    
+    # Now manually call orchestrate_generate_next_actions again to get completion message
+    output_turns.append(observation_message)
+    updated_history = interaction_history + output_turns 
+
+    follow_up_turns = orchestrate_generate_next_actions(
+        context=mock_context,
+        state=mock_state,
+        interaction_history=updated_history,
+        prompter=mock_prompter,
+        lm=mock_lm,
+    )
+    output_turns.extend(follow_up_turns)
+
     # Verify the results
     assert len(output_turns) >= 3  # Should have action, observation, and completion messages
     
@@ -116,9 +146,9 @@ def test_orchestrate_multiple_actions():
     assert mock_executor.execute.call_count == 2
     
     # Get messages by role
-    action_messages = [m for m in output_turns if m.role == Role.ACTION]
-    observation_messages = [m for m in output_turns if m.role == Role.OBSERVATION]
-    completion_messages = [m for m in output_turns if m.role == Role.BOT]
+    action_messages = [m for m in output_turns if m.actions]
+    observation_messages = [m for m in output_turns if m.observations]
+    completion_messages = [m for m in output_turns if m.event_type == EventType.MESSAGE and not m.actions and not m.observations]
     
     # Verify action message
     assert len(action_messages) == 1
@@ -140,3 +170,6 @@ def test_orchestrate_multiple_actions():
     # Verify completion message
     assert len(completion_messages) == 1
     assert completion_messages[0].content == "All actions have been executed successfully." 
+
+if __name__ == "__main__":
+    test_orchestrate_multiple_actions()
