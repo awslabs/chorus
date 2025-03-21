@@ -1,5 +1,5 @@
 from chorus.config.globals import DEFAULT_AGENT_LLM_NAME
-from chorus.data.dialog import Message, Role
+from chorus.data.dialog import Message, EventType
 from chorus.data.context import AgentContext
 from chorus.data.prompt import StructuredCompletion
 from chorus.helpers.base import AgentHelper
@@ -50,7 +50,10 @@ class SmartLogicHelper(AgentHelper):
         if self._lm_client is None:
             self.set_default_lm()
         prompter = SimpleChatPrompter()
-        processed_prompt = prompter.get_prompt(messages=[Message(role=Role.USER, content=prompt)])
+        processed_prompt = prompter.get_prompt(
+            current_agent_id="smart_logic_helper",
+            messages=[Message(event_type=EventType.MESSAGE, content=prompt)]
+        )
         response = self._lm_client.generate(processed_prompt)
         if isinstance(response, StructuredCompletion):
             contents = response.to_dict()["message"]["content"]
@@ -75,7 +78,10 @@ class SmartLogicHelper(AgentHelper):
             self.set_default_lm()
         prompt = f"Judge whether the following content meets the condition.\n\nContent:\n{content}\n\nCondition:\n{condition}\n\nRespond with either TRUE or FALSE with nothing else."
         prompter = SimpleChatPrompter()
-        processed_prompt = prompter.get_prompt(messages=[Message(role=Role.USER, content=prompt)])
+        processed_prompt = prompter.get_prompt(
+            current_agent_id="smart_logic_helper",
+            messages=[Message(event_type=EventType.MESSAGE, content=prompt)]
+        )
         response = self._lm_client.generate(processed_prompt)
         if isinstance(response, StructuredCompletion):
             contents = response.to_dict()["message"]["content"]
@@ -100,7 +106,10 @@ class SmartLogicHelper(AgentHelper):
             self.set_default_lm()
         prompt = f"Extract {target} from following content: {content}. Return only extracted information."
         prompter = SimpleChatPrompter()
-        processed_prompt = prompter.get_prompt(messages=[Message(role=Role.USER, content=prompt)])
+        processed_prompt = prompter.get_prompt(
+            current_agent_id="smart_logic_helper",
+            messages=[Message(event_type=EventType.MESSAGE, content=prompt)]
+        )
         response = self._lm_client.generate(processed_prompt)
         if isinstance(response, StructuredCompletion):
             contents = response.to_dict()["message"]["content"]

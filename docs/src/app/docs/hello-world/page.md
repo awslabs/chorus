@@ -37,7 +37,7 @@ Create a new file named `hello_world.py` and add the following imports:
 ```python
 from chorus.core import Chorus
 
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 
@@ -60,7 +60,7 @@ Next, let's create our three agents:
 
 ```python
 # Create the coordinator agent that will manage the workflow
-coordinator_agent = SynchronizedCoordinatorAgent(
+coordinator_agent = TaskCoordinatorAgent(
     "FitnessAnsweringAgent",
     instruction="""
     Do not do any task by yourself, always try to call other agents.
@@ -74,7 +74,7 @@ coordinator_agent = SynchronizedCoordinatorAgent(
 )
 
 # Create the fact research agent with web search capabilities
-fact_research_agent = ToolChatAgent(
+fact_research_agent = ConversationalTaskAgent(
     "FactResearchAgent",
     instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
     tools=[
@@ -84,7 +84,7 @@ fact_research_agent = ToolChatAgent(
 )
 
 # Create the knowledge agent for fitness expertise
-knowledge_agent = ToolChatAgent(
+knowledge_agent = ConversationalTaskAgent(
     "KnowledgeAgent",
     instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
 )
@@ -147,7 +147,7 @@ Here's the complete Hello World example:
 ```python
 from chorus.core import Chorus
 
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 
@@ -158,7 +158,7 @@ from chorus.workspace import NoActivityStopper
 
 
 if __name__ == '__main__':
-    coordinator_agent = SynchronizedCoordinatorAgent(
+    coordinator_agent = TaskCoordinatorAgent(
         "FitnessAnsweringAgent",
         instruction="""
         Do not do any task by yourself, always try to call other agents.
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             "KnowledgeAgent": "An agent that can help user to answer general questions about fitness." 
         }
     )
-    fact_research_agent = ToolChatAgent(
+    fact_research_agent = ConversationalTaskAgent(
         "FactResearchAgent",
         instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
         tools=[
@@ -178,7 +178,7 @@ if __name__ == '__main__':
             WebRetrieverTool()
         ]
     )
-    knowledge_agent = ToolChatAgent(
+    knowledge_agent = ConversationalTaskAgent(
         "KnowledgeAgent",
         instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
     )

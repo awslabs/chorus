@@ -1,4 +1,4 @@
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.teams import Team
 from chorus.collaboration import DecentralizedCollaboration
 from chorus.core.runner import Chorus
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     )
 
     # Create specialized agents
-    geo_expert = AsyncToolChatAgent(
+    geo_expert = CollaborativeAgent(
         "GeoExpert",
         instruction="""
         Here are the channels available for communication:
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
     )
 
-    budget_advisor = AsyncToolChatAgent(
+    budget_advisor = CollaborativeAgent(
         "BudgetAdvisor",
         instruction="""
         Here are the channels available for communication:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
     )
 
-    experience_advisor = AsyncToolChatAgent(
+    experience_advisor = CollaborativeAgent(
         "ExperienceAdvisor",
         instruction="""
         Here are the channels available for communication:
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
     )
 
-    safety_advisor = AsyncToolChatAgent(
+    safety_advisor = CollaborativeAgent(
         "SafetyAdvisor",
         instruction="""
         Here are the channels available for communication:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
     )
 
-    planner = AsyncToolChatAgent(
+    planner = CollaborativeAgent(
         "TripPlanner",
         instruction="""
         Here are the channels available for communication:

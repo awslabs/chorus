@@ -41,13 +41,13 @@ Developers and researchers can prototype customized collaboration mechanisms usi
 ```python
 # Example: Creating a collaborative agent team
 from chorus.core import Chorus
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.workspace import NoActivityStopper
 
 # Create specialized agents
-coordinator_agent = SynchronizedCoordinatorAgent(
+coordinator_agent = TaskCoordinatorAgent(
     "FitnessAnsweringAgent",
     instruction="""
     Do not do any task by yourself, always try to call other agents.
@@ -107,11 +107,11 @@ Chorus encourages developers to focus on assembling effective teams of specializ
 
 ```python
 # Example: Defining agent specializations
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
 
 # Create specialized agents with different capabilities
-fact_research_agent = ToolChatAgent(
+fact_research_agent = ConversationalTaskAgent(
     "FactResearchAgent",
     instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
     tools=[
@@ -120,7 +120,7 @@ fact_research_agent = ToolChatAgent(
     ]
 )
 
-knowledge_agent = ToolChatAgent(
+knowledge_agent = ConversationalTaskAgent(
     "KnowledgeAgent",
     instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
 )

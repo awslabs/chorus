@@ -8,7 +8,7 @@ from chorus.data.prompt import Completion
 from chorus.data.planner_output import PlannerOutput
 from chorus.data.prompt import Prompt
 from chorus.data.resource import Resource
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.toolschema import ToolSchema
 from chorus.prompters.base_prompter import BasePrompter
 from chorus.util.prompt_util import PrompterUtil
@@ -34,21 +34,6 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
             )
         else:
             self._prompt_adapter = None
-
-    def get_last_user_turn_index(self, turns: List[Message]) -> int:
-        """Find the index of the last user message in a conversation.
-
-        Args:
-            turns: List of conversation messages.
-
-        Returns:
-            Index of the last user message, or -1 if no user messages found.
-        """
-        last_user_turn_index = -1
-        for index, turn in enumerate(turns):
-            if turn.role == Role.USER:
-                last_user_turn_index = index
-        return last_user_turn_index
 
     def adapt_prompt(self, prompt: Prompt) -> Prompt:
         """Adapt a prompt using the configured prompt adapter.
@@ -95,6 +80,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
     @abstractmethod
     def get_prompt(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -105,6 +91,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
         """Generate a prompt from conversation messages and context.
 
         Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
             messages: List of conversation messages.
             tools: Optional list of available tools.
             agent_instruction: Optional instruction for the agent.
@@ -120,6 +107,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
     @abstractmethod
     def get_target(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -129,6 +117,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
         """Generate a target completion from conversation messages and context.
 
         Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
             messages: List of conversation messages.
             tools: Optional list of available tools.
             agent_instruction: Optional instruction for the agent.

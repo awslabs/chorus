@@ -20,13 +20,13 @@ Here's how you can implement centralized collaboration in Chorus:
 
 ```python
 from chorus.core import Chorus
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.workspace import NoActivityStopper
 
 # Create a coordinator agent
-coordinator_agent = SynchronizedCoordinatorAgent(
+coordinator_agent = TaskCoordinatorAgent(
     "CoordinatorAgent",
     instruction="""
     You are the coordinator of a specialized team. Your job is to:
@@ -44,17 +44,17 @@ coordinator_agent = SynchronizedCoordinatorAgent(
 )
 
 # Create specialized agents
-data_analysis_agent = ToolChatAgent(
+data_analysis_agent = ConversationalTaskAgent(
     "DataAnalysisAgent",
     instruction="You are a data analysis agent specialized in analyzing data and generating insights."
 )
 
-visualization_agent = ToolChatAgent(
+visualization_agent = ConversationalTaskAgent(
     "VisualizationAgent",
     instruction="You are a visualization agent specialized in creating data visualizations."
 )
 
-reporting_agent = ToolChatAgent(
+reporting_agent = ConversationalTaskAgent(
     "ReportingAgent",
     instruction="You are a reporting agent specialized in generating comprehensive reports."
 )

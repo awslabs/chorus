@@ -1,6 +1,6 @@
 from chorus.core import Chorus
 
-from chorus.agents import  SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import  TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 
@@ -19,7 +19,7 @@ def run_chorus(chorus):
 
 
 if __name__ == '__main__':
-    coordinator_agent = SynchronizedCoordinatorAgent(
+    coordinator_agent = TaskCoordinatorAgent(
         "FitnessAnsweringAgent",
         instruction="""
         Do not do any task by yourself, always try to call other agents.
@@ -31,7 +31,7 @@ if __name__ == '__main__':
             "KnowledgeAgent": "An agent that can help user to answer general questions about fitness, healthy lifestyle, nutrition, exercise, etc." 
         }
     )
-    fact_research_agent = ToolChatAgent(
+    fact_research_agent = ConversationalTaskAgent(
         "FactResearchAgent",
         instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
         tools=[
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             WebRetrieverTool()
         ]
     )
-    knowledge_agent = ToolChatAgent(
+    knowledge_agent = ConversationalTaskAgent(
         "KnowledgeAgent",
         instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
     )

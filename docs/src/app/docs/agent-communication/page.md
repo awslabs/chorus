@@ -34,7 +34,7 @@ Here's a simple example of setting up a communication channel:
 
 ```python
 from chorus.data.channel import Channel
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.core import Chorus
 
 # Create a channel
@@ -44,12 +44,12 @@ news_channel = Channel(
 )
 
 # Create agents
-news_anchor = ToolChatAgent(
+news_anchor = ConversationalTaskAgent(
     name="NewsAnchor",
     instruction="Monitor news_channel and coordinate news broadcasts"
 )
 
-news_reporter = ToolChatAgent(
+news_reporter = ConversationalTaskAgent(
     name="NewsReporter",
     instruction="Report news on news_channel"
 )
@@ -109,7 +109,7 @@ message = Message(
 
 3. **Channel Instructions**: Include channel information in agent instructions
    ```python
-   agent = ToolChatAgent(
+   agent = ConversationalTaskAgent(
        name="NewsReporter",
        instruction="""
        Here are the channels available for communication:

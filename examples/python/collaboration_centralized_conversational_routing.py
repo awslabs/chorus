@@ -1,4 +1,4 @@
-from chorus.agents import  SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import  TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.core.runner import Chorus
@@ -10,7 +10,7 @@ from chorus.workspace.stop_conditions import NoActivityStopper
 
 
 if __name__ == '__main__':
-    routing_agent = SynchronizedCoordinatorAgent(
+    routing_agent = TaskCoordinatorAgent(
         "MachineLearningQARoutingAgent",
         instruction="""
         Do not do any task by yourself, if you don't have a agent to answer the question, tell the user that don't have a agent to answer the question.
@@ -21,7 +21,7 @@ if __name__ == '__main__':
             "MachineLearningQAAgent": "An agent that can help user to explain the concept of machine learning and artificial intelligence."
         }
     )
-    news_search_agent = ToolChatAgent(
+    news_search_agent = ConversationalTaskAgent(
         "NewsSearchAgent",
         instruction="You can help user to find news and summarize them by search web and access pages.",
         tools=[
@@ -29,12 +29,12 @@ if __name__ == '__main__':
             WebRetrieverTool()
         ]
     )
-    research_paper_search_agent = ToolChatAgent(
+    research_paper_search_agent = ConversationalTaskAgent(
         "ResearchPaperSearchAgent",
         instruction="You can help user to find research papers and summarize them by search arxiv and access pages.",
         tools=[ArxivRetrieverTool()]
     )
-    machine_learning_qa_agent = ToolChatAgent(
+    machine_learning_qa_agent = ConversationalTaskAgent(
         "MachineLearningQAAgent",
         instruction="You can help user to explain the concept of machine learning and artificial intelligence."
     )

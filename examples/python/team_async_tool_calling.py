@@ -1,4 +1,4 @@
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.collaboration import CentralizedCollaboration
 from chorus.teams import Team
 from chorus.teams.services import TeamToolbox
@@ -9,7 +9,7 @@ from chorus.workspace import NoActivityStopper
 
 if __name__ == '__main__':
     arxiv_retriever_tool = ArxivRetrieverTool()
-    paper_research_agent = ToolChatAgent(
+    paper_research_agent = ConversationalTaskAgent(
         name="PaperResearchAgent",
         tools=[AsyncTeamToolClient(arxiv_retriever_tool)],
         instruction="You are a paper research agent that can help find academic papers on Arxiv."

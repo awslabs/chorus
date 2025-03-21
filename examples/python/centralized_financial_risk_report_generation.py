@@ -1,5 +1,5 @@
 import time
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.core.runner import Chorus
@@ -10,7 +10,7 @@ from chorus.helpers import CommunicationHelper
 from chorus.toolbox import SerperWebSearchTool, WebRetrieverToolV2, RemotePDFReaderTool
 from chorus.workspace.stop_conditions import NoActivityStopper
 
-class FinancialAnalysisCoordinatorAgent(SynchronizedCoordinatorAgent):
+class FinancialAnalysisCoordinatorAgent(TaskCoordinatorAgent):
 
     def respond(self, context: AgentContext, state: PassiveAgentState, inbound_message: Message) -> PassiveAgentState:
         comm = CommunicationHelper(context)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
     )
 
-    sentiment_analyzer = ToolChatAgent(
+    sentiment_analyzer = ConversationalTaskAgent(
         "SentimentRiskAnalyzerAgent",
         instruction="""
         You are a sentiment risk analyzer.
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
     )
 
-    management_analyzer = ToolChatAgent(
+    management_analyzer = ConversationalTaskAgent(
         "ManagementRiskAnalyzerAgent", 
         instruction="""
         You are a management risk analyzer.
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
     )
 
-    financial_analyzer = ToolChatAgent(
+    financial_analyzer = ConversationalTaskAgent(
         "FinancialHealthAnalyzerAgent",
         instruction="""
         You are a financial health analyzer.
@@ -137,7 +137,7 @@ if __name__ == '__main__':
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
     )
 
-    economy_analyzer = ToolChatAgent(
+    economy_analyzer = ConversationalTaskAgent(
         "GlobalEconomyAnalyzerAgent",
         instruction="""
         You are a global economy analyzer.
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
     )
 
-    statement_retriever = ToolChatAgent(
+    statement_retriever = ConversationalTaskAgent(
         "FinancialStatementRetriever",
         instruction="""
         You are a financial statement retriever.

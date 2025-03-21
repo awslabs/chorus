@@ -29,10 +29,10 @@ In Chorus, you can create a team by instantiating the `Team` class and providing
 ```python
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
-from chorus.agents import ToolChatAgent, SynchronizedCoordinatorAgent
+from chorus.agents import ConversationalTaskAgent, TaskCoordinatorAgent
 
 # Create agents
-coordinator = SynchronizedCoordinatorAgent(
+coordinator = TaskCoordinatorAgent(
     "TeamCoordinator",
     instruction="Coordinate the team to solve problems",
     reachable_agents={
@@ -41,13 +41,13 @@ coordinator = SynchronizedCoordinatorAgent(
     }
 )
 
-researcher = ToolChatAgent(
+researcher = ConversationalTaskAgent(
     "Researcher",
     instruction="Find information through web search",
     tools=[WebSearchTool(), WebRetrieverTool()]
 )
 
-analyst = ToolChatAgent(
+analyst = ConversationalTaskAgent(
     "Analyst",
     instruction="Analyze data and provide insights"
 )

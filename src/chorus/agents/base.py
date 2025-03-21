@@ -62,7 +62,7 @@ class Agent(Registrable, metaclass=ABCMeta):
         return AgentState()
 
     @abstractmethod
-    def iterate(self, context: AgentContext, state: AgentState) -> Optional[AgentState]:
+    def iterate(self, context: AgentContext, state: AgentState) -> AgentState:
         """Execute one iteration of the agent's processing loop.
 
         Args:
@@ -70,7 +70,6 @@ class Agent(Registrable, metaclass=ABCMeta):
             state: The current state of the agent.
 
         Returns:
-            Optional[AgentState]: The updated agent state after processing,
-                or None if no state update is needed.
+            AgentState: The updated agent state after processing.
         """
         pass

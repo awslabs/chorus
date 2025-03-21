@@ -1,11 +1,11 @@
 from chorus.core import Chorus
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.data.channel import Channel
 from chorus.data.trigger import MessageTrigger
 from chorus.data.dialog import Role
-from chorus.data.context import ChorustionContext
+from chorus.data.context import OrchestrationContext
 from chorus.toolbox import DuckDuckGoWebSearchTool, WebRetrieverTool, SerperWebSearchTool
 from chorus.workspace import NoActivityStopper
 import argparse
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     )
 
     # Define different contexts for the analyst
-    regular_context = ChorustionContext(
+    regular_context = OrchestrationContext(
         agent_instruction="""
         Here are the channels available for communication:
         <channels>
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         tools=[search_tool, WebRetrieverTool()]
     )
 
-    urgent_context = ChorustionContext(
+    urgent_context = OrchestrationContext(
         agent_instruction="""
         Here are the channels available for communication:
         <channels>
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     )
 
     # Create agents
-    monitor = AsyncToolChatAgent(
+    monitor = CollaborativeAgent(
         "NewsMonitor",
         instruction="""
         Here are the channels available for communication:
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         tools=[search_tool, WebRetrieverTool()]
     )
 
-    analyst = AsyncToolChatAgent(
+    analyst = CollaborativeAgent(
         "NewsAnalyst",
         instruction="""You are a news analysis agent:
         - Analyze news shared in the news_channel

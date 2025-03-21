@@ -4,18 +4,19 @@ from unittest.mock import Mock, MagicMock
 
 from chorus.data import (
     Message,
-    Role,
+    EventType,
     ActionData,
     ObservationData,
     AgentContext,
     AgentState,
 )
-from chorus.util.interact import orchestrate
+from chorus.util.interact import orchestrate_generate_next_actions, orchestrate_execute_actions
 from chorus.executors import SimpleToolExecutor
 from chorus.prompters import InteractPrompter
+from chorus.data.executable_tool import ExecutableTool
 
 
-class TestChoruste(unittest.TestCase):
+class TestOrchestrate(unittest.TestCase):
     def setUp(self):
         # Mock dependencies
         self.mock_context = MagicMock(spec=AgentContext)
@@ -23,14 +24,14 @@ class TestChoruste(unittest.TestCase):
         self.mock_prompter = MagicMock(spec=InteractPrompter)
         self.mock_lm = MagicMock()
         
-        # Setup mock tools
-        self.mock_tool1 = MagicMock()
+        # Setup mock tools that properly inherit from ExecutableTool
+        self.mock_tool1 = MagicMock(spec=ExecutableTool)
         self.mock_tool1.get_schema.return_value.tool_name = "tool1"
         self.mock_tool1.get_schema.return_value.actions = [
             MagicMock(name="action1", input_schema=MagicMock(model_dump=lambda: {"properties": {}}))
         ]
         
-        self.mock_tool2 = MagicMock()
+        self.mock_tool2 = MagicMock(spec=ExecutableTool)
         self.mock_tool2.get_schema.return_value.tool_name = "tool2"
         self.mock_tool2.get_schema.return_value.actions = [
             MagicMock(name="action2", input_schema=MagicMock(model_dump=lambda: {"properties": {}}))
@@ -41,7 +42,7 @@ class TestChoruste(unittest.TestCase):
         
         # Setup initial interaction history
         self.interaction_history = [
-            Message(role=Role.USER, content="Execute multiple actions")
+            Message(event_type=EventType.MESSAGE, content="Execute multiple actions")
         ]
         
         # Mock tool execution results
@@ -78,7 +79,7 @@ class TestChoruste(unittest.TestCase):
                 # First parse: return action message
                 return [
                     Message(
-                        role=Role.ACTION,
+                        event_type=EventType.INTERNAL_EVENT,
                         actions=[
                             ActionData(
                                 tool_name="tool1",
@@ -97,20 +98,52 @@ class TestChoruste(unittest.TestCase):
                 ]
             else:
                 # Subsequent parse: return completion message
-                return [Message(role=Role.BOT, content="All actions have been executed successfully.")]
+                return [Message(event_type=EventType.MESSAGE, content="All actions have been executed successfully.")]
         
         self.mock_prompter.parse_generation.side_effect = parse_generation_side_effect
         
-        # Execute orchestrate function
-        output_turns = orchestrate(
+        # Get available tools from context
+        tools = self.mock_context.get_tools()
+        if tools is None:
+            tools = []
+        
+        # Create a mapping of tool actions for easy lookup
+        tool_action_map = {}
+        for tool in tools:
+            schema = tool.get_schema()
+            for action in schema.actions:
+                tool_action_map[(schema.tool_name, action.name)] = action
+        
+        # Use our mock_executor instead of creating a new one
+        executor = self.mock_executor
+        
+        # Generate next actions
+        output_turns = orchestrate_generate_next_actions(
             context=self.mock_context,
             state=self.mock_state,
             interaction_history=self.interaction_history,
             prompter=self.mock_prompter,
             lm=self.mock_lm,
-            auto_tool_execution=True,
-            tool_executor_class=lambda *args: self.mock_executor
         )
+        
+        # Execute the actions
+        observation_message = orchestrate_execute_actions(
+            context=self.mock_context,
+            action_message=output_turns[-1],
+            executor=executor,
+        )
+        
+        # Now manually call orchestrate_generate_next_actions again to get completion message
+        output_turns.append(observation_message)
+        updated_history = self.interaction_history + output_turns
+        follow_up_turns = orchestrate_generate_next_actions(
+            context=self.mock_context,
+            state=self.mock_state,
+            interaction_history=updated_history,
+            prompter=self.mock_prompter,
+            lm=self.mock_lm,
+        )
+        output_turns.extend(follow_up_turns)
         
         # Verify the results
         self.assertGreaterEqual(len(output_turns), 3)  # Should have action, observation, and completion messages
@@ -119,9 +152,9 @@ class TestChoruste(unittest.TestCase):
         self.assertEqual(self.mock_executor.execute.call_count, 2)
         
         # Get messages by role
-        action_messages = [m for m in output_turns if m.role == Role.ACTION]
-        observation_messages = [m for m in output_turns if m.role == Role.OBSERVATION]
-        completion_messages = [m for m in output_turns if m.role == Role.BOT]
+        action_messages = [m for m in output_turns if m.actions]
+        observation_messages = [m for m in output_turns if m.observations]
+        completion_messages = [m for m in output_turns if m.event_type == EventType.MESSAGE and not m.actions and not m.observations]
         
         # Verify action message
         self.assertEqual(len(action_messages), 1)

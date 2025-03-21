@@ -10,7 +10,7 @@ local workspace = {
     ],
     agents: [
             {
-                type: 'ToolChatAgent',
+                type: 'ConversationalTaskAgent',
                 name: 'testbot',
                 instruction: 'You are testbot.'
             }

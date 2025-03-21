@@ -35,14 +35,14 @@ Here's how you can implement a question answering team with Chorus:
 
 ```python
 from chorus.core import Chorus
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.workspace import NoActivityStopper
 from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
 
 # Create specialized agents
-coordinator_agent = SynchronizedCoordinatorAgent(
+coordinator_agent = TaskCoordinatorAgent(
     "FitnessAnsweringAgent",
     instruction="""
     Do not do any task by yourself, always try to call other agents.
@@ -55,7 +55,7 @@ coordinator_agent = SynchronizedCoordinatorAgent(
     }
 )
 
-fact_research_agent = ToolChatAgent(
+fact_research_agent = ConversationalTaskAgent(
     "FactResearchAgent",
     instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
     tools=[
@@ -64,7 +64,7 @@ fact_research_agent = ToolChatAgent(
     ]
 )
 
-knowledge_agent = ToolChatAgent(
+knowledge_agent = ConversationalTaskAgent(
     "KnowledgeAgent",
     instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
 )

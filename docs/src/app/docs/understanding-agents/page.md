@@ -9,7 +9,7 @@ description: Learn about agents in Chorus and how they work
 
 An agent in Chorus is an autonomous entity capable of taking self-initiated actions and having full control over its behavior and state management. An agent can reason, plan, and execute multiple steps to solve complex problems. As an agent developer, you need to design each agent's behavior and assign agents to teams. To control an agent's behavior, there are several approaches in Chorus:
 
-1. Leveraging existing agent classes (e.g., `ToolChatAgent`): You can provide natural language instructions to the agent to control its behavior.
+1. Leveraging existing agent classes (e.g., `ConversationalTaskAgent`): You can provide natural language instructions to the agent to control its behavior.
 2. Extending agent classes: This allows for full customization of the agent's behavior.
 
 Chorus allows you to create fully customized heterogeneous agents. By following a basic design principle, these agents can run seamlessly and work with each other using Chorus's execution engine. We can see how to do this in the following sections.
@@ -67,17 +67,17 @@ class TestPassiveAgent(PassiveAgent):
 
 ### ToolChat Agents
 
-Chorus offers a set of pre-built agent classes for building LLM-based agents easily. One useful agent class is `ToolChatAgent`. It is a passive agent that can react to requester's message, orchestrate using tools and provide response back to the requester. Here is a code example of creating a ToolChatAgent using Claude model:
+Chorus offers a set of pre-built agent classes for building LLM-based agents easily. One useful agent class is `ConversationalTaskAgent`. It is a passive agent that can react to requester's message, orchestrate using tools and provide response back to the requester. Here is a code example of creating a ConversationalTaskAgent using Claude model:
 
 ```python
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox.examples import WeatherTool
 
 instruction = """
 You are an agent helping to suggest a good trip location close to the location the user provided for this weekend. Please suggest the location based on weather, safety, experience and budget.
 """
 
-agent = ToolChatAgent(
+agent = ConversationalTaskAgent(
     name="Charlie",
     instruction=instruction,
     tools=[weather_tool],

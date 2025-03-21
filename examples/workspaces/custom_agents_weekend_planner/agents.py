@@ -16,8 +16,7 @@ class MyTripCityRecommendationAgent(PassiveAgent):
         self.geo_expert_name = geo_expert
         self.advisor_names = advisors
 
-    def respond(self, context: AgentContext, state: Optional[PassiveAgentState], inbound_message: Message) -> Optional[
-        PassiveAgentState]:
+    def respond(self, context: AgentContext, state: PassiveAgentState, inbound_message: Message) -> PassiveAgentState:
         verse = CommunicationHelper(context)
         if inbound_message.source != "human":
             return state

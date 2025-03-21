@@ -13,11 +13,11 @@ from typing import Optional
 from chorus.data.data_types import ActionData
 from chorus.data.dialog import Message
 from chorus.data.resource import Resource
-from chorus.data.dialog import Role
 from chorus.data.prompt import StructuredPrompt
 from chorus.data.prompt import StructuredCompletion
 from chorus.data.toolschema import ToolSchema
 from chorus.prompters.interact import InteractPrompter
+from chorus.data.dialog import EventType
 
 TOOL_ACTION_SEPARATOR = "__"
 
@@ -62,6 +62,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
 
     def get_prompt(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -72,6 +73,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
         """Generate a structured prompt for the Bedrock Converse API.
 
         Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
             messages: List of conversation messages.
             tools: Optional list of tool schemas defining available tools.
             agent_instruction: Optional instruction text for the agent.
@@ -109,25 +111,28 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
         if planner_instruction is not None:
             system_instruction += f"\n\n{planner_instruction}"
 
-        converse_messages = []
+        converse_messages = []            
         for turn in messages:
             role = None
             content = None
-            if turn.role == Role.USER:
+            is_internal = turn.event_type == EventType.INTERNAL_EVENT
+            is_from_myself = turn.source == current_agent_id
+            
+            if not is_internal and not is_from_myself:
                 role = "user"
                 content = [
                     {
                         "text": turn.content
                     }
                 ]
-            if turn.role == Role.BOT:
+            elif not is_internal and is_from_myself:
                 role = "assistant"
                 content = [
                     {
                         "text": turn.content
                     }
                 ]
-            if turn.role == Role.ACTION:
+            elif is_internal and turn.actions:
                 role = "assistant"
                 content = []
                 if turn.actions:
@@ -135,7 +140,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
                         content.append(self._get_action_dict(action))
                 if turn.content is not None:
                     content.append({"text": turn.content})
-            if turn.role == Role.OBSERVATION:
+            elif is_internal and turn.observations:
                 role = "user"
                 content = []
                 for observation in turn.observations:
@@ -176,6 +181,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
 
     def get_target(
         self,
+        current_agent_id: str,
         messages: List[Message],
         tools: Optional[List[ToolSchema]] = None,
         agent_instruction: Optional[str] = None,
@@ -185,6 +191,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
         """Not implemented for this prompter.
 
         Args:
+            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
             messages: List of conversation messages.
             tools: Optional list of tool schemas.
             agent_instruction: Optional instruction text.
@@ -233,9 +240,9 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
             elif "text" in response_item:
                 text_responses.append(response_item["text"])
         if actions:
-            message = Message(role=Role.ACTION, actions=actions)
+            message = Message(event_type=EventType.INTERNAL_EVENT, actions=actions)
             if text_responses:
                 message.content = "\n".join(text_responses)
         else:
-            message = Message(role=Role.BOT, content="\n".join(text_responses))
+            message = Message(event_type=EventType.MESSAGE, content="\n".join(text_responses))
         return [message]

@@ -1,4 +1,4 @@
-from chorus.agents import AsyncToolChatAgent
+from chorus.agents import CollaborativeAgent
 from chorus.teams import Team
 from chorus.collaboration import DecentralizedCollaboration
 from chorus.core.runner import Chorus
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     )
 
     # Create agents with voting tool
-    agent1 = AsyncToolChatAgent(
+    agent1 = CollaborativeAgent(
         "Agent1",
         instruction="""
         Here are the channels available for communication:
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         tools=[TeamVotingClient()]
     )
 
-    agent2 = AsyncToolChatAgent(
+    agent2 = CollaborativeAgent(
         "Agent2",
         instruction="""
         Here are the channels available for communication:
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         tools=[TeamVotingClient()]
     )
 
-    agent3 = AsyncToolChatAgent(
+    agent3 = CollaborativeAgent(
         "Agent3",
         instruction="""
         Here are the channels available for communication:

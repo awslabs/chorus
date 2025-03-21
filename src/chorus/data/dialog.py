@@ -12,6 +12,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+import uuid
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -26,24 +27,16 @@ from chorus.data.toolschema import ToolDB
 from chorus.data.utils import unique_hash_for_model
 
 
-class Role(str, Enum):
-    """Enumeration of possible roles in a dialog.
+class EventType(str, Enum):
+    """Enumeration of possible event types.
 
     Attributes:
-        USER: Role for user messages
-        BOT: Role for bot/assistant messages
-        SYSTEM: Role for system messages
-        THOUGHT: Role for thought/reasoning steps
-        ACTION: Role for tool action calls
-        OBSERVATION: Role for tool observations/results
+        MESSAGE: Type identifier for message events
     """
-    USER = "User"
-    BOT = "Bot"
-    SYSTEM = "System"
-    THOUGHT = "Thought"
-    ACTION = "Action"
-    OBSERVATION = "Observation"
-
+    EVENT = "event"
+    MESSAGE = "message"
+    NOTIFICATION = "notification"
+    INTERNAL_EVENT = "internal_event"
 
 class BaseEvent(BaseModel):
     """Base class for all dialog events.
@@ -52,7 +45,7 @@ class BaseEvent(BaseModel):
         event_type: String identifier for the event type
         meta: Optional metadata dictionary for the event
     """
-    event_type: str = "event"
+    event_type: EventType = EventType.EVENT
     meta: Dict[str, Dict] = Field(default_factory=dict)
 
 
@@ -62,14 +55,13 @@ class Message(BaseEvent):
     Attributes:
         event_type: Type identifier, defaults to "message"
         event_name: Optional name for the event
-        role: Role of the message sender
         source: ID of message sender
         destination: ID of message recipient
         channel: Optional communication channel identifier
         actions: List of tool actions in the message
         observations: List of tool observations in the message
         message_id: Unique identifier for the message
-        message_timestamp: Unix timestamp of the message
+        timestamp: Unix timestamp of the message
         content: Text content of the message
         structured_content: Optional structured data content
         content_type: Optional content type identifier
@@ -78,16 +70,15 @@ class Message(BaseEvent):
         skip_for_inference: Whether to skip this turn during inference
         skip_all_but_latest: ID to keep only latest turn with this value
     """
-    event_type: str = "message"
+    event_type: EventType = EventType.MESSAGE
     event_name: Optional[str] = None
-    role: Optional[Role] = None
     source: Optional[str] = None
     destination: Optional[str] = None
     channel: Optional[str] = None
     actions: Optional[List[ActionData]] = None
     observations: Optional[List[ObservationData]] = None
-    message_id: Optional[str] = None
-    message_timestamp: Optional[int] = Field(default_factory=lambda: int(time.time()))
+    message_id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
+    timestamp: int = Field(default_factory=lambda: int(time.time()))
     # Artifacts
     content: Optional[str] = None
     structured_content: Optional[JsonData] = None
@@ -110,8 +101,9 @@ class Message(BaseEvent):
         Returns:
             List of observation data if this is an observation message, empty list otherwise.
         """
-        if self.role == Role.OBSERVATION:
-            return self.observations if self.observations else []
+        if self.event_type == EventType.INTERNAL_EVENT and self.observations:
+            return self.observations
+        return []
 
     def extract_action(self) -> Optional[ActionData]:
         """Extract a single action from this message turn.
@@ -119,10 +111,9 @@ class Message(BaseEvent):
         Returns:
             The first ActionData if this is an action message, None otherwise.
         """
-        if self.role == Role.ACTION:
-            return self.actions[0] if self.actions else None
-        else:
-            return None
+        if self.event_type == EventType.INTERNAL_EVENT and self.actions:
+            return self.actions[0]
+        return None
 
     def extract_observation(self) -> JsonData:
         """Extract a single observation from this message turn.
@@ -130,10 +121,9 @@ class Message(BaseEvent):
         Returns:
             The first observation if this is an observation message, None otherwise.
         """
-        if self.role == Role.OBSERVATION:
-            return self.observations[0] if self.observations else None
-        else:
-            return None
+        if self.event_type == EventType.INTERNAL_EVENT and self.observations:
+            return self.observations[0]
+        return None
     
     def clone(self):
         """Clone the message.
@@ -143,7 +133,7 @@ class Message(BaseEvent):
         """
         new_message = Message(**self.model_dump())
         new_message.message_id = None
-        new_message.message_timestamp = int(time.time())
+        new_message.timestamp = int(time.time())
         return new_message
 
     speaker_id: Optional[str] = None
@@ -199,47 +189,3 @@ class Dialog(BaseModel):
             Hash string excluding dialog_id and meta fields
         """
         return unique_hash_for_model(self, excluded_fields={"dialog_id", "meta"})
-
-
-class DialogSet(BaseModel):
-    """Collection of dialogs with associated tools.
-
-    Attributes:
-        dialogset_id: Unique identifier for the dialog set
-        dialogs: List of Dialog objects in the set
-        tool_db: Optional database of tools available for these dialogs
-        meta: Optional dataset-level metadata
-    """
-
-    dialogset_id: str
-    dialogs: List[Dialog]
-    tool_db: Optional[ToolDB] = None
-    meta: Dict[str, Dict] = Field(default_factory=dict)
-
-
-def read_dialogset(dialogset_path: Path):
-    """Read a DialogSet from a JSON file.
-
-    Args:
-        dialogset_path: Path to the JSON file
-
-    Returns:
-        Parsed DialogSet object
-    """
-    return DialogSet.model_validate_json(dialogset_path.read_text(encoding="utf-8"))
-
-
-def write_dialogset(dialogset: DialogSet, dialogset_path: Path):
-    """Write a DialogSet to a JSON file.
-
-    Args:
-        dialogset: DialogSet object to write
-        dialogset_path: Path to write the JSON file
-    """
-    dialogset_path.parent.mkdir(exist_ok=True, parents=True)
-    dialogset_path.write_text(
-        dialogset.model_dump_json(
-            indent=4, by_alias=True, exclude_none=True, exclude_defaults=True
-        ),
-        encoding="utf-8",
-    )

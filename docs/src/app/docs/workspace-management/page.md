@@ -32,14 +32,14 @@ Following is an example workspace configuration for creating a simple multi-agen
 
 ```python
 from chorus.core import Chorus
-from chorus.agents import SynchronizedCoordinatorAgent, ToolChatAgent
+from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.toolbox import DuckDuckGoWebSearchTool, WebRetrieverTool
 from chorus.workspace import NoActivityStopper
 
 # Create agents
-coordinator_agent = SynchronizedCoordinatorAgent(
+coordinator_agent = TaskCoordinatorAgent(
     "CoordinatorAgent",
     instruction="""
         Do not do any task by yourself, always try to call other agents.
@@ -51,7 +51,7 @@ coordinator_agent = SynchronizedCoordinatorAgent(
     }
 )
 
-news_agent = ToolChatAgent(
+news_agent = ConversationalTaskAgent(
     "NewsAgent",
     instruction="You can help user to find news and summarize them by search web and access pages.",
     tools=[
@@ -60,7 +60,7 @@ news_agent = ToolChatAgent(
     ]
 )
 
-knowledge_agent = ToolChatAgent(
+knowledge_agent = ConversationalTaskAgent(
     "KnowledgeAgent",
     instruction="Help user to answer general questions about artificial intelligence and machine learning."
 )

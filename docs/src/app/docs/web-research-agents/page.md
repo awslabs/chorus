@@ -19,7 +19,7 @@ As a team service, `TeamToolbox` allows you to register a set of tools and make 
 Here's how you can implement web research agents with asynchronous tool calling:
 
 ```python
-from chorus.agents import ToolChatAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox import ArxivRetrieverTool, WebRetrieverTool, DuckDuckGoWebSearchTool
 from chorus.collaboration import CentralizedCollaboration
 from chorus.teams import Team
@@ -32,7 +32,7 @@ web_retriever_tool = WebRetrieverTool()
 web_search_tool = DuckDuckGoWebSearchTool()
 
 # Create a paper research agent with async tool access
-paper_research_agent = ToolChatAgent(
+paper_research_agent = ConversationalTaskAgent(
     name="PaperResearchAgent",
     tools=[
         AsyncTeamToolClient(arxiv_retriever_tool),
@@ -43,7 +43,7 @@ paper_research_agent = ToolChatAgent(
 )
 
 # Create a general research agent
-general_research_agent = ToolChatAgent(
+general_research_agent = ConversationalTaskAgent(
     name="GeneralResearchAgent",
     tools=[
         AsyncTeamToolClient(web_retriever_tool),
@@ -53,7 +53,7 @@ general_research_agent = ToolChatAgent(
 )
 
 # Create a coordinator agent
-coordinator_agent = ToolChatAgent(
+coordinator_agent = ConversationalTaskAgent(
     name="CoordinatorAgent",
     instruction="""
     You are the coordinator of a research team. Your job is to:

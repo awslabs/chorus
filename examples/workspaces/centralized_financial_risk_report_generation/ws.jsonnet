@@ -66,7 +66,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "SentimentRiskAnalyzerAgent",
                     instruction: |||
                         You are a sentiment risk analyzer.
@@ -83,7 +83,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "ManagementRiskAnalyzerAgent",
                     instruction: |||
                         You are a management risk analyzer.
@@ -100,7 +100,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "FinancialHealthAnalyzerAgent",
                     instruction: |||
                         You are a financial health analyzer.
@@ -118,7 +118,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "GlobalEconomyAnalyzerAgent",
                     instruction: |||
                         You are a global economy analyzer.
@@ -136,7 +136,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "ProductAnalyzerAgent",
                     instruction: |||
                         You are a product analyzer.
@@ -154,7 +154,7 @@ local workspace = {
                     model_name: "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 },
                 {
-                    type: "ToolChatAgent",
+                    type: "ConversationalTaskAgent",
                     name: "FinancialStatementRetriever",
                     instruction: |||
                         You are a financial statement retriever.

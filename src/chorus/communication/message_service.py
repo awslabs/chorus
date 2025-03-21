@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from chorus.data.dialog import Message
-from chorus.data.dialog import Role
+from chorus.data.dialog import EventType
 from chorus.data.channel import Channel
 
 
@@ -152,7 +152,7 @@ class MultiAgentMessageService(MessageService):
             for msg in messages:
                 if msg.message_id in observed_message_ids:
                     continue
-                if msg.role == Role.ACTION or msg.role == Role.OBSERVATION:
+                if msg.event_type == EventType.INTERNAL_EVENT:
                     continue
                 if (
                     msg.source == source

@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 from abc import ABC, abstractmethod
 
-from chorus.data.dialog import Message, Role
+from chorus.data.dialog import Message, EventType
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.resource import Resource
 
@@ -19,7 +19,6 @@ class BaseTrigger(BaseModel):
 class MessageTrigger(BaseTrigger):
     event_type: Optional[str] = None
     event_name: Optional[str] = None
-    role: Optional[Role] = None
     source: Optional[str] = None
     destination: Optional[str] = None
     channel: Optional[str] = None
@@ -31,7 +30,6 @@ class MessageTrigger(BaseTrigger):
         conditions = [
             info.data.get('event_type'),
             info.data.get('event_name'),
-            info.data.get('role'),
             info.data.get('source'),
             info.data.get('destination'),
             v  # current channel value
@@ -55,10 +53,6 @@ class MessageTrigger(BaseTrigger):
             
         # Check event_name if specified
         if self.event_name is not None and message.event_name != self.event_name:
-            return False
-            
-        # Check role if specified
-        if self.role is not None and message.role != self.role:
             return False
             
         # Check source if specified

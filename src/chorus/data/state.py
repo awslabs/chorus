@@ -1,5 +1,7 @@
-from typing import Dict, Optional, Set
+from typing import Dict, List, Optional, Set
 from pydantic import BaseModel, Field
+
+from chorus.data.dialog import Message
 
 
 class AgentState(BaseModel):
@@ -7,7 +9,7 @@ class AgentState(BaseModel):
 
     A base class that represents the state of an agent.
     """
-    pass
+    internal_events: List[Message] = Field(default_factory=list)
 
 
 class PassiveAgentState(AgentState):
@@ -17,6 +19,7 @@ class PassiveAgentState(AgentState):
 
     Attributes:
         processed_messages: Set of messages that have been processed by the agent
+        internal_events: List of internal events that have been processed by the agent
     """
     processed_messages: Set = Field(default_factory=set)
 

@@ -18,7 +18,7 @@ local workspace = {
     ],
     agents: [
         {
-            type: 'SynchronizedCoordinatorAgent',
+            type: 'TaskCoordinatorAgent',
             name: 'WebDevelopmentMasterAgent',
             instruction: "
             Do not do any task by yourself, always try to call other agents. You should help user to create prototype software based on given description.\n
@@ -33,25 +33,25 @@ local workspace = {
             reachable_agents: reachable_agents,
         },
           {
-    "type": "ToolChatAgent",
+    "type": "ConversationalTaskAgent",
     "name": "ContentFillingAgent",
     "instruction": "You are a website content filling agent that can fill text content into a website.",
     model_name: 'anthropic.claude-3-haiku-20240307-v1:0'
   },
   {
-    "type": "ToolChatAgent",
+    "type": "ConversationalTaskAgent",
     "name": "CodeWritingAgent",
     "instruction": "You are a skilled code writing agent proficient in various programming languages. You can write clean, efficient, and well-documented code for various applications and software projects.",
     model_name: 'anthropic.claude-3-haiku-20240307-v1:0'
   },
   {
-    "type": "ToolChatAgent",
+    "type": "ConversationalTaskAgent",
     "name": "UIDesignAgent",
     "instruction": "You are a UI design agent specializing in creating intuitive and visually appealing user interfaces for websites. Generate a wireframe in your design.",
     model_name: 'anthropic.claude-3-haiku-20240307-v1:0'
   },
     {
-    "type": "ToolChatAgent",
+    "type": "ConversationalTaskAgent",
     "name": "WebsiteDeploymentAgent",
     "instruction": "You are a website deployment agent that can deploy a website with html, css and javascript codes. When calling WebsiteDeploymentTool, always wrap html, css and javascript codes with ```.",
     "tools": [
