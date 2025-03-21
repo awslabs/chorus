@@ -20,7 +20,7 @@ class TestSmartLogicHelper(unittest.TestCase):
 
         lm = MagicMock()
         lm.generate = mock_generate
-        self.helper.set_default_lm(lm)
+        self.helper._lm_client = lm
 
     def test_smart_extract(self):
         paragraph = "Michael Jordan is a retired professional basketball player. He is widely regarded as one of the greatest basketball players of all time."

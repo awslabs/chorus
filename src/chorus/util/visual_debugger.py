@@ -6,6 +6,7 @@ from typing import Dict, Optional, List
 import time
 import logging
 import json
+from chorus.data.state import TeamState
 
 
 VISUAL_TEMPLATE = '''
@@ -1005,7 +1006,7 @@ class VisualDebugger:
         """Register an agent or team state with the debugger."""
         self._states[identifier] = state
 
-    def _get_team_state(self, team) -> Optional['TeamState']:
+    def _get_team_state(self, team) -> Optional[TeamState]:
         """Get the team state if it exists."""
         team_agent_id = f"team:{team._name}"
         return self._states.get(team_agent_id)

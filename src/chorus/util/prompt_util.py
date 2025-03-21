@@ -13,7 +13,7 @@ class PrompterUtil:
 
     @staticmethod
     def get_prompter(
-        prompter_name: Optional[str] = None, config_path: Optional[str] = None, prompter_type: str = "interact"
+        prompter_name: str, config_path: Optional[str] = None, prompter_type: str = "interact"
     ):
         """Get a prompter instance.
 
@@ -34,17 +34,6 @@ class PrompterUtil:
             raise ValueError(
                 "Either prompter name or path to config file has to be provided for creating a prompter."
             )
-        # Create base prompter class
-        if prompter_type == "interact":
-            from chorus.prompters import InteractPrompter
-
-            prompter_base_class = InteractPrompter
-        elif prompter_type == "adapter":
-            from chorus.prompters import PromptAdapter
-
-            prompter_base_class = PromptAdapter
-        else:
-            raise NotImplementedError
         # Load config file
         kwargs = {}
         if config_path is not None:
@@ -59,7 +48,13 @@ class PrompterUtil:
             prompter_name = config["prompter"]
             del config["prompter"]
             kwargs = config
-        # Load prompter using name
-        prompter_class = prompter_base_class.get_subclass(prompter_name)
-
+        # Create base prompter class
+        if prompter_type == "interact":
+            from chorus.prompters import InteractPrompter
+            prompter_class = InteractPrompter.get_subclass(prompter_name)
+        elif prompter_type == "adapter":
+            from chorus.prompters import PromptAdapter
+            prompter_class = PromptAdapter.get_subclass(prompter_name)
+        else:
+            raise NotImplementedError
         return prompter_class(**kwargs)

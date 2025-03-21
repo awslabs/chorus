@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema
 from chorus.helpers.communication import CommunicationHelper
@@ -95,12 +95,15 @@ Tool for asynchronized multi-agent communication. Notes:
         """
         if self.get_context() is None:
             raise ValueError("MultiAgentTool requires agent context to be set.")
-        if recipient_agent is None and channel is None:
-            raise ValueError("Either recipient_agent or channel must be provided.")
-        if recipient_agent is None and channel is not None:
-            recipient_agent = "all"
+        if recipient_agent is None:
+            if channel is None:
+                raise ValueError("Either recipient_agent or channel must be provided.")
+            else:
+                destination = "all"
+        else:
+            destination = recipient_agent
         verse = CommunicationHelper(self.get_context())
-        verse.send(destination=recipient_agent, content=content, channel=channel)
+        verse.send(destination=destination, content=content, channel=channel)
         return None
 
     def wait(self, source: str, channel: Optional[str] = None, timeout: Optional[int] = None):

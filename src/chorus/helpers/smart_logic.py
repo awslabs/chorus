@@ -27,17 +27,6 @@ class SmartLogicHelper(AgentHelper):
         super().__init__(context)
         self._lm_client: Optional[LanguageModelClient] = None
 
-    def set_default_lm(self, lm: Optional[LanguageModelClient] = None):
-        """Set the default language model client.
-
-        Args:
-            lm: Optional language model client to use. If None, creates a default
-                Bedrock client.
-        """
-        if lm is None:
-            lm = BedrockConverseAPIClient(DEFAULT_AGENT_LLM_NAME)
-        self._lm_client = lm
-
     def prompt(self, prompt: str) -> Optional[str]:
         """Send a prompt to the language model and get the response.
 
@@ -48,7 +37,7 @@ class SmartLogicHelper(AgentHelper):
             str: The generated response text from the language model.
         """
         if self._lm_client is None:
-            self.set_default_lm()
+            self._lm_client = BedrockConverseAPIClient(DEFAULT_AGENT_LLM_NAME)
         prompter = SimpleChatPrompter()
         processed_prompt = prompter.get_prompt(
             current_agent_id="smart_logic_helper",
@@ -75,7 +64,7 @@ class SmartLogicHelper(AgentHelper):
             bool: True if the content meets the condition, False otherwise.
         """
         if self._lm_client is None:
-            self.set_default_lm()
+            self._lm_client = BedrockConverseAPIClient(DEFAULT_AGENT_LLM_NAME)
         prompt = f"Judge whether the following content meets the condition.\n\nContent:\n{content}\n\nCondition:\n{condition}\n\nRespond with either TRUE or FALSE with nothing else."
         prompter = SimpleChatPrompter()
         processed_prompt = prompter.get_prompt(
@@ -103,7 +92,7 @@ class SmartLogicHelper(AgentHelper):
             str: The extracted information.
         """
         if self._lm_client is None:
-            self.set_default_lm()
+            self._lm_client = BedrockConverseAPIClient(DEFAULT_AGENT_LLM_NAME)
         prompt = f"Extract {target} from following content: {content}. Return only extracted information."
         prompter = SimpleChatPrompter()
         processed_prompt = prompter.get_prompt(

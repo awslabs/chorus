@@ -148,7 +148,11 @@ class TeamVoting(TeamService):
         
         # Calculate current results
         votes = data_store["votes"][proposal_id]
-        total_votes = len(self.get_team_info().agent_ids) if self.get_team_info() else len(votes)
+        team_info = self.get_team_info()
+        if team_info is None:
+            total_votes = len(votes)
+        else:
+            total_votes = len(team_info.agent_ids)
         votes_in_favor = sum(1 for v in votes.values() if v)
         
         results = {
@@ -261,7 +265,11 @@ class TeamVoting(TeamService):
                 return None
                 
             winning_id, winning_votes = vote_counts[0]
-            total_required_votes = len(self.get_team_info().agent_ids) if self.get_team_info() else sum(len(votes) for votes in data_store["votes"].values())
+            team_info = self.get_team_info()
+            if team_info is None:
+                total_required_votes = sum(len(votes) for votes in data_store["votes"].values())
+            else:
+                total_required_votes = len(team_info.agent_ids)
             votes_cast = len(data_store["votes"].get(winning_id, {}))
             remaining_votes = total_required_votes - votes_cast
             
@@ -279,7 +287,11 @@ class TeamVoting(TeamService):
         else:  # Majority vote
             for proposal_id, proposal in active_proposals.items():
                 proposal_votes = data_store["votes"].get(proposal_id, {})
-                total_required_votes = len(self.get_team_info().agent_ids) if self.get_team_info() else len(proposal_votes)
+                team_info = self.get_team_info()
+                if team_info is None:
+                    total_required_votes = len(proposal_votes)
+                else:
+                    total_required_votes = len(team_info.agent_ids)
                 votes_in_favor = sum(1 for v in proposal_votes.values() if v)
 
                 if votes_in_favor > total_required_votes / 2:

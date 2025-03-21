@@ -1,6 +1,6 @@
 import time
 import uuid
-from multiprocessing import Manager
+from multiprocessing.managers import SyncManager
 from typing import List
 from typing import Optional
 from queue import Queue
@@ -98,9 +98,9 @@ class MultiAgentMessageService(MessageService):
     A message service that manages the message history and queue in multi-agent environment.
     """
 
-    def __init__(self, proc_manager: Manager):
+    def __init__(self, proc_manager: SyncManager):
         super().__init__()
-        self.message_history = proc_manager.list()
+        self.message_history = list(proc_manager.list())
 
     def fetch_all_messages(self) -> List[Message]:
         return [Message.model_validate_json(msg) for msg in self.message_history]

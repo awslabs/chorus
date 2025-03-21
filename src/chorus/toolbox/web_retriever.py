@@ -1,5 +1,3 @@
-from jsonref import requests
-
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.executable_tool import SimpleExecutableTool
 from chorus.data.toolschema import ToolSchema

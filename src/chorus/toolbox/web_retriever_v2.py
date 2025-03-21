@@ -1,6 +1,6 @@
 import re
 
-from jsonref import requests
+from jsonref import requests  # type: ignore
 from chorus.data.executable_tool import SimpleExecutableTool, ExecutableTool
 from chorus.data.toolschema import ToolSchema
 

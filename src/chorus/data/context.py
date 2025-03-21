@@ -46,7 +46,7 @@ class OrchestrationContext(BaseModel):
     tools: Optional[List[ExecutableTool]] = None
     agent_instruction: Optional[str] = None
     resources: Optional[List[Resource]] = None
-    artifacts: Optional[Dict[str, str]] = Field(default_factory=dict)
+    artifacts: Dict[str, str] = Field(default_factory=dict)
     views: Optional[List[str]] = None
 
 

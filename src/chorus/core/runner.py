@@ -28,7 +28,7 @@ import signal
 
 MAX_INSTNACE_LIMIT = 500
 
-class TeeIO:
+class TeeIO(StringIO):
     def __init__(self, file_path):
         self.file = open(file_path, 'a', encoding='utf-8')
         self.stdout = sys.stdout
@@ -164,7 +164,7 @@ class Chorus(object):
     def spawn_agent(self, agent: Agent, team_info: Optional[TeamInfo] = None) -> str:
         context = agent.init_context()
         if context.artifacts is not None:
-            context.artifacts = self._proc_manager.dict(**context.artifacts)
+            context.artifacts = dict(self._proc_manager.dict(**context.artifacts))
         if team_info is not None:
             context.team_info = team_info
         state = agent.init_state()

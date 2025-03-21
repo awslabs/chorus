@@ -84,7 +84,7 @@ class TeamStorageClient(SimpleExecutableTool):
             Message(
                 event_type="team_service",
                 destination=team_name,
-                actions=[ActionData(tool_name="team_storage", action_name="list_files", input={"prefix": prefix})]
+                actions=[ActionData(tool_name="team_storage", action_name="list_files", parameters={"prefix": prefix})]
             )
         )
         observation_message = context.message_service.wait_for_response(
@@ -105,7 +105,7 @@ class TeamStorageClient(SimpleExecutableTool):
             Message(
                 event_type="team_service",
                 destination=team_name,
-                actions=[ActionData(tool_name="team_storage", action_name="read_file", input={"file_path": file_path})]
+                actions=[ActionData(tool_name="team_storage", action_name="read_file", parameters={"file_path": file_path})]
             )
         )
         observation_message = context.message_service.wait_for_response(
@@ -126,7 +126,7 @@ class TeamStorageClient(SimpleExecutableTool):
             Message(
                 event_type="team_service",
                 destination=team_name,
-                actions=[ActionData(tool_name="team_storage", action_name="write_file", input={"file_path": file_path, "content": content})]
+                actions=[ActionData(tool_name="team_storage", action_name="write_file", parameters={"file_path": file_path, "content": content})]
             )
         )
         observation_message = context.message_service.wait_for_response(
@@ -144,7 +144,7 @@ class TeamStorageClient(SimpleExecutableTool):
             Message(
                 event_type="team_service",
                 destination=team_name,
-                actions=[ActionData(tool_name="team_storage", action_name="delete_file", input={"file_path": file_path})]
+                actions=[ActionData(tool_name="team_storage", action_name="delete_file", parameters={"file_path": file_path})]
             )
         )
         observation_message = context.message_service.wait_for_response(
