@@ -152,7 +152,7 @@ if __name__ == '__main__':
     chorus = Chorus(
         teams=[planning_team],
         channels=[planning_channel],
-        stop_conditions=[MessageBasedStopper(source=planning_team.get_identifier(), destination="human")],
+        stop_conditions=[MessageBasedStopper(source=planning_team.identifier(), destination="human")],
         visual=True,
         visual_port=5000
     )
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # Send a trip planning request
     chorus.get_environment().send_message(
         source="human",
-        destination=planning_team.get_identifier(),
+        destination=planning_team.identifier(),
         content=f"""
         Please help plan a weekend trip for the following dates: {weekend_dates}
 

@@ -98,7 +98,7 @@ if __name__ == '__main__':
     chorus = Chorus(
         teams=[team],
         channels=[team_channel],
-        stop_conditions=[MessageBasedStopper(source=team.get_identifier(), destination="human")],
+        stop_conditions=[MessageBasedStopper(source=team.identifier(), destination="human")],
         visual=True,
         visual_port=5000
     )
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # Send a task to the team
     chorus.get_environment().send_message(
         source="human",
-        destination=team.get_identifier(),
+        destination=team.identifier(),
         content="""
         We need to decide on a programming language for our new microservices project.
         The requirements are:

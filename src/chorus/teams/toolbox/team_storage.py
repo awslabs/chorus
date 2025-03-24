@@ -6,7 +6,7 @@ from typing import Optional
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
 from chorus.data import ToolSchema
-from chorus.data import Message
+from chorus.data import Message, EventType
 from chorus.data.data_types import ActionData
 from chorus.helpers import CommunicationHelper
 
@@ -77,12 +77,14 @@ class TeamStorageClient(SimpleExecutableTool):
     
     def list_files(self, prefix: Optional[str] = None):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="list_files", parameters={"prefix": prefix})]
             )
@@ -98,12 +100,14 @@ class TeamStorageClient(SimpleExecutableTool):
     
     def read_file(self, file_path: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="read_file", parameters={"file_path": file_path})]
             )
@@ -119,12 +123,14 @@ class TeamStorageClient(SimpleExecutableTool):
     
     def write_file(self, file_path: str, content: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="write_file", parameters={"file_path": file_path, "content": content})]
             )
@@ -137,12 +143,14 @@ class TeamStorageClient(SimpleExecutableTool):
     
     def delete_file(self, file_path: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="delete_file", parameters={"file_path": file_path})]
             )

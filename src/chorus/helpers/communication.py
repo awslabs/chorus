@@ -66,10 +66,10 @@ class CommunicationHelper(AgentHelper):
             )
         else:
             # If this is an agent context, use the message client
-            message_service = context.get_message_client()
+            message_client = context.get_message_client()
             if source is None:
                 source = self.get_agent_id()
-            return message_service.send_message(
+            return message_client.send_message(
                 Message(destination=destination, content=content, channel=channel, source=source)
             )
 
@@ -125,8 +125,8 @@ class CommunicationHelper(AgentHelper):
             return None
         else:
             # If this is an agent context, use the message client
-            message_service = context.get_message_client()
-            response = message_service.wait_for_response(
+            message_client = context.get_message_client()
+            response = message_client.wait_for_response(
                 source=source, destination=destination, channel=channel, timeout=timeout
             )
             return response
@@ -139,5 +139,5 @@ class CommunicationHelper(AgentHelper):
             message: The message to send.
         """
         context = self.get_context()
-        message_service = context.get_message_client()
-        return message_service.send_message(message)
+        message_client = context.get_message_client()
+        return message_client.send_message(message)
