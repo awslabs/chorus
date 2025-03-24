@@ -20,9 +20,11 @@ class ExecutableTool(Registrable, metaclass=ABCMeta):
         tool_schema: Schema defining the tool's capabilities and parameters.
     """
 
+    _tool_schema: ToolSchema
+    _agent_context: Optional["AgentContext"] = None
+
     def __init__(self, tool_schema: ToolSchema):
         self._tool_schema = tool_schema
-        self._agent_context = None
 
     def get_schema(self):
         """Gets the tool's schema.
@@ -32,7 +34,7 @@ class ExecutableTool(Registrable, metaclass=ABCMeta):
         """
         return self._tool_schema
 
-    def set_context(self, context: "AgentContext"):
+    def set_context(self, context: Optional["AgentContext"]):
         """Sets the agent context for this tool.
 
         Args:
@@ -40,7 +42,7 @@ class ExecutableTool(Registrable, metaclass=ABCMeta):
         """
         self._agent_context = context
 
-    def get_context(self) -> "AgentContext":
+    def get_context(self) -> Optional["AgentContext"]:
         """Gets the agent context for this tool.
 
         Returns:

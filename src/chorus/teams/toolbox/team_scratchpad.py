@@ -5,7 +5,7 @@ from datetime import timedelta
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
 from chorus.data import ToolSchema
-from chorus.data import Message
+from chorus.data import Message, EventType
 from chorus.data.data_types import ActionData
 from chorus.helpers import CommunicationHelper
 
@@ -77,13 +77,13 @@ class TeamScratchpadClient(SimpleExecutableTool):
     
     def create_scratchpad(self, scratchpad_id: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
         context.message_service.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="create_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
@@ -98,13 +98,13 @@ class TeamScratchpadClient(SimpleExecutableTool):
     
     def get_scratchpad(self, scratchpad_id: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
         context.message_service.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="get_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
@@ -123,7 +123,7 @@ class TeamScratchpadClient(SimpleExecutableTool):
         The content will be split into lines by the service to replace the specified range.
         """
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
@@ -131,7 +131,7 @@ class TeamScratchpadClient(SimpleExecutableTool):
         
         context.message_service.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(
                     tool_name="team_scratchpad",
@@ -156,13 +156,13 @@ class TeamScratchpadClient(SimpleExecutableTool):
     
     def delete_scratchpad(self, scratchpad_id: str):
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
         context.message_service.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="delete_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )

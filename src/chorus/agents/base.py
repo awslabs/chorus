@@ -1,13 +1,19 @@
 from abc import ABCMeta
 from abc import abstractmethod
 from typing import Optional
+from typing import TypeVar
+from typing import Generic
 
 from chorus.config.registrable import Registrable
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
 from chorus.util.agent_naming import get_unique_agent_name
+from chorus.data.dialog import Message
 
-class Agent(Registrable, metaclass=ABCMeta):
+TContext = TypeVar('TContext', bound='AgentContext')
+TState = TypeVar('TState', bound='AgentState')
+
+class Agent(Registrable, Generic[TContext, TState], metaclass=ABCMeta):
     """Base class for all agents in the Chorus framework.
 
     This abstract class defines the core interface that all agents must implement.
@@ -62,7 +68,13 @@ class Agent(Registrable, metaclass=ABCMeta):
         return AgentState()
 
     @abstractmethod
-    def iterate(self, context: AgentContext, state: AgentState) -> AgentState:
+    def respond(
+        self, context: TContext, state: TState, inbound_message: Message
+    ) -> TState:
+        pass
+
+    @abstractmethod
+    def iterate(self, context: TContext, state: TState) -> TState:
         """Execute one iteration of the agent's processing loop.
 
         Args:

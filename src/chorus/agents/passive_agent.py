@@ -2,10 +2,9 @@ import abc
 import logging
 from typing import List
 from typing import Optional
+from typing import TypeVar
 
-
-from chorus.agents.base import Agent
-from chorus.data.context import AgentContext
+from chorus.agents.base import Agent, TContext
 from chorus.data.agent_status import AgentStatus
 from chorus.data.dialog import Message
 from chorus.data.dialog import EventType
@@ -13,8 +12,10 @@ from chorus.data.state import PassiveAgentState
 
 logger = logging.getLogger(__name__)
 
+# Update the TypeVar bound
+TState = TypeVar('TState', bound='PassiveAgentState')
 
-class PassiveAgent(Agent, metaclass=abc.ABCMeta):
+class PassiveAgent(Agent[TContext, TState], metaclass=abc.ABCMeta):
     """Base class for passive agents that respond to incoming messages.
 
     A passive agent waits for messages directed to it and responds accordingly. Unlike active
@@ -44,8 +45,8 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def respond(
-        self, context: AgentContext, state: PassiveAgentState, inbound_message: Message
-    ) -> PassiveAgentState:
+        self, context: TContext, state: TState, inbound_message: Message
+    ) -> TState:
         """Process and respond to an incoming message.
 
         Args:
@@ -59,8 +60,8 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
         pass
 
     def iterate(
-        self, context: AgentContext, state: PassiveAgentState
-    ) -> PassiveAgentState:
+        self, context: TContext, state: TState
+    ) -> TState:
         """Execute one iteration of the agent's message processing loop.
 
         Checks for new messages directed to this agent and processes the first valid one found.

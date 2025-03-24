@@ -121,7 +121,7 @@ class DecentralizedCollaboration(Collaboration):
                 source=self._team_info.get_identifier()
             )
 
-    def iterate(self, team_context: TeamContext, team_state: TeamState) -> Optional[TeamState]:
+    def iterate(self, team_context: TeamContext, team_state: TeamState) -> TeamState:
         """Periodically check for voting results and time limits."""
         data_store = self._get_data_store(team_state)
         if data_store["current_task_id"] is None or not self._voting_service:

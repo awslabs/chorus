@@ -3,7 +3,7 @@ from typing import Optional, Dict
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
 from chorus.data import ToolSchema
-from chorus.data import Message
+from chorus.data import Message, EventType
 from chorus.data.data_types import ActionData
 from chorus.data.schema import JsonData
 from chorus.helpers import CommunicationHelper
@@ -22,15 +22,15 @@ class TeamToolClient(ExecutableTool):
         self._tool_schema = tool.get_schema()
         super().__init__(self._tool_schema)
     
-    def execute(self, action_name: Optional[str] = None, parameters: Optional[Dict] = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Optional[JsonData] = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
         message = Message(
-            event_type="team_service",
+            event_type=EventType.TEAM_SERVICE,
             destination=team_name,
             actions=[
                 ActionData(
@@ -61,11 +61,11 @@ class AsyncTeamToolClient(TeamToolClient):
     A client for executing tools in the team's toolbox asynchronously.
     """
 
-    def execute(self, action_name: Optional[str] = None, parameters: Optional[Dict] = None) -> JsonData:
+    def execute(self, action_name: Optional[str] = None, parameters: Optional[JsonData] = None) -> JsonData:
         if action_name is None:
             raise ValueError("Action name needs to be specified.")
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_id = context.team_info.get_identifier()
         async_response = make_async_observation_data(
@@ -74,7 +74,7 @@ class AsyncTeamToolClient(TeamToolClient):
             expected_source=team_id
         )
         message = Message(
-            event_type="team_service",
+            event_type=EventType.TEAM_SERVICE,
             source=context.agent_id,
             destination=team_id,
             actions=[
@@ -139,11 +139,11 @@ class TeamToolboxClient(SimpleExecutableTool):
         Execute a tool from the team's toolbox.
         """
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
         message = Message(
-            event_type="team_service",
+            event_type=EventType.TEAM_SERVICE,
             destination=team_name,
             actions=[ActionData(tool_name="TeamToolbox", action_name="execute_tool", parameters={
                 "tool_name": tool_name,
@@ -168,11 +168,11 @@ class TeamToolboxClient(SimpleExecutableTool):
         List all tools in the team's toolbox.
         """
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
         message = Message(
-            event_type="team_service",
+            event_type=EventType.TEAM_SERVICE,
             destination=team_name,
             actions=[ActionData(tool_name="TeamToolbox", action_name="list_tools")]
         )
