@@ -29,7 +29,7 @@ class Collaboration(Registrable, metaclass=ABCMeta):
         Processes an inbound message for the team.
         """
     
-    def iterate(self, team_context: "TeamContext", team_state: "TeamState") -> Optional["TeamState"]:
+    def iterate(self, team_context: "TeamContext", team_state: "TeamState") -> "TeamState":
         """
         Iterates the collaboration strategy.
         """

@@ -30,13 +30,23 @@ from chorus.data.utils import unique_hash_for_model
 class EventType(str, Enum):
     """Enumeration of possible event types.
 
+    All entities in Chorus (including agents, teams or utility services etc.) exchange information
+    with each other by passing events or messages. Agents can subscribe and react to certain types
+    of events. For example, an agent can subscribe to the team's shared storage so that it will be
+    notified when a new file is created.
+
     Attributes:
-        MESSAGE: Type identifier for message events
+        EVENT: the base event type
+        MESSAGE: a message event
+        NOTIFICATION: an event representing a notification
+        INTERNAL_EVENT: an event used for internal system communication
+        TEAM_SERVICE: an event related to team service operations
     """
     EVENT = "event"
     MESSAGE = "message"
     NOTIFICATION = "notification"
     INTERNAL_EVENT = "internal_event"
+    TEAM_SERVICE = "team_service"
 
 class BaseEvent(BaseModel):
     """Base class for all dialog events.
@@ -95,7 +105,7 @@ class Message(BaseEvent):
         """
         return self.actions if self.actions else []
 
-    def extract_observations(self) -> List[JsonData]:
+    def extract_observations(self) -> List[ObservationData]:
         """Extract observations from this message turn.
 
         Returns:
@@ -115,7 +125,7 @@ class Message(BaseEvent):
             return self.actions[0]
         return None
 
-    def extract_observation(self) -> JsonData:
+    def extract_observation(self) -> Optional[ObservationData]:
         """Extract a single observation from this message turn.
 
         Returns:
