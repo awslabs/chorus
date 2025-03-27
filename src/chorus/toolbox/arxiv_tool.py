@@ -55,7 +55,7 @@ class ArxivRetrieverTool(SimpleExecutableTool):
             import queue
             
             # Queue for results
-            result_queue = queue.Queue()
+            result_queue: queue.Queue = queue.Queue()
             
             # Thread function to perform the search
             def perform_search():

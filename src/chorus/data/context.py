@@ -62,6 +62,7 @@ class AgentContext(OrchestrationContext):
         agent_id: Unique identifier for the agent.
         team_info: Information about the agent's team.
         message_client: Service for handling agent communication.
+        message_view_selector: a message selector/filter that decides which messages this agent context should include.
         status_manager: Manager for tracking agent statuses.
         async_execution_cache: Dictionary mapping IDs to AsyncExecutionRecord objects
             for tracking asynchronous operations.

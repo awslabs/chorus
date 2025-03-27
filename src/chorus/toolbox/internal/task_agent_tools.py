@@ -57,9 +57,10 @@ class AgentAsATool(SimpleExecutableTool):
         Raises:
             ValueError: If agent context is not set.
         """
-        if self.get_context() is None:
+        _context = self.get_context()
+        if _context is None:
             raise ValueError("AgentAsATool requires agent context to be set.")
-        verse = CommunicationHelper(self.get_context())
+        verse = CommunicationHelper(_context)
         verse.send(destination=self._agent_name, content=message)
         return_message = verse.wait(source=self._agent_name)
         if return_message is None:

@@ -2,19 +2,20 @@ from abc import ABCMeta
 from abc import abstractmethod
 from typing import List
 from typing import Optional
+from typing import TypeVar
+from typing import Generic
 
 from chorus.data.dialog import Message
 from chorus.data.prompt import Completion
-from chorus.data.planner_output import PlannerOutput
 from chorus.data.prompt import Prompt
 from chorus.data.resource import Resource
-from chorus.data.dialog import EventType
 from chorus.data.toolschema import ToolSchema
 from chorus.prompters.base_prompter import BasePrompter
 from chorus.util.prompt_util import PrompterUtil
 
+TCompletion = TypeVar("TCompletion", bound=Completion)
 
-class InteractPrompter(BasePrompter, metaclass=ABCMeta):
+class InteractPrompter(BasePrompter, Generic[TCompletion], metaclass=ABCMeta):
     """Base class for prompters that handle user-assistant interactions with LLMs.
 
     This class provides the base functionality for prompters that process multi-turn
@@ -113,7 +114,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
         agent_instruction: Optional[str] = None,
         resources: Optional[List[Resource]] = None,
         reference_time: Optional[str] = None,
-    ) -> Completion:
+    ):
         """Generate a target completion from conversation messages and context.
 
         Args:
@@ -130,7 +131,7 @@ class InteractPrompter(BasePrompter, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def parse_generation(self, completion: Completion) -> List[Message]:
+    def parse_generation(self, completion: TCompletion) -> List[Message]:
         """Parse a generated completion into a list of messages.
 
         Args:
