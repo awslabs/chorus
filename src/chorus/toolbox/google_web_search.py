@@ -36,7 +36,7 @@ class GoogleWebSearchTool(SimpleExecutableTool):
         super().__init__(ToolSchema.model_validate(schema))
 
     def search(self, query: str):
-        from googleapiclient.discovery import build
+        from googleapiclient.discovery import build  # type: ignore
 
         api_key = os.getenv("GOOGLE_WEB_SEARCH_API_KEY", None)
         if not api_key:

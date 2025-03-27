@@ -33,8 +33,11 @@ This is a multi-agent environment. You can reach out to following agents:
 
 class CollaborativeAgentContext(AgentContext):
     """Context for a collaborative agent.
+
+    Args:
+        reachable_agents: Optional map of agents who can be reached out to
     """
-    reachable_agents: Dict[str, str] = Field(default_factory=dict)
+    reachable_agents: Optional[Dict[str, str]] = Field(default_factory=dict[str, str])
 
     
 @Agent.register("CollaborativeAgent")
@@ -50,11 +53,14 @@ class CollaborativeAgent(ConversationalTaskAgent):
         model_name: The name of the language model to use. Defaults to DEFAULT_AGENT_LLM_NAME.
         instruction: Custom instructions for the agent's behavior. Defaults to None.
         multi_agent_instruction: Additional instructions for multi-agent interactions. Defaults to None.
+        reachable_agents: Optional map of agents who can be reached out to. Defaults to None.
         tools: List of executable tools available to the agent. Defaults to None.
+        communication_tool: 
         prompter: Custom prompter for generating interactions. Defaults to None.
         lm: Language model client for text generation. Defaults to None.
         no_response_sources: List of sources to exclude from responses. Defaults to None.
         planner: Planner for solution strategies. Defaults to None.
+        message_view_selector: a message selector/filter that decides which messages this agent should see. Defaults to None.
         tool_executor_class: Class for executing tools. Defaults to SimpleToolExecutor.
         allow_waiting: Whether the agent can wait for tool completion. Defaults to False.
     """
@@ -94,7 +100,6 @@ class CollaborativeAgent(ConversationalTaskAgent):
             allow_waiting: Whether to allow waiting for tools to finish.
         """
         self._allow_waiting = allow_waiting
-        self._tool_executor_class = tool_executor_class
         self.reachable_agents = reachable_agents
         if not instruction:
             agent_instruction = ""
@@ -120,8 +125,9 @@ class CollaborativeAgent(ConversationalTaskAgent):
             agent_tools.extend(tools)
         
         # Setup message view selector
-        self._message_view_selector = message_view_selector
-        if self._message_view_selector is None:
+        if message_view_selector is not None:
+            self._message_view_selector = message_view_selector
+        else:
             self._message_view_selector = ChannelMessageViewSelector(include_internal_events=True)
     
         super().__init__(
@@ -202,10 +208,11 @@ class CollaborativeAgent(ConversationalTaskAgent):
             action_message = output_messages[-1]
             # Check if the last action is a finish action
             finish_action_generated = False
-            for action in action_message.actions:
-                if action.tool_name == self._agent_control_tool_name and action.action_name == self._agent_control_finish_action_name:
-                    finish_action_generated = True
-                    break
+            if action_message.actions is not None:
+                for action in action_message.actions:
+                    if action.tool_name == self._agent_control_tool_name and action.action_name == self._agent_control_finish_action_name:
+                        finish_action_generated = True
+                        break
             if finish_action_generated:
                 break
 
@@ -225,17 +232,18 @@ class CollaborativeAgent(ConversationalTaskAgent):
                     continue
                 # Modify the message to remove communication actions
                 if message.actions:
-                    message.actions = [action for action in message.actions if action.tool_name != self._communication_tool.get_schema().tool_name]
+                    if self._communication_tool is not None:
+                        message.actions = [action for action in message.actions if action.tool_name != self._communication_tool.get_schema().tool_name]
                     action_recorded = True
                 state.internal_events.append(message)
             
             # If non-communication actions are recorded, then also record the corresponding observations
-            if action_recorded:
+            if action_recorded and observation_message is not None:
                 observations = observation_message.observations
                 non_communication_observations = []
                 assert len(observations) == len(last_message_actions)
                 for observation, action in zip(observations, last_message_actions):
-                    if action.tool_name != self._communication_tool.get_schema().tool_name:
+                    if self._communication_tool is not None and action.tool_name != self._communication_tool.get_schema().tool_name:
                         non_communication_observations.append(observation)
                 observation_message.observations = non_communication_observations
                 state.internal_events.append(observation_message)

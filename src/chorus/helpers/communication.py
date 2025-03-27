@@ -10,7 +10,7 @@ from chorus.helpers.base import AgentHelper
 class CommunicationHelper(AgentHelper):
     """Helper class for sending and receiving messages between agents."""
 
-    def __init__(self, context: Union[AgentContext, ChorusGlobalContext]):
+    def __init__(self, context: AgentContext):
         """Initialize the CommunicationHelper.
         
         Args:
@@ -41,7 +41,7 @@ class CommunicationHelper(AgentHelper):
         self.send(destination, content, channel, source)
         return self.wait(destination, source, channel, timeout)
 
-    def send(self, destination: str, content: str, channel: Optional[str] = None, source: Optional[str] = None):
+    def send(self, destination: Optional[str] = None, content: Optional[str] = None, channel: Optional[str] = None, source: Optional[str] = None):
         """Send a message to another agent.
         
         Args:

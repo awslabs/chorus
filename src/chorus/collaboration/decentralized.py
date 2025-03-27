@@ -12,7 +12,11 @@ from chorus.teams.services.base import TeamService
 
 class TaskInfo:
     """Information about a queued task."""
-    def __init__(self, task_id: str, content: str, requester: str):
+    task_id: str
+    content: Optional[str] = None
+    requester: Optional[str] = None
+
+    def __init__(self, task_id: str, content: Optional[str] = None, requester: Optional[str] = None):
         self.task_id = task_id
         self.content = content
         self.requester = requester
@@ -46,6 +50,10 @@ class DecentralizedCollaboration(Collaboration):
     the next task in the queue will automatically start.
     """
 
+    CHECK_INTERVAL: int = 3  # Check every 3 seconds
+    _voting_service: Optional[TeamVoting] = None
+    _team_info: Optional[TeamInfo] = None
+
     def __init__(self, initiative_takers: Optional[List[str]] = None, time_limit: Optional[int] = 60):
         """Initialize the decentralized collaboration strategy.
 
@@ -56,9 +64,6 @@ class DecentralizedCollaboration(Collaboration):
         super().__init__()
         self.initiative_takers = initiative_takers
         self.time_limit = time_limit
-        self.CHECK_INTERVAL = 3  # Check every 3 seconds
-        self._voting_service = None
-        self._team_info = None
 
     def _get_data_store(self, team_state: TeamState) -> Dict:
         """Get or initialize the collaboration data store."""
@@ -73,7 +78,7 @@ class DecentralizedCollaboration(Collaboration):
             })
         return data_store
 
-    def register_team(self, team_info: TeamInfo, services: List["TeamService"]):
+    def register_team(self, team_info: TeamInfo, services: List["TeamService"] = []):
         """Register team info and services with the collaboration."""
         self._team_info = team_info
         for service in services:
@@ -118,7 +123,7 @@ class DecentralizedCollaboration(Collaboration):
             helper.send(
                 task.requester,
                 f"Your task has been queued. Current queue position: {len(data_store['task_queue'])}",
-                source=self._team_info.get_identifier()
+                source=self._team_info.get_identifier() if self._team_info else None
             )
 
     def iterate(self, team_context: TeamContext, team_state: TeamState) -> TeamState:
@@ -145,7 +150,7 @@ class DecentralizedCollaboration(Collaboration):
                 helper.send(
                     data_store["current_requester"],
                     "No decision was reached within the time limit.",
-                    source=self._team_info.get_identifier()
+                    source=self._team_info.get_identifier() if self._team_info else None
                 )
                 # Notify all agents about collaboration end
                 self._notify_collaboration_end(team_context, "Collaboration ended: Time limit exceeded")
@@ -159,7 +164,7 @@ class DecentralizedCollaboration(Collaboration):
             helper.send(
                 data_store["current_requester"],
                 decision,
-                source=self._team_info.get_identifier()
+                source=self._team_info.get_identifier() if self._team_info else None
             )
             # Notify all agents about collaboration end with winning proposal
             self._notify_collaboration_end(
@@ -174,12 +179,13 @@ class DecentralizedCollaboration(Collaboration):
     def _notify_collaboration_end(self, team_context: TeamContext, message: str):
         """Send notification to all team agents about collaboration end."""
         helper = CommunicationHelper(team_context)
-        for agent_id in self._team_info.agent_ids:
-            helper.send(
-                agent_id,
-                message,
-                source=self._team_info.get_identifier()
-            )
+        if self._team_info is not None:
+            for agent_id in self._team_info.agent_ids:
+                helper.send(
+                    agent_id,
+                    message,
+                    source=self._team_info.get_identifier()
+                )
 
     def _start_task(self, task: TaskInfo, team_context: TeamContext, team_state: TeamState):
         """Start processing a new task."""
@@ -199,8 +205,9 @@ class DecentralizedCollaboration(Collaboration):
                 helper.send(agent_id, task.content, source=task.requester)
         else:
             # Forward to all agents in team
-            for agent_id in self._team_info.agent_ids:
-                helper.send(agent_id, task.content, source=task.requester)
+            if self._team_info is not None:
+                for agent_id in self._team_info.agent_ids:
+                    helper.send(agent_id, task.content, source=task.requester)
 
     def _end_current_task(self, team_context: TeamContext, team_state: TeamState):
         """End current task and start next task if available."""
@@ -220,7 +227,7 @@ class DecentralizedCollaboration(Collaboration):
                     helper.send(
                         task_dict["requester"],
                         f"Queue position updated: {i}",
-                        source=self._team_info.get_identifier()
+                        source=self._team_info.get_identifier() if self._team_info else None
                     )
 
     def _reset_task(self, data_store: Dict):

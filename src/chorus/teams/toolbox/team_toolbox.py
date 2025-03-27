@@ -51,7 +51,7 @@ class TeamToolClient(ExecutableTool):
         )
         if observation_message is None:
             return None
-        if observation_message.observations is None:
+        if not observation_message.observations:
             return None
         return observation_message.observations[0].data
 
@@ -159,7 +159,7 @@ class TeamToolboxClient(SimpleExecutableTool):
                 source=team_name,
                 timeout=TIMEOUT
             )
-            if observation_message is not None and observation_message.observations is not None:
+            if observation_message is not None and observation_message.observations:
                 return observation_message.observations[0].data
         return None
     
@@ -183,6 +183,6 @@ class TeamToolboxClient(SimpleExecutableTool):
         )
         if observation_message is None:
             return None
-        if observation_message.observations is None:
+        if not observation_message.observations:
             return None
         return observation_message.observations[0].data

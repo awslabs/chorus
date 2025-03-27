@@ -18,7 +18,7 @@ class AgentCommunicationTool(SimpleExecutableTool):
     TOOL_NAME = "agent_communication"
 
     def __init__(self, allow_waiting: bool = True):
-        schema = {
+        schema: dict[str, Any] = {
             "tool_name": "agent_communication",
             "name": "agent_communication",
             "description": """
@@ -93,7 +93,8 @@ Tool for asynchronized multi-agent communication. Notes:
         Raises:
             ValueError: If neither recipient_agent nor channel is provided, or if agent context is not set.
         """
-        if self.get_context() is None:
+        _context = self.get_context()
+        if _context is None:
             raise ValueError("MultiAgentTool requires agent context to be set.")
         if recipient_agent is None:
             if channel is None:
@@ -102,7 +103,7 @@ Tool for asynchronized multi-agent communication. Notes:
                 destination = "all"
         else:
             destination = recipient_agent
-        verse = CommunicationHelper(self.get_context())
+        verse = CommunicationHelper(_context)
         verse.send(destination=destination, content=content, channel=channel)
         return None
 
@@ -117,10 +118,11 @@ Tool for asynchronized multi-agent communication. Notes:
         Raises:
             ValueError: If agent context is not set.
         """
+        _context = self.get_context()
         if timeout is None:
             timeout = 60
-        if self.get_context() is None:
+        if _context is None:
             raise ValueError("MultiAgentTool requires agent context to be set.")
-        verse = CommunicationHelper(self.get_context())
+        verse = CommunicationHelper(_context)
         verse.wait(source=source, channel=channel, timeout=timeout)
         return None

@@ -46,7 +46,7 @@ class Collaboration(Registrable, metaclass=ABCMeta):
         """
         return self.__class__.__name__
 
-    def register_team(self, team_info: TeamInfo, services: Optional[List["TeamService"]] = None):
+    def register_team(self, team_info: TeamInfo, services: List["TeamService"] = []):
         """
         Register services with the collaboration.
         """

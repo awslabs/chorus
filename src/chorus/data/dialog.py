@@ -86,7 +86,7 @@ class Message(BaseEvent):
     destination: Optional[str] = None
     channel: Optional[str] = None
     actions: Optional[List[ActionData]] = None
-    observations: Optional[List[ObservationData]] = None
+    observations: List[ObservationData] = []
     message_id: str = Field(default_factory=lambda: str(uuid.uuid4().hex))
     timestamp: int = Field(default_factory=lambda: int(time.time()))
     # Artifacts

@@ -29,6 +29,9 @@ class ConversationalTaskAgent(PassiveAgent):
     execute tools, process messages, and maintain conversations while leveraging various
     language models and prompters.
 
+    Also, when context_switchers is provided, based on the incoming message, this agent would
+    automatically switch to the right OrchestrationContext based on MessageTrigger.
+
     Args:
         name: The name for this agent.
         model_name: The name of the language model to use. Defaults to DEFAULT_AGENT_LLM_NAME.
@@ -39,7 +42,12 @@ class ConversationalTaskAgent(PassiveAgent):
         no_response_sources: List of sources to exclude from responses. Defaults to None.
         planner: Planner for solution strategies. Defaults to None.
         tool_executor_class: Class for executing tools. Defaults to SimpleToolExecutor.
+        context_switchers: List of context switchers. Defaults to empty list.
     """
+
+    _prompter: InteractPrompter
+    _lm: LanguageModelClient
+    _context_switchers: List
 
     def __init__(
         self,
@@ -55,23 +63,29 @@ class ConversationalTaskAgent(PassiveAgent):
         context_switchers: Optional[List[Tuple[MessageTrigger, OrchestrationContext]]] = None,
     ):
         super().__init__(name=name, no_response_sources=no_response_sources)
-        self._prompter = prompter
         self._planner = planner
         self._tool_executor_class = tool_executor_class
-        self._lm = lm
         self._tools = tools
         self._model_name = model_name
         self._instruction = instruction
         self._context_switchers = context_switchers if context_switchers else []
+
         # Infer language model and prompter if not provided
-        if not self._lm:
-            self._lm = self.infer_agent_lm(self._model_name)
-            if not self._lm:
+        if lm is not None:
+            self._lm = lm
+        else:
+            _lm = self.infer_agent_lm(self._model_name)
+            if not _lm:
                 raise ValueError(f"Language model client cannot be inferred using model name {self._model_name}. Please specify a valid language model client.")
-        if not self._prompter:
-            self._prompter = self.infer_agent_prompter(self._model_name)
-            if not self._prompter:
+            self._lm = _lm
+        
+        if prompter is not None:
+            self._prompter = prompter
+        else:
+            _prompter = self.infer_agent_prompter(self._model_name)
+            if not _prompter:
                 raise ValueError(f"Agent prompter cannot be inferred using model name {self._model_name}. Please specify a valid agent prompter.")
+            self._prompter = _prompter
 
     def init_context(self) -> AgentContext:
         """Initialize the agent's context with tools and instructions.
@@ -229,7 +243,8 @@ class ConversationalTaskAgent(PassiveAgent):
                 # Refresh the message view after sending new messages
                 all_messages = context.message_service.fetch_all_messages()
                 new_inbound = Message(source=inbound_source, destination=context.agent_id)
-                message_view = context.message_view_selector.select(all_messages, new_inbound)
+                if context.message_view_selector is not None:
+                    message_view = context.message_view_selector.select(all_messages, new_inbound)
                 history = message_view.messages
 
         # Initialize tool executor

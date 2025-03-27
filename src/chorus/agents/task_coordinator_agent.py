@@ -61,7 +61,7 @@ class TaskCoordinatorAgent(ConversationalTaskAgent):
             tool_executor_class: Class for tool execution.
         """
         no_response_sources = list(reachable_agents.keys()) + (no_response_sources or [])
-        agent_tools = [
+        agent_tools: List = [
             AgentAsATool(sub_agent_name, sub_agent_desc)
             for sub_agent_name, sub_agent_desc in reachable_agents.items()
         ]

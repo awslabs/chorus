@@ -92,7 +92,7 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
         resources: Optional[List[Resource]] = None,
         reference_time: Optional[str] = None,
         planner_instruction: Optional[str] = None,
-    ) -> Prompt:
+    ) -> StructuredPrompt:
         """Generates a structured prompt for multi-agent conversation.
 
         Args:
@@ -108,7 +108,7 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
             A structured prompt formatted for the Bedrock Converse API.
         """
         # Create tool config
-        tool_config = None
+        tool_config: Optional[dict] = None
         if tools:
             tool_config = {"tools": []}
             for tool_schema in tools:
@@ -134,38 +134,38 @@ class BedrockConverseMultiAgentToolChatPrompter(BedrockConverseToolChatPrompter)
             system_instruction += f"\n\n{planner_instruction}"
 
         interactions = []
-        for turn in messages:
-            if turn.event_type == EventType.INTERNAL_EVENT and turn.actions:
-                action = turn.actions[0]
-                content = self._get_action_prompt(action)
+        for message in messages:
+            if message.event_type == EventType.INTERNAL_EVENT and message.actions:
+                action_data = message.actions[0]
+                content = self._get_action_prompt(action_data)
                 interactions.append(
                     Template(EVENT_TEMPLATE, autoescape=True).render(event_type="action", content=content)
                 )
-            elif turn.event_type == EventType.INTERNAL_EVENT and turn.observations:
+            elif message.event_type == EventType.INTERNAL_EVENT and message.observations:
                 interactions.append(
                     Template(EVENT_TEMPLATE, autoescape=True).render(
                         event_type="observation",
-                        content=f"<fnr>\n<r>\n{json.dumps(turn.observations[0].data)}\n</r>\n</fnr>",
+                        content=f"<fnr>\n<r>\n{json.dumps(message.observations[0].data)}\n</r>\n</fnr>",
                     )
                 )
             else:
-                if turn.channel:
+                if message.channel:
                     interactions.append(
                         Template(CHANNEL_MESSAGE_TEMPLATE, autoescape=True).render(
-                            source=turn.source, destination=turn.destination, content=turn.content, channel=turn.channel
+                            source=message.source, destination=message.destination, content=message.content, channel=message.channel
                         )
                     )
                 else:
                     interactions.append(
                         Template(MESSAGE_TEMPLATE, autoescape=True).render(
-                            source=turn.source, destination=turn.destination, content=turn.content
+                            source=message.source, destination=message.destination, content=message.content
                         )
                     )
 
         user_prompt = Template(USER_PROMPT, autoescape=True).render(
             interactions=interactions,
         )
-        prompt_dict = {
+        prompt_dict: dict = {
             "messages": [{"role": "user", "content": [{"text": user_prompt}]}],
         }
         if agent_instruction is not None:

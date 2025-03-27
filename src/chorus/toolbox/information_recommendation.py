@@ -47,10 +47,10 @@ class InformationRecommendationTool(SimpleExecutableTool):
         super().__init__(ToolSchema.model_validate(schema))
 
     def recommend(self, subject: str, summary: str, links: str):
-        if self.get_context() is None:
+        _context = self.get_context()
+        if _context is None:
             raise ValueError("MultiAgentTool requires agent context to be set.")
-        context = self.get_context()
-        verse = CommunicationHelper(context)
+        verse = CommunicationHelper(_context)
         verse.send(
             destination=self._human_name,
             content="Subject: {}\nSummary: {}\nLinks: {}".format(subject, summary, links),

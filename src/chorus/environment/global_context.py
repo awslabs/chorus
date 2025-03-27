@@ -240,7 +240,9 @@ class ChorusGlobalContext(BaseModel):
         """
         return self.message_service.fetch_all_messages()
     
-    def filter_messages(self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None) -> List[Message]:
+    def filter_messages(
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, exclude_actions_observations: bool = True
+    ) -> List[Message]:
         """Filter messages based on source, destination, and channel.
 
         Args:

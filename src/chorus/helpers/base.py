@@ -1,5 +1,6 @@
+from typing import Union
 from chorus.data.context import AgentContext
-
+from chorus.environment.global_context import ChorusGlobalContext
 
 class AgentHelper(object):
     """

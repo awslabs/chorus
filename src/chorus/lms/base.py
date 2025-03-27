@@ -1,15 +1,17 @@
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Any
+from typing import TypeVar
 from typing import Dict
 from typing import Optional
-from typing import Union
+from typing import Generic
 
 from chorus.data.prompt import Prompt
 from chorus.data.prompt import Completion
 
+TPrompt = TypeVar("TPrompt", bound=Prompt)
+TCompletion = TypeVar("TCompletion", bound=Completion)
 
-class LanguageModelClient(metaclass=ABCMeta):
+class LanguageModelClient(Generic[TPrompt, TCompletion], metaclass=ABCMeta):
     """Base class for language model clients.
 
     Provides the interface for interacting with different language models in a 
@@ -36,7 +38,14 @@ class LanguageModelClient(metaclass=ABCMeta):
         return self._default_options
 
     @abstractmethod
-    def generate(self, prompt: Prompt, options: Optional[Dict] = None) -> Completion:
+    def generate(
+            self,
+            prompt: Optional[TPrompt] = None,
+            prompt_dict: Optional[Dict] = None,
+            options: Optional[Dict] = None,
+            model_name: Optional[str] = None,
+            region: Optional[str] = None,
+        ) -> TCompletion:
         """Generate text from the language model.
 
         Args:

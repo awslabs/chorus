@@ -34,9 +34,9 @@ class SimpleChatPrompter(InteractPrompter):
             raise NotImplementedError(
                 "Planner instructions are not supported for simple chat prompter."
             )
-
+        prompt_dict: dict = {}
         if self._model_type == "gpt":
-            output_messages = []
+            output_messages: List[dict] = []
             if agent_instruction is not None:
                 output_messages.append(
                     {
@@ -96,7 +96,7 @@ class SimpleChatPrompter(InteractPrompter):
         agent_instruction: Optional[str] = None,
         resources: Optional[List[Resource]] = None,
         reference_time: Optional[str] = None,
-    ) -> str:
+    ):
         raise NotImplementedError
 
     def parse_generation(self, generated_text: str) -> List[Message]:

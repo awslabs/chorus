@@ -3,7 +3,7 @@ from chorus.data.dialog import Message
 from chorus.helpers.communication import CommunicationHelper
 from collections import deque
 from pydantic import BaseModel
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from chorus.data.context import TeamContext
     from chorus.data.state import TeamState
@@ -16,7 +16,7 @@ CURRENT_TASK_KEY = "current_task"
 class TaskInfo(BaseModel):
     """Information about a queued task."""
     message: Message
-    requester: str
+    requester: Optional[str] = None
 
 
 @Collaboration.register('CentralizedCollaboration')

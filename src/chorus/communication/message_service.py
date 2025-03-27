@@ -103,10 +103,10 @@ class MultiAgentMessageService(MessageService):
         self.message_history = list(proc_manager.list())
 
     def fetch_all_messages(self) -> List[Message]:
-        return [Message.model_validate_json(msg) for msg in self.message_history]
+        return [Message.model_validate(msg) for msg in self.message_history]
 
     def filter_messages(
-        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, exclude_actions_observations: bool = True
     ) -> List[Message]:
         all_messages = self.fetch_all_messages()
         return [
@@ -120,12 +120,12 @@ class MultiAgentMessageService(MessageService):
     def send_message(self, message: Message):
         if message.message_id is None:
             message.message_id = self.create_message_id()
-        self.message_history.append(message.model_dump_json())
+        self.message_history.append(message)
 
     def update_message(self, message_id: str, message: Message):
         for idx, msg in enumerate(self.fetch_all_messages()):
             if msg.message_id == message_id:
-                self.message_history[idx] = message.model_dump_json()
+                self.message_history[idx] = message
 
     def refresh_history(self, messages: List[Message]):
         while self.message_history:
