@@ -15,7 +15,7 @@ from chorus.communication.zmq_protocol import MessageType, ZMQMessage
 logger = logging.getLogger(__name__)
 
 # ZMQ port configurations
-DEFAULT_ROUTER_PORT = 5555
+DEFAULT_ROUTER_PORT = 6500
 ROUTER_IDENTITY = b"ROUTER"
 
 class ChorusMessageRouter:
