@@ -9,7 +9,7 @@ from typing import Dict, Optional, Any
 from chorus.agents.meta import AgentMeta
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
-from chorus.communication.message_service import ChorusMessageClient
+from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageClient
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class Agent(AgentMeta):
         """
         pass
     
-    def run(self, router_host: str = "localhost", router_port: int = 5555, 
+    def run(self, router_host: str = "localhost", router_port: int = DEFAULT_ROUTER_PORT, 
             context: Optional[AgentContext] = None, state: Optional[AgentState] = None):
         """Run the agent in a continuous loop, connecting to the ZMQ router.
         

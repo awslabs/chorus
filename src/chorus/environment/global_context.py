@@ -9,7 +9,7 @@ from typing import Union
 from pydantic import BaseModel
 from pydantic import Field
 
-from chorus.communication.message_service import ChorusMessageRouter
+from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageRouter
 from chorus.data.dialog import Message
 from chorus.data.dialog import EventType
 from chorus.data.context import AgentContext
@@ -29,7 +29,7 @@ class ChorusGlobalContext:
     across the system.
     """
 
-    def __init__(self, zmq_router_port: int = 5555):
+    def __init__(self, zmq_router_port: int = DEFAULT_ROUTER_PORT):
         """Initialize the global context.
 
         Args:

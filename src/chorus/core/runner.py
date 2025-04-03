@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Any, Set, Union
 import contextlib
 
 from chorus.agents import Agent
+from chorus.communication.message_service import DEFAULT_ROUTER_PORT
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
 from chorus.data.agent_status import AgentStatus
@@ -61,7 +62,7 @@ class Chorus(object):
         channels: Optional[List[Channel]] = None,
         global_context: Optional[ChorusGlobalContext] = None,
         simulator_state: Optional[RunnerState] = None,
-        zmq_port: int = 5555,
+        zmq_port: int = DEFAULT_ROUTER_PORT,
         max_idle_time: int = 300,
         tick_interval: int = 1,
         stop_conditions: Optional[List[MultiAgentStopCondition]] = None,
