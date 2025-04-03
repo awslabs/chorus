@@ -14,7 +14,7 @@ from chorus.data.state import PassiveAgentState
 logger = logging.getLogger(__name__)
 
 
-class PassiveAgent(Agent, metaclass=abc.ABCMeta):
+class PassiveAgent(Agent):
     """Base class for passive agents that respond to incoming messages.
 
     A passive agent waits for messages directed to it and responds accordingly. Unlike active
@@ -28,10 +28,9 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
 
     def __init__(
         self,
-        name: Optional[str] = None,
         no_response_sources: Optional[List[str]] = None,
     ):
-        super().__init__(name)
+        super().__init__()
         self._no_response_sources = no_response_sources
 
     def init_state(self) -> PassiveAgentState:
@@ -77,7 +76,7 @@ class PassiveAgent(Agent, metaclass=abc.ABCMeta):
         Returns:
             PassiveAgentState: The updated agent state after message processing.
         """
-        all_messages = context.message_service.fetch_all_messages()
+        all_messages = context.message_client.fetch_all_messages()
         new_incoming_msg = None
         agent_id = context.agent_id
         for msg in all_messages:

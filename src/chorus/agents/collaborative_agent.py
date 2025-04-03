@@ -61,7 +61,6 @@ class CollaborativeAgent(ConversationalTaskAgent):
 
     def __init__(
         self,
-        name: Optional[str] = None,
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
         multi_agent_instruction: Optional[str] = None,
@@ -80,7 +79,6 @@ class CollaborativeAgent(ConversationalTaskAgent):
         """Initializes the CollaborativeAgent.
 
         Args:
-            name: Name of the agent.
             model_name: Name of the language model to use.
             instruction: Instruction for the agent.
             multi_agent_instruction: Additional instructions for multi-agent scenarios.
@@ -125,7 +123,6 @@ class CollaborativeAgent(ConversationalTaskAgent):
             self._message_view_selector = ChannelMessageViewSelector(include_internal_events=True)
     
         super().__init__(
-            name=name,
             model_name=model_name,
             instruction=agent_instruction,
             tools=agent_tools,
@@ -140,7 +137,7 @@ class CollaborativeAgent(ConversationalTaskAgent):
         """Initialize the context for the collaborative agent.
         """
         context = CollaborativeAgentContext(
-            agent_id=self.create_agent_context_id(),
+            agent_id=self.identifier(),
             message_view_selector=self._message_view_selector,
             reachable_agents=self.reachable_agents,
             agent_instruction=self._instruction
@@ -184,7 +181,7 @@ class CollaborativeAgent(ConversationalTaskAgent):
         executor = self._tool_executor_class(context.get_tools(), context)
         
         # Fetch all messages for this agent, merge with internal events
-        external_messages = context.message_service.fetch_all_messages()
+        external_messages = context.message_client.fetch_all_messages()
         message_view = select_message_view(context, state, external_messages)
         history = message_view.messages
 
@@ -241,7 +238,7 @@ class CollaborativeAgent(ConversationalTaskAgent):
                 state.internal_events.append(observation_message)
      
             # Generate follow-up responses by retrieving fresh messages and selecting a message view
-            external_messages = context.message_service.fetch_all_messages()
+            external_messages = context.message_client.fetch_all_messages()
             message_view = select_message_view(context, state, external_messages)
             history = message_view.messages
             output_messages = orchestrate_generate_next_actions(

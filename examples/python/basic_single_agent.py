@@ -1,31 +1,34 @@
 from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox import ArxivRetrieverTool
 from chorus.core import Chorus
-from chorus.workspace import NoActivityStopper
 
 if __name__ == '__main__':
     paper_research_agent = ConversationalTaskAgent(
-        name="PaperResearchAgent",
         tools=[ArxivRetrieverTool()],
         instruction="You are a paper research agent that can help find academic papers on Arxiv."
-    )
+    ).name("PaperResearchAgent")
 
     chorus = Chorus(
-        agents=[paper_research_agent],
-        stop_conditions=[NoActivityStopper()]
+        agents=[paper_research_agent]
     )
 
-    chorus.get_environment().send_message(
-        source="human",
+    chorus.start()
+    
+    answer_message = chorus.send_and_wait(
         destination="PaperResearchAgent",
-        content="List papers on Arxiv about speculative decoding."
+        message="List papers on Arxiv about speculative decoding.",
+        timeout=60  # Set a 60-second timeout instead of the default 300 seconds
     )
-    chorus.run()
+
+
     # Print out the answer
-    answer_message = chorus.get_environment().filter_messages(
-        source="PaperResearchAgent",
-        destination="human"
-    )[-1]
     print("===========================================")
     print("Final Answer:")
-    print(answer_message.content)
+    if answer_message is not None:
+        print(answer_message.content)
+    else:
+        print("No response received within timeout. The agent may still be processing the request or encountered an error.")
+    
+        
+    # Stop the chorus
+    chorus.stop()

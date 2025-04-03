@@ -9,44 +9,28 @@ from chorus.collaboration import CentralizedCollaboration
 from chorus.helpers.communication import CommunicationHelper
 
 class TestChorusInThread(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # Store the original start method
-        try:
-            cls.original_start_method = multiprocessing.get_start_method()
-        except RuntimeError:
-            cls.original_start_method = 'spawn'  # Default to spawn if not set
 
     def setUp(self):
-        # Set start method to fork
-        multiprocessing.set_start_method('fork', force=True)
-
-        lm = MagicMock()
-        lm.generate.return_value = MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
 
         # Create a simple team with a coordinator and a chat agent
         self.coordinator = TaskCoordinatorAgent(
-            "Coordinator",
             instruction="Coordinate with other agents to answer questions.",
             reachable_agents={
                 "Assistant": "A simple chat agent that can answer basic questions."
             },
             model_name="anthropic.claude-3-5-haiku-20241022-v1:0",
-            lm=lm
-        )
+        ).name("Coordinator")
         
         self.assistant = ConversationalTaskAgent(
-            "Assistant",
             instruction="Answer basic questions directly and concisely.",
             model_name="anthropic.claude-3-5-haiku-20241022-v1:0",
-            lm=lm
-        )
+        ).name("Assistant")
 
         self.team = Team(
             name="TestTeam",
             agents=[self.coordinator, self.assistant],
             collaboration=CentralizedCollaboration(
-                coordinator=self.coordinator.get_name()
+                coordinator=self.coordinator.identifier()
             )
         )
 
@@ -57,8 +41,6 @@ class TestChorusInThread(unittest.TestCase):
         if hasattr(self, 'chorus'):
             self.chorus.stop()
         
-        # Reset the start method to original
-        multiprocessing.set_start_method(self.original_start_method, force=True)
 
     def test_start_stop_thread(self):
         # Test that chorus starts properly in a thread
@@ -77,22 +59,16 @@ class TestChorusInThread(unittest.TestCase):
     def test_agent_communication_in_thread(self):
         # Start chorus in a thread
         self.chorus.start()
-        
-        # Create communication helper
-        comm = CommunicationHelper(self.chorus.get_global_context())
+        time.sleep(5)
         
         # Send a test message
         test_message = "What is 2+2?"
-        comm.send(
-            destination="Coordinator",
-            content=test_message
+        response = self.chorus.send_and_wait(
+            destination=self.coordinator.identifier(),
+            message=test_message,
+            timeout=180
         )
         
-        # Wait for response with timeout
-        response = comm.wait(
-            source="Coordinator",
-            timeout=180  # 180 seconds timeout
-        )
         
         # Verify we got a response
         self.assertIsNotNone(response)

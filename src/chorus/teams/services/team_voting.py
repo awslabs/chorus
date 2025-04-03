@@ -74,7 +74,7 @@ class TeamVoting(TeamService):
                 destination=inbound_message.source,
                 observations=observations
             )
-            team_context.message_service.send_message(outbound_event)
+            team_context.message_client.send_message(outbound_event)
 
     def create_proposal(self, team_context: TeamContext, data_store: Dict, content: str, reasoning: str, proposer: str) -> Dict:
         comm = CommunicationHelper(team_context)

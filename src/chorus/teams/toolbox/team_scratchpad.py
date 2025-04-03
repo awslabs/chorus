@@ -81,14 +81,14 @@ class TeamScratchpadClient(SimpleExecutableTool):
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="create_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -102,14 +102,14 @@ class TeamScratchpadClient(SimpleExecutableTool):
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="get_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -129,7 +129,7 @@ class TeamScratchpadClient(SimpleExecutableTool):
         team_name = context.team_info.get_identifier()
         agent_name = context.agent_id
         
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
@@ -146,7 +146,7 @@ class TeamScratchpadClient(SimpleExecutableTool):
                 )]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -160,14 +160,14 @@ class TeamScratchpadClient(SimpleExecutableTool):
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_scratchpad", action_name="delete_scratchpad", parameters={"scratchpad_id": scratchpad_id})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )

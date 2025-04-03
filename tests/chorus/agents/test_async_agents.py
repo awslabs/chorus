@@ -10,19 +10,18 @@ from chorus.workspace.stop_conditions import NoActivityStopper
 def test_async_message_delivery():
     # Create agents
     charlie = CollaborativeAgent(
-        name="Charlie",
         reachable_agents={
             "Thomas": "This is another agent with name Thomas.",
             "human": "This is the human user."
         },
         allow_waiting=True
-    )
+    ).name("Charlie")
+    
     thomas = CollaborativeAgent(
-        name="Thomas",
         reachable_agents={"Charlie": "This is another agent with name Charlie."},
         tools=[ArxivRetrieverTool()],
         allow_waiting=True
-    )
+    ).name("Thomas")
 
     # Initialize Chorus with 30 second timeout
     simulator = Chorus(agents=[charlie, thomas], stop_conditions=[NoActivityStopper(30)])
@@ -32,7 +31,7 @@ def test_async_message_delivery():
     simulator.get_environment().send_message(
         source="Charlie",
         destination="Thomas",
-        message=Message(content=test_message)
+        content=test_message
     )
     
     # Create and start simulator thread
@@ -46,9 +45,8 @@ def test_async_message_delivery():
     message_received = False
     
     while time.time() - start_time < max_wait_time and not message_received:
-        # Check if Thomas received the message
-        thomas_context = simulator.get_agent_context("Thomas")
-        messages = thomas_context.message_service.fetch_all_messages()
+        # Check if message was received by getting all messages from the global context
+        messages = simulator.get_environment().fetch_all_messages()
         
         message_received = any(
             msg.source == "Charlie" and msg.destination == "Thomas" and msg.content == test_message 

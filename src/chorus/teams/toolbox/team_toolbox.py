@@ -44,8 +44,8 @@ class TeamToolClient(ExecutableTool):
                 )
             ]
         )
-        context.message_service.send_message(message)
-        observation_message = context.message_service.wait_for_response(
+        context.message_client.send_message(message)
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -90,7 +90,7 @@ class AsyncTeamToolClient(TeamToolClient):
                 )
             ]
         )
-        context.message_service.send_message(message)
+        context.message_client.send_message(message)
         return async_response
 
 
@@ -153,9 +153,9 @@ class TeamToolboxClient(SimpleExecutableTool):
                 "tool_use_id": tool_use_id
             })]
         )
-        context.message_service.send_message(message)
+        context.message_client.send_message(message)
         if not async_mode:
-            observation_message = context.message_service.wait_for_response(
+            observation_message = context.message_client.wait_for_response(
                 source=team_name,
                 timeout=TIMEOUT
             )
@@ -176,8 +176,8 @@ class TeamToolboxClient(SimpleExecutableTool):
             destination=team_name,
             actions=[ActionData(tool_name="TeamToolbox", action_name="list_tools")]
         )
-        context.message_service.send_message(message)
-        observation_message = context.message_service.wait_for_response(
+        context.message_client.send_message(message)
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )

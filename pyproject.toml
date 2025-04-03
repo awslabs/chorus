@@ -27,6 +27,7 @@ dependencies = [
     "tenacity>=8.2.2",
     "flask>=2.0.0",
     "jupyter_core",
+    "pyzmq>=25.1.0",
 ]
 
 [project.optional-dependencies]

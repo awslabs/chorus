@@ -11,8 +11,8 @@ from datetime import datetime
 @Agent.register("MyTripCityRecommendationAgent")
 class MyTripCityRecommendationAgent(PassiveAgent):
 
-    def __init__(self, name, geo_expert, advisors):
-        super().__init__(name)
+    def __init__(self, geo_expert, advisors):
+        super().__init__()
         self.geo_expert_name = geo_expert
         self.advisor_names = advisors
 
