@@ -5,7 +5,7 @@ import threading
 import time
 from multiprocessing import Process
 from os import getpid
-from typing import Dict
+from typing import Dict, Union
 from typing import List
 from typing import Optional
 import uuid
@@ -14,6 +14,7 @@ from io import StringIO
 
 from chorus.agents import Agent
 from chorus.data.context import AgentContext
+from chorus.data.dialog import Message
 from chorus.data.state import AgentState
 from chorus.data.agent_status import AgentStatus
 from chorus.data.channel import Channel
@@ -422,3 +423,84 @@ class Chorus(object):
             if proc.is_alive():
                 proc.terminate()
         sys.exit(0)
+
+    def send_message(self, destination: str, message: Union[Message, str, dict], channel: Optional[Channel] = None, source: Optional[str] = None):
+        """
+        A shortcut method to send a message to another agent.
+        
+        Args:
+            destination: The ID of the agent to send the message to.
+            message: The message to send.
+            channel: The channel to send the message on.
+            source: The source of the message.
+        """
+        if source is None:
+            source = self._global_context.human_identifier
+        if type(message) == str:
+            message = Message(destination=destination, content=message, channel=channel, source=source)
+        elif type(message) == dict:
+            artifacts = {}
+            for key, value in message.items():
+                if key != "content":
+                    artifacts[key] = value
+            
+            if artifacts:
+                message = Message(destination=destination, content=message.get("content"), channel=channel, source=source, artifacts=artifacts)
+            else:
+                message = Message(destination=destination, content=message.get("content"), channel=channel, source=source)
+        elif type(message) == Message:
+            if message.source is None:
+                message.source = source
+        self._global_context.message_service.send_message(message)
+    
+    def wait_for_response(self, source: str, destination: Optional[str] = None, channel: Optional[Channel] = None, timeout: Optional[int] = None) -> Optional[Message]:
+        """
+        Wait for a message from another agent.
+
+        Args:
+            source: The ID of the agent to wait for the message from.
+            destination: The ID of the agent to wait for the message to.
+            channel: Optional channel to filter messages by.
+            timeout: Maximum time in seconds to wait for response.
+            
+        Returns:
+            Message matching criteria if found within timeout, otherwise None.
+        """
+        if timeout is None:
+            timeout = 300  # Default timeout of 5 minutes
+        
+        if destination is None:
+            destination = self._global_context.human_identifier
+            
+        return self._global_context.message_service.wait_for_response(
+            source=source,
+            destination=destination,
+            channel=channel,
+            timeout=timeout
+        )
+    
+
+    def send_and_wait(self, destination: str, message: Union[Message, str, dict], channel: Optional[Channel] = None, source: Optional[str] = None, timeout: Optional[int] = None) -> Optional[Message]:
+        """
+        Send a message to another agent and wait for a response.
+        
+        Args:
+            destination: The ID of the agent to send the message to.
+            message: The message to send.
+            channel: The channel to send the message on.
+            source: The source of the message.
+            timeout: Maximum time in seconds to wait for response.
+            
+        Returns:
+            Message matching criteria if found within timeout, otherwise None.
+        """
+        # Send the message
+        self.send_message(destination, message, channel, source)
+        
+        # Wait for response
+        return self.wait_for_response(
+            source=destination,
+            destination=source,
+            channel=channel,
+            timeout=timeout
+        )
