@@ -8,12 +8,15 @@ import logging
 import multiprocessing
 from multiprocessing import Process
 from os import getpid
+
 from typing import Dict, List, Optional, Any, Set, Union
+
 import contextlib
 
 from chorus.agents import Agent
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT
 from chorus.data.context import AgentContext
+from chorus.data.dialog import Message
 from chorus.data.state import AgentState
 from chorus.data.agent_status import AgentStatus
 from chorus.data.channel import Channel
@@ -550,6 +553,7 @@ class Chorus(object):
         if self._global_context:
             self._global_context.shutdown()
         sys.exit(0)
+
             
     def send_message(
         self, 
@@ -708,3 +712,4 @@ class Chorus(object):
         
         # Wait for response with timeout
         return self.wait_for_response(source=destination, destination=source, channel=channel, timeout=timeout)
+
