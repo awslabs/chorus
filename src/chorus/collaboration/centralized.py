@@ -1,7 +1,6 @@
 from chorus.collaboration.base import Collaboration
 from chorus.data.dialog import Message
 from chorus.helpers.communication import CommunicationHelper
-from collections import deque
 from pydantic import BaseModel
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -37,7 +36,7 @@ class CentralizedCollaboration(Collaboration):
 
         # Initialize data store if needed
         if TASK_QUEUE_KEY not in data_store:
-            data_store[TASK_QUEUE_KEY] = deque()
+            data_store[TASK_QUEUE_KEY] = []
         if CURRENT_TASK_KEY not in data_store:
             data_store[CURRENT_TASK_KEY] = None
 
@@ -56,7 +55,7 @@ class CentralizedCollaboration(Collaboration):
                 
                 # Process next task in queue if any
                 if data_store[TASK_QUEUE_KEY]:
-                    next_task = data_store[TASK_QUEUE_KEY].popleft()
+                    next_task = data_store[TASK_QUEUE_KEY].pop(0)
                     data_store[CURRENT_TASK_KEY] = next_task
                     next_message = next_task.message.clone()
                     next_message.source = team_context.agent_id

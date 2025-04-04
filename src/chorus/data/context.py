@@ -13,7 +13,7 @@ from chorus.data.executable_tool import ExecutableTool
 from chorus.data.resource import Resource
 from chorus.data.team_info import TeamInfo
 from chorus.util.status_manager import MultiAgentStatusManager
-from chorus.communication.message_service import MessageService
+from chorus.communication.message_service import ChorusMessageClient
 
 
 class AsyncExecutionRecord(BaseModel):
@@ -69,7 +69,7 @@ class AgentContext(OrchestrationContext):
 
     agent_id: str
     team_info: Optional[TeamInfo] = None
-    message_service: MessageService = Field(default_factory=MessageService)
+    message_client: Optional[ChorusMessageClient] = None
     message_view_selector: MessageViewSelector = Field(default_factory=GlobalMessageViewSelector)
     status_manager: Optional[MultiAgentStatusManager] = None
     async_execution_cache: Dict[str, AsyncExecutionRecord] = Field(default_factory=dict)
@@ -130,21 +130,21 @@ class AgentContext(OrchestrationContext):
         """
         return self.async_execution_cache
     
-    def set_message_service(self, message_service: MessageService):
-        """Install a message service for agent communication.
+    def set_message_client(self, message_client: ChorusMessageClient):
+        """Install a message client for agent communication.
 
         Args:
-            message_service: The MessageService instance to install.
+            message_client: The ChorusMessageClient instance to install.
         """
-        self.message_service = message_service
+        self.message_client = message_client
     
-    def get_message_service(self) -> MessageService:
-        """Get the message service for agent communication.
+    def get_message_client(self) -> Optional[ChorusMessageClient]:
+        """Get the message client for agent communication.
 
         Returns:
-            The MessageService instance.
+            The ChorusMessageClient instance.
         """
-        return self.message_service
+        return self.message_client
 
     def report_status(self, agent_id: str, status: AgentStatus):
         """Report an agent's status to the status manager.

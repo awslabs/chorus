@@ -182,7 +182,11 @@ def orchestrate_execute_actions(
             print(f"      {action.parameters}")
         
         # Execute the action using the tool executor
-        observation = executor.execute(action)
+        try:
+            observation = executor.execute(action)
+        except Exception as e:
+            import traceback
+            observation = {"error": str(e)}
         
         # Log observation if action logging is enabled
         if chorus_logging_option("action"):
@@ -210,7 +214,6 @@ def orchestrate_execute_actions(
                 source=context.agent_id,
                 destination=context.agent_id
             )
-            
             # Return early for async actions
             return observation_turn
 

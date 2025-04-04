@@ -56,7 +56,6 @@ if __name__ == '__main__':
     }
 
     coordinator = FinancialAnalysisCoordinatorAgent(
-        "RiskAnalysisCoordinator",
         instruction="""
         Given a company name or its stock symbol, coordinate with several agents to generate a comprehensive risk analysis report.
         Notes:
@@ -92,10 +91,9 @@ if __name__ == '__main__':
         """,
         reachable_agents=reachable_agents,
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("RiskAnalysisCoordinator")
 
     sentiment_analyzer = ConversationalTaskAgent(
-        "SentimentRiskAnalyzerAgent",
         instruction="""
         You are a sentiment risk analyzer.
         Search for news, articles and social media posts related to the company and analyze the sentiment of them.
@@ -106,10 +104,9 @@ if __name__ == '__main__':
         """,
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()],
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("SentimentRiskAnalyzerAgent")
 
     management_analyzer = ConversationalTaskAgent(
-        "ManagementRiskAnalyzerAgent", 
         instruction="""
         You are a management risk analyzer.
         Gather information from the management team such as recent changes, performance, and reputation.
@@ -120,10 +117,9 @@ if __name__ == '__main__':
         """,
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()],
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("ManagementRiskAnalyzerAgent")
 
     financial_analyzer = ConversationalTaskAgent(
-        "FinancialHealthAnalyzerAgent",
         instruction="""
         You are a financial health analyzer.
         Gather information from the company's financial statements such as long-term liquidity, debt, and cash flow.
@@ -135,10 +131,9 @@ if __name__ == '__main__':
         """,
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()],
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("FinancialHealthAnalyzerAgent")
 
     economy_analyzer = ConversationalTaskAgent(
-        "GlobalEconomyAnalyzerAgent",
         instruction="""
         You are a global economy analyzer.
         Gather information from the global economy such as GDP, inflation, and interest rates.
@@ -150,10 +145,9 @@ if __name__ == '__main__':
         """,
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()],
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("GlobalEconomyAnalyzerAgent")
 
     statement_retriever = ConversationalTaskAgent(
-        "FinancialStatementRetriever",
         instruction="""
         You are a financial statement retriever.
         Your job is to search and retrieve the company financial statements. You can read remote PDF file and return the content.
@@ -161,7 +155,7 @@ if __name__ == '__main__':
         """,
         tools=[SerperWebSearchTool(), WebRetrieverToolV2(), RemotePDFReaderTool()],
         model_name="anthropic.claude-3-5-sonnet-20240620-v1:0"
-    )
+    ).name("FinancialStatementRetriever")
 
     team = Team(
         name="FinancialRiskAnalysisTeam",
@@ -187,7 +181,7 @@ if __name__ == '__main__':
 
     chorus.get_environment().send_message(
         source="human",
-        destination=team.get_identifier(),
+        destination=team.get_name(),
         content="SBUX, quarter report can be found at https://s203.q4cdn.com/326826266/files/doc_financials/2024/q3/3Q24-Earnings-Release-Final-7-30-24.pdf"
     )
     chorus.run()

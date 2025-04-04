@@ -1,6 +1,7 @@
 from typing import Optional, Union
+import time
 
-from chorus.communication.message_service import MessageService, MultiAgentMessageService
+from chorus.communication.message_service import ChorusMessageClient, ChorusMessageRouter
 from chorus.data.dialog import Message
 from chorus.data.context import AgentContext
 from chorus.environment.global_context import ChorusGlobalContext
@@ -38,8 +39,9 @@ class CommunicationHelper(AgentHelper):
         Returns:
             Message: The response message received.
         """
+        # Just use the separate send and wait methods which handle both types of contexts
         self.send(destination, content, channel, source)
-        return self.wait(destination, source, channel, timeout)
+        return self.wait(source=destination, destination=source, channel=channel, timeout=timeout)
 
     def send(self, destination: str, content: str, channel: Optional[str] = None, source: Optional[str] = None):
         """Send a message to another agent.
@@ -54,16 +56,22 @@ class CommunicationHelper(AgentHelper):
             The result of sending the message.
         """
         context = self.get_context()
-        message_service = context.get_message_service()
-        assert isinstance(message_service, MultiAgentMessageService) or isinstance(message_service, MessageService)
-        if source is None:
-            if isinstance(context, ChorusGlobalContext):
-                source = context.human_identifier
-            else:
+        if isinstance(context, ChorusGlobalContext):
+            # If this is a global context, use send_message directly
+            return context.send_message(
+                source=source or context.human_identifier,
+                destination=destination,
+                channel=channel,
+                content=content
+            )
+        else:
+            # If this is an agent context, use the message client
+            message_service = context.get_message_client()
+            if source is None:
                 source = self.get_agent_id()
-        return message_service.send_message(
-            Message(destination=destination, content=content, channel=channel, source=source)
-        )
+            return message_service.send_message(
+                Message(destination=destination, content=content, channel=channel, source=source)
+            )
 
     def wait(
         self, source: str, destination: Optional[str] = None, channel: Optional[str] = None, timeout: int = 300
@@ -85,12 +93,43 @@ class CommunicationHelper(AgentHelper):
                 destination = context.human_identifier
             else:
                 destination = self.get_agent_id()
-        message_service = context.get_message_service()
-        assert isinstance(message_service, MultiAgentMessageService) or isinstance(message_service, MessageService)
-        response = message_service.wait_for_response(
-            source=source, destination=destination, channel=channel, timeout=timeout
-        )
-        return response
+                
+        if isinstance(context, ChorusGlobalContext):
+            # For global context, we get all messages and filter
+            start_time = time.time()
+            seen_message_ids = set()
+            
+            # Get initial messages
+            messages = context.filter_messages(
+                source=source, destination=destination, channel=channel
+            )
+            
+            # Record IDs of messages we've already seen
+            for msg in messages:
+                seen_message_ids.add(msg.message_id)
+                
+            while time.time() - start_time < timeout:
+                # Get latest messages
+                messages = context.filter_messages(
+                    source=source, destination=destination, channel=channel
+                )
+                
+                # Look for new messages
+                for msg in messages:
+                    if msg.message_id not in seen_message_ids:
+                        return msg
+                        
+                # Sleep briefly to avoid busy waiting
+                time.sleep(0.5)
+                
+            return None
+        else:
+            # If this is an agent context, use the message client
+            message_service = context.get_message_client()
+            response = message_service.wait_for_response(
+                source=source, destination=destination, channel=channel, timeout=timeout
+            )
+            return response
     
 
     def send_raw_message(self, message: Message):
@@ -100,5 +139,5 @@ class CommunicationHelper(AgentHelper):
             message: The message to send.
         """
         context = self.get_context()
-        message_service = context.get_message_service()
+        message_service = context.get_message_client()
         return message_service.send_message(message)

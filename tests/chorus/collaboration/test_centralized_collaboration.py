@@ -1,4 +1,5 @@
 import multiprocessing
+import time
 import unittest
 from unittest import mock
 from chorus.agents import ConversationalTaskAgent, TaskCoordinatorAgent
@@ -8,43 +9,27 @@ from chorus.collaboration import CentralizedCollaboration
 from chorus.helpers.communication import CommunicationHelper
 
 class TestCentralizedCollaboration(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # Store the original start method
-        try:
-            cls.original_start_method = multiprocessing.get_start_method()
-        except RuntimeError:
-            cls.original_start_method = 'spawn'  # Default to spawn if not set
 
     def setUp(self):
-        # Set start method to fork
-        multiprocessing.set_start_method('fork', force=True)
-
-        lm = mock.MagicMock()
-        lm.generate.return_value = mock.MagicMock(to_dict=lambda: {"message": {"content": [{"text": "Hello, World!"}]}})
-    
         # Set up agents and team before each test
         self.sub_agents = {
             "MathExpert": "This is a MathExpert can answer your math questions."
         }
         self.router = TaskCoordinatorAgent(
-            name="Router",
             reachable_agents=self.sub_agents,
-            lm=lm
-        )
+        ).name("Router")
+        
         self.math_expert = ConversationalTaskAgent(
-            "MathExpert",
             instruction="You are MathExpert, an expert that can answer any question about math.",
-            lm=lm
-        )
+        ).name("MathExpert")
         self.team = Team(
             name="myteam",
             agents=[self.router, self.math_expert],
-            collaboration=CentralizedCollaboration(coordinator=self.router.get_name())
+            collaboration=CentralizedCollaboration(coordinator=self.router.identifier())
         )
         self.chorus = Chorus(teams=[self.team])
         self.chorus.start()
-        self.comm_helper = CommunicationHelper(self.chorus.get_global_context())
+        time.sleep(5)
     
     def tearDown(self):
         self.chorus.stop()
@@ -53,16 +38,16 @@ class TestCentralizedCollaboration(unittest.TestCase):
         """Test that a single request is properly processed through the coordinator"""
         # Send a math question and wait for response
         question = "How to solve 3x^2 + 5 = 13? Please just give me the answer, no explanation needed."
-        response = self.comm_helper.send_and_wait(
-            destination="team:myteam",
-            content=question,
+        response = self.chorus.send_and_wait(
+            destination=self.team.identifier(),
+            message=question,
             source="human",
             timeout=180
         )
         
         # Verify response
         self.assertIsNotNone(response, "Should receive a response")
-        self.assertEqual(response.source, "team:myteam", "Response should come from the team")
+        self.assertEqual(response.source, self.team.identifier(), "Response should come from the team")
         self.assertIsNotNone(response.content, "Response should have content")
         self.assertTrue(len(response.content) > 0, "Response content should not be empty")
         
@@ -76,9 +61,9 @@ class TestCentralizedCollaboration(unittest.TestCase):
         
         responses = []
         for question in questions:
-            response = self.comm_helper.send_and_wait(
-                destination="team:myteam",
-                content=question,
+            response = self.chorus.send_and_wait(
+                destination=self.team.identifier(),
+                message=question,
                 source="human",
                 timeout=180
             )

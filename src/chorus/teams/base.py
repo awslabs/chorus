@@ -9,25 +9,21 @@ from chorus.data.team_info import TeamInfo
 from chorus.data.context import TeamContext
 from chorus.teams.services.base import TeamService
 
-class BaseTeam(PassiveAgent, metaclass=ABCMeta):
+class BaseTeam(PassiveAgent):
     """
     A team of agents that collaborate to achieve a goal.
     """
+    
+    def name_to_identifier(self, name: str) -> str:
+        """Convert a name to an identifier.
+        
+        Args:
+            name (str): The name to convert.
+        """
+        return f"team:{name}"
     
     @abstractmethod
     def get_team_info(self, agent_ids: Optional[List[str]] = None) -> TeamInfo:
         """
         Get the team information.
         """
-
-    @abstractmethod
-    def get_name(self):
-        """
-        Get the name of the team.
-        """
-    
-    def get_identifier(self):
-        """
-        Get the network identifier of the team.
-        """
-        return f"team:{self.get_name()}"

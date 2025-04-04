@@ -8,17 +8,15 @@ from chorus.helpers.smart_logic import SmartLogicHelper
 if __name__ == '__main__':
     # Create specialized agents for different aspects of website creation
     content_agent = ConversationalTaskAgent(
-        "ContentWriter",
         instruction="""
         You are a skilled content writer. Create engaging website content based on the requirements.
         Return your content in a structured format with clear section labels.
         Focus on compelling copy that converts visitors into customers.
         """,
         tools=[DuckDuckGoWebSearchTool(), WebRetrieverTool()]
-    )
+    ).name("ContentWriter")
 
     designer_agent = ConversationalTaskAgent(
-        "Designer",
         instruction="""
         You are a website designer. Based on the content provided, create design specifications including:
         - Color scheme (provide exact hex codes)
@@ -28,10 +26,9 @@ if __name__ == '__main__':
         - Spacing and padding guidelines
         Return your design specs in a structured format that the developer can implement.
         """
-    )
+    ).name("Designer")
 
     developer_agent = ConversationalTaskAgent(
-        "Developer",
         instruction="""
         You are a web developer. Based on the content provided, create a preliminary implementation:
         - Create clean, semantic HTML5 structure
@@ -41,10 +38,9 @@ if __name__ == '__main__':
         You will receive design specs to refine the implementation later.
         Return the complete HTML and CSS code for the website.
         """
-    )
+    ).name("Developer")
 
     qa_agent = ConversationalTaskAgent(
-        "QAEngineer",
         instruction="""
         You are a QA engineer. Review the complete website implementation and check for:
         - HTML/CSS validation
@@ -55,7 +51,7 @@ if __name__ == '__main__':
         Return a detailed review with any issues found and suggestions for improvements.
         Start your response with a summary line: "CRITICAL ISSUES: Yes/No"
         """
-    )
+    ).name("QAEngineer")
 
     chorus = Chorus(agents=[content_agent, designer_agent, developer_agent, qa_agent])
     chorus.start()

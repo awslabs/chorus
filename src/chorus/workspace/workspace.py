@@ -70,7 +70,7 @@ class Workspace(FromParams):
         if self.main_channel is not None:
             return
         elif self.teams:
-            self.main_channel = "team:{}".format(self.teams[0].get_name())
+            self.main_channel = "team:{}".format(self.teams[0].identifier())
         elif self.agents:
             first_agent = self.agents[0]
             context = first_agent.init_context()

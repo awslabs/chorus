@@ -35,7 +35,6 @@ class TaskCoordinatorAgent(ConversationalTaskAgent):
 
     def __init__(
         self,
-        name: str,
         reachable_agents: Dict[str, str],
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
@@ -49,7 +48,6 @@ class TaskCoordinatorAgent(ConversationalTaskAgent):
         """Initialize the TaskCoordinatorAgent.
 
         Args:
-            name: Name of the agent.
             reachable_agents: Dictionary of sub-agent names and their corresponding descriptions.
             model_name: Name of the language model to use.
             instruction: Custom instruction for the agent.
@@ -68,7 +66,6 @@ class TaskCoordinatorAgent(ConversationalTaskAgent):
         if tools:
             agent_tools.extend(tools)
         super().__init__(
-            name=name,
             model_name=model_name,
             instruction=instruction,
             tools=agent_tools,

@@ -80,14 +80,14 @@ class TeamStorageClient(SimpleExecutableTool):
         if context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="list_files", parameters={"prefix": prefix})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -101,14 +101,14 @@ class TeamStorageClient(SimpleExecutableTool):
         if context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="read_file", parameters={"file_path": file_path})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -122,14 +122,14 @@ class TeamStorageClient(SimpleExecutableTool):
         if context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="write_file", parameters={"file_path": file_path, "content": content})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )
@@ -140,14 +140,14 @@ class TeamStorageClient(SimpleExecutableTool):
         if context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
         team_name = context.team_info.get_identifier()
-        context.message_service.send_message(
+        context.message_client.send_message(
             Message(
                 event_type="team_service",
                 destination=team_name,
                 actions=[ActionData(tool_name="team_storage", action_name="delete_file", parameters={"file_path": file_path})]
             )
         )
-        observation_message = context.message_service.wait_for_response(
+        observation_message = context.message_client.wait_for_response(
             source=team_name,
             timeout=TIMEOUT
         )

@@ -30,7 +30,7 @@ class SimpleToolExecutor(ToolExecutor):
     """
 
     def __init__(self, tools: List[ExecutableTool], agent_context: Optional[AgentContext] = None, tolerate_error: bool = True):
-        for tool in tools:
+        for i, tool in enumerate(tools):
             if not isinstance(tool, ExecutableTool):
                 raise SystemError(
                     "When execute_tools is enabled, all tools must extends ExecutableTool class."

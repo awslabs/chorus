@@ -50,7 +50,7 @@ class TeamToolbox(TeamService):
             destination=inbound_message.source,
             observations=observations
         )
-        team_context.message_service.send_message(outbound_event)
+        team_context.message_client.send_message(outbound_event)
                     
 
 

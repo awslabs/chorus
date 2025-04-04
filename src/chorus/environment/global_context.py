@@ -1,17 +1,9 @@
-import json
 import logging
-import re
-from multiprocessing.managers import SyncManager
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from typing import List
-from typing import Set
-from typing import Union
 
-from pydantic import BaseModel
-from pydantic import Field
 
-from chorus.communication.message_service import MessageService
-from chorus.communication.message_service import MultiAgentMessageService
+from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageRouter
 from chorus.data.dialog import Message
 from chorus.data.dialog import EventType
 from chorus.data.context import AgentContext
@@ -24,63 +16,54 @@ DEFAULT_CHANNEL = "general"
 DEFAULT_HUMAN_IDENTIFIER = "human"
 
 
-class ChorusGlobalContext(BaseModel):
+class ChorusGlobalContext:
     """Global context for the Chorus system.
 
     Maintains global state and provides access to shared resources and services
     across the system.
     """
 
-    agent_context_map: Dict[str, AgentContext] = Field(default_factory=dict)
-    message_service: MessageService = Field(default_factory=MessageService)
-    global_message_ids: Set = Field(default_factory=set)
-    channels: Dict[str, Channel] = Field(default_factory=dict)
-    human_identifier: str = Field(default=DEFAULT_HUMAN_IDENTIFIER)
-
-    def __init__(self, process_manager: SyncManager):
+    def __init__(self, zmq_router_port: int = DEFAULT_ROUTER_PORT):
         """Initialize the global context.
 
         Args:
-            process_manager: Optional process manager for multiprocessing support.
+            zmq_router_port: Port for the ZMQ router socket
+            process_manager: Legacy parameter for compatibility, not used in ZMQ implementation
         """
-        super().__init__()
-        self._proc_manager = process_manager
-        self._status_manager = MultiAgentStatusManager(process_manager)
+        # Initialize attributes with defaults
+        self.global_message_ids = set()
+        self.channels = {}
+        self.human_identifier = DEFAULT_HUMAN_IDENTIFIER
+        self.zmq_router_port = zmq_router_port
+        
+        # Set for tracking agent registrations
+        self._registered_agents = set()
+        
+        # Initialize ZMQ router
+        try:
+            # Create a message router just for initialization, to check port availability
+            self._message_router = ChorusMessageRouter(port=zmq_router_port)
+            # Update with the actual port used (which might be different if the original was in use)
+            self.zmq_router_port = self._message_router.port
+            
+            # Establish bidirectional link between router and global context
+            # This allows the router to notify the context about agent registrations
+            self._message_router.parent_context = self
+            
+            # Set up status manager
+            self._status_manager = MultiAgentStatusManager()
+            
+            # Start the router
+            self._message_router.start()
+            
+            # Store messages directly in context instead of in router
+            self._message_history = []
+            
+            logger.info(f"ZMQ router started on port {self.zmq_router_port}")
+        except Exception as e:
+            logger.error(f"Failed to initialize ZMQ router: {e}")
+            raise
 
-    def _collect_messages(self, agent_id: str) -> List[Message]:
-        agent_channels = {DEFAULT_CHANNEL}
-        for channel in self.channels.values():
-            if agent_id in channel.members:
-                agent_channels.add(channel.name)
-        relevant_messages = []
-        for msg in self.message_service.fetch_all_messages():
-            if msg.channel is None:
-                if msg.source == agent_id or msg.destination == agent_id:
-                    relevant_messages.append(msg)
-            elif msg.channel in agent_channels:
-                relevant_messages.append(msg)
-        return relevant_messages
-
-    def _prepare_agent_context(self, context: AgentContext):
-        if not isinstance(context.message_service, MultiAgentMessageService):
-            context.set_message_service(MultiAgentMessageService(self._proc_manager))
-        if context.status_manager is None:
-            context.status_manager = self._status_manager
-
-    def register_agent_context(self, context: AgentContext):
-        """Register an agent context with the global context.
-
-        Args:
-            context: The AgentContext to register.
-
-        Raises:
-            AssertionError: If an agent with the same ID is already registered.
-        """
-        agent_id = context.agent_id
-        assert agent_id not in self.agent_context_map, f"Agent {agent_id} already registered"
-        self.agent_context_map[agent_id] = context
-        self._prepare_agent_context(context)
-    
     def register_channel(self, channel: Channel):
         """Register a communication channel.
 
@@ -98,100 +81,37 @@ class ChorusGlobalContext(BaseModel):
         Returns:
             The agent's context if found, None otherwise.
         """
-        if agent_id not in self.agent_context_map:
-            return None
-        context: AgentContext = self.agent_context_map[agent_id]
-        # Update agent context with messages
-        self.sync_agent_messages(agent_id)
-        return context
+        return NotImplementedError
+
 
     def sync_agent_messages(self, agent_id: str):
         """Synchronize messages between an agent's local context and the global context.
 
+        This method is not actively used with ZMQ as messages are automatically
+        routed to relevant agents.
+
         Args:
             agent_id: The ID of the agent whose messages to sync.
         """
-        if agent_id not in self.agent_context_map:
-            return
-        context: AgentContext = self.agent_context_map[agent_id]
-        relevant_messages = self._collect_messages(agent_id)
-        message_service = context.message_service
-        assert isinstance(message_service, MultiAgentMessageService)
-        agent_messages = message_service.fetch_all_messages()
-        existing_message_ids = set()
-        for msg in agent_messages:
-            existing_message_ids.add(msg.message_id)
-        # Receive messages
-        for msg in agent_messages:
-            if msg.message_id not in self.global_message_ids:
-                if msg.source is None:
-                    msg.source = agent_id
-                message_service.update_message(msg.message_id, msg)
-                self.message_service.send_message(msg)
-                self.global_message_ids.add(msg.message_id)
-                channel_name = msg.channel if msg.channel is not None else "DM"
-                content = msg.content
-                if msg.event_type == EventType.INTERNAL_EVENT and msg.actions:
-                    action_thought_content = msg.content if msg.content is not None else ""
-                    action_thought_content = re.sub(
-                        r"<function_calls>.*?</function_calls>",
-                        "",
-                        action_thought_content,
-                        flags=re.DOTALL,
-                    )
-                    content = (
-                        "[ACTION]\n"
-                        + action_thought_content
-                        + "\n---\n"
-                        + str(
-                            json.dumps(
-                                [
-                                    act.model_dump(exclude_none=True, exclude_unset=True)
-                                    for act in msg.actions
-                                ],
-                                indent=2,
-                            )
-                        )
-                    )
-                if msg.event_type == EventType.INTERNAL_EVENT and msg.observations:
-                    content = "[OBSERVATION]\n" + str(msg.observations)
-                logger.info(f"==== Received message from {agent_id} to global context ====")
-                logger.info(msg.model_dump_json(indent=2))
-                logger.info(f"==== *** =====")
-                if msg.event_type != EventType.INTERNAL_EVENT:
-                    print("===========================================")
-                    if msg.actions:
-                        content = ""
-                        if msg.content is not None:
-                            content += msg.content
-                        for action in msg.actions:
-                            content += f"\nACTION: {action.model_dump_json(indent=2)}"
-                    print(
-                        f"\033[1m[{channel_name}] {msg.source} -> {msg.destination}:\033[0m\n{content}"
-                    )
-        # Push new global messages
-        for msg in relevant_messages:
-            if msg.message_id not in existing_message_ids:
-                logger.info(f"==== Pushing message from global context to {agent_id} ====")
-                logger.info(msg.model_dump_json(indent=2))
-                logger.info(f"==== *** =====")
-                message_service.send_message(msg)
+        # This method is not needed with ZMQ as messages are routed directly
+        pass
 
     def update_agent_context(self, agent_id: str, context: AgentContext):
-        """Update an agent's context and synchronize messages.
+        """Update an agent's context.
 
         Args:
             agent_id: The ID of the agent whose context to update.
             context: The new AgentContext to set.
         """
         self.agent_context_map[agent_id] = context
-        # Update global messages
-        self.sync_agent_messages(agent_id)
 
     def send_message(
-        self, message: Optional[Message] = None , source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, content: Optional[str] = None
+        self, message: Optional[Message] = None, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, content: Optional[str] = None
     ):
         """Send a message through the global context.
+
+        This method adds the message to the global message history and forwards it
+        to the message router to be distributed to agents.
 
         Args:
             message: Optional Message object to send.
@@ -215,8 +135,21 @@ class ChorusGlobalContext(BaseModel):
             message.channel = channel
         if content is not None:
             message.content = content
-        self.message_service.send_message(message)
-        self.global_message_ids.add(message.message_id)
+            
+        # Generate message ID if needed
+        if message.message_id is None:
+            import uuid
+            message.message_id = str(uuid.uuid4().hex)
+            
+        # Add to global message history
+        if message.message_id not in self.global_message_ids:
+            self._message_history.append(message)
+            self.global_message_ids.add(message.message_id)
+            
+        # Route through the ZMQ router
+        self._message_router.send_message(message)
+            
+        # Log the message
         channel_name = message.channel if message.channel is not None else "DM"
         if message.actions:
             if message.content is None:
@@ -238,7 +171,15 @@ class ChorusGlobalContext(BaseModel):
         Returns:
             List of all Message objects.
         """
-        return self.message_service.fetch_all_messages()
+        # Update with the latest messages from the router
+        if hasattr(self, "_message_router"):
+            router_messages = self._message_router.fetch_all_messages()
+            for msg in router_messages:
+                if msg.message_id not in self.global_message_ids:
+                    self._message_history.append(msg)
+                    self.global_message_ids.add(msg.message_id)
+                    
+        return self._message_history
     
     def filter_messages(self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None) -> List[Message]:
         """Filter messages based on source, destination, and channel.
@@ -251,7 +192,12 @@ class ChorusGlobalContext(BaseModel):
         Returns:
             List of filtered Message objects.
         """
-        return self.message_service.filter_messages(source, destination, channel)
+        return [
+            msg for msg in self._message_history
+            if (source is None or msg.source == source)
+            and (destination is None or msg.destination == destination)
+            and (channel is None or msg.channel == channel)
+        ]
 
     def status_manager(self) -> MultiAgentStatusManager:
         """Get the global status manager.
@@ -261,10 +207,58 @@ class ChorusGlobalContext(BaseModel):
         """
         return self._status_manager
     
-    def get_message_service(self) -> MessageService:
-        """Get the global message service.
-
+    def is_agent_in_channel(self, agent_id: str, channel_name: str) -> bool:
+        """Check if an agent is a member of a channel.
+        
+        Args:
+            agent_id: The agent ID to check
+            channel_name: The channel name to check
+            
         Returns:
-            The MessageService instance.
+            True if the agent is in the channel, False otherwise
         """
-        return self.message_service
+        if channel_name == DEFAULT_CHANNEL:
+            return True
+            
+        if channel_name in self.channels:
+            channel = self.channels[channel_name]
+            return agent_id in channel.members
+            
+        return False
+    
+    def request_agent_state(self, agent_id: str):
+        """Request the current state from an agent.
+        
+        Args:
+            agent_id: The agent ID to request state from
+        """
+        if hasattr(self, "_message_router"):
+            self._message_router.request_agent_state(agent_id)
+    
+    def stop_agent(self, agent_id: str):
+        """Send a stop signal to an agent.
+        
+        Args:
+            agent_id: The agent ID to stop
+        """
+        if hasattr(self, "_message_router"):
+            self._message_router.stop_agent(agent_id)
+            
+    def shutdown(self):
+        """Shutdown the global context, stopping all services."""
+        logger.info("Shutting down ChorusGlobalContext")
+        try:
+            if hasattr(self, "_message_router"):
+                self._message_router.stop()
+                logger.info("ZMQ router successfully stopped")
+        except Exception as e:
+            logger.error(f"Error during global context shutdown: {e}")
+            # Continue with shutdown even if there are errors
+            
+    def get_message_router(self):
+        """Get the message router for backward compatibility.
+        
+        Returns:
+            The ZMQMessageRouter instance
+        """
+        return self._message_router

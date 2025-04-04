@@ -14,6 +14,21 @@ class Team(BaseTeam):
     A team of agents that collaborate to achieve a goal.
     """
 
+    def __new__(cls, *args, **kwargs):
+        """
+        Override the Agent's delayed initialization to immediately initialize the Team.
+        """
+        obj = super().__new__(cls, *args, **kwargs)
+        # Store init args for later use with agent methods
+        obj._init_args = args
+        obj._init_kwargs = kwargs
+        obj._agent_name = None
+        
+        # Immediately call __init__ instead of delayed initialization
+        if args or kwargs:
+            obj.__init__(*args, **kwargs)
+        return obj
+
     def respond(self, context: TeamContext, state: TeamState, inbound_message: Message) -> TeamState:
         if inbound_message.event_type == "team_service":
             for service in self._services:
@@ -28,7 +43,7 @@ class Team(BaseTeam):
         return super().iterate(context, state)
 
     def init_context(self) -> TeamContext:
-        return TeamContext(agent_id=f"team:{self._name}", team_info=self._team_info)
+        return TeamContext(agent_id=self.identifier(), team_info=self._team_info)
     
     def init_state(self) -> TeamState:
         state = TeamState()
@@ -37,7 +52,7 @@ class Team(BaseTeam):
             service.register_team(self._team_info, self._services)
             service.initialize_service(state)
         return state
-
+    
     def __init__(self, name: str, agents: List[Agent], collaboration: Collaboration, services: Optional[List[TeamService]] = None):
         """
         Initialize a team.
@@ -49,13 +64,14 @@ class Team(BaseTeam):
             services: The services of the team.
         """
         super().__init__()
-        self._name = name
+        self.name(name)
         self._agents = agents
         self._collaboration = collaboration
         self._services = services if services is not None else []
         self._team_info = TeamInfo(
-            name=self._name,
-            agent_ids=[],
+            name=self.get_name(),
+            identifier=self.identifier(),
+            agent_ids=[agent.identifier() for agent in agents],
             collaboration_name=self._collaboration.get_name(),
             service_names=[service.get_name() for service in self._services]
         )
@@ -63,13 +79,7 @@ class Team(BaseTeam):
     def get_team_info(self, agent_ids: Optional[List[str]] = None) -> TeamInfo:
         self._team_info.agent_ids = agent_ids
         return self._team_info
-
-    def get_name(self):
-        """
-        Get the name of the team.
-        """
-        return self._name
-
+    
     def get_collaboration(self):
         """
         Get the collaboration of the team.
@@ -82,11 +92,6 @@ class Team(BaseTeam):
         """
         return self._agents
     
-    def get_identifier(self):
-        """
-        Get the network identifier of the team.
-        """
-        return f"team:{self._name}"
     
     def add_agent(self, agent: Agent):
         """

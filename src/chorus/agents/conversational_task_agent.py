@@ -43,7 +43,6 @@ class ConversationalTaskAgent(PassiveAgent):
 
     def __init__(
         self,
-        name: Optional[str] = None,
         model_name: str = DEFAULT_AGENT_LLM_NAME,
         instruction: Optional[str] = None,
         tools: Optional[List[ExecutableTool]] = None,
@@ -54,7 +53,7 @@ class ConversationalTaskAgent(PassiveAgent):
         tool_executor_class: Type[SimpleToolExecutor] = SimpleToolExecutor,
         context_switchers: Optional[List[Tuple[MessageTrigger, OrchestrationContext]]] = None,
     ):
-        super().__init__(name=name, no_response_sources=no_response_sources)
+        super().__init__(no_response_sources=no_response_sources)
         self._prompter = prompter
         self._planner = planner
         self._tool_executor_class = tool_executor_class
@@ -80,7 +79,7 @@ class ConversationalTaskAgent(PassiveAgent):
             AgentContext: A new context object containing the agent's configuration.
         """
         context = AgentContext(
-            agent_id=self.create_agent_context_id(),
+            agent_id=self.identifier(),
             agent_instruction=self._instruction,
             message_view_selector=DirectMessageViewSelector(include_internal_events=True),
         )
@@ -150,14 +149,6 @@ class ConversationalTaskAgent(PassiveAgent):
         """
         return self._lm
 
-    def get_name(self):
-        """Get the agent's name.
-
-        Returns:
-            str: The name of this agent.
-        """
-        return self._name
-
     def get_instruction(self):
         """Get the agent's instruction.
 
@@ -190,6 +181,7 @@ class ConversationalTaskAgent(PassiveAgent):
         Returns:
             PassiveAgentState: The updated agent state after processing.
         """
+        
         # Check for context switches and switch if necessary
         for trigger, orch_context in reversed(self._context_switchers):
             if trigger.matches(inbound_message):
@@ -199,7 +191,7 @@ class ConversationalTaskAgent(PassiveAgent):
                 break
         
         # Create a message view
-        all_messages = context.message_service.fetch_all_messages()
+        all_messages = context.message_client.fetch_all_messages()
         message_view = select_message_view(context, state, all_messages)
         history = message_view.messages
         
@@ -225,9 +217,9 @@ class ConversationalTaskAgent(PassiveAgent):
                         async_observation_detected = True
                         inbound_source = async_record.action_source
             if async_observation_detected and async_messages:
-                context.message_service.send_messages(async_messages)
+                context.message_client.send_messages(async_messages)
                 # Refresh the message view after sending new messages
-                all_messages = context.message_service.fetch_all_messages()
+                all_messages = context.message_client.fetch_all_messages()
                 new_inbound = Message(source=inbound_source, destination=context.agent_id)
                 message_view = context.message_view_selector.select(all_messages, new_inbound)
                 history = message_view.messages
@@ -267,7 +259,6 @@ class ConversationalTaskAgent(PassiveAgent):
             
             # Add the follow-up turns to the output
             output_turns.extend(follow_up_turns)
-        
         # Save internal events from output_turns into the state's internal_events
         external_events = []
         for turn in output_turns:
@@ -279,7 +270,8 @@ class ConversationalTaskAgent(PassiveAgent):
                 turn.destination = inbound_source
                 turn.source = context.agent_id
                 external_events.append(turn)
-        context.message_service.send_messages(external_events)
+        
+        context.message_client.send_messages(external_events)
         return state
 
     def on(self, trigger: BaseTrigger, orch_context: OrchestrationContext) -> 'ConversationalTaskAgent':
