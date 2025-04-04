@@ -10,7 +10,6 @@ from chorus.toolbox import DuckDuckGoWebSearchTool
 
 from chorus.workspace import NoActivityStopper
 
-
 if __name__ == '__main__':
     coordinator_agent = TaskCoordinatorAgent(
         instruction="""

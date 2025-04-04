@@ -165,6 +165,11 @@ class ChorusMessageRouter:
         agent_id = zmq_message.agent_id
         self._agent_identities[agent_id] = identity
         
+        # Track registration for parent context if available
+        if hasattr(self, 'parent_context') and hasattr(self.parent_context, '_registered_agents'):
+            self.parent_context._registered_agents.add(agent_id)
+            logger.info(f"Agent {agent_id} registered with router")
+        
         # Send acknowledgment
         self._send_to_agent(identity, ZMQMessage(
             msg_type=MessageType.REGISTER_ACK,
@@ -388,17 +393,45 @@ class ChorusMessageClient:
         self._running = False
         self._thread = None
         self._team_info = None
+        self._registered = False
         
         # Register with the router
         self._register()
         
     def _register(self):
-        """Register this client with the router."""
+        """Register this client with the router and wait for acknowledgment."""
         register_msg = ZMQMessage(
             msg_type=MessageType.REGISTER,
             agent_id=self.agent_id
         )
         self._send_to_router(register_msg)
+        
+        # Wait briefly for registration acknowledgment
+        max_retries = 3
+        retry_delay = 0.5
+        for attempt in range(max_retries):
+            # Poll for messages with a short timeout
+            if self._dealer_socket.poll(timeout=500):  # 500 ms timeout
+                try:
+                    empty, message_data = self._dealer_socket.recv_multipart()
+                    zmq_message = ZMQMessage.from_json(message_data.decode('utf-8'))
+                    
+                    if zmq_message.msg_type == MessageType.REGISTER_ACK:
+                        self._registered = True
+                        logger.debug(f"Agent {self.agent_id} registration acknowledged by router")
+                        return True
+                except Exception as e:
+                    logger.warning(f"Error processing registration response: {e}")
+            
+            # If we didn't get acknowledgment, try again
+            if attempt < max_retries - 1:
+                logger.debug(f"Registration attempt {attempt+1} failed, retrying in {retry_delay}s")
+                time.sleep(retry_delay)
+                self._send_to_router(register_msg)
+        
+        logger.warning(f"Failed to confirm registration for agent {self.agent_id} after {max_retries} attempts")
+        # Continue anyway, the router might still have registered us
+        return False
         
     def start(self):
         """Start the message client in a background thread."""
@@ -466,6 +499,7 @@ class ChorusMessageClient:
             # Handle the message based on type
             if msg_type == MessageType.REGISTER_ACK:
                 # Registration acknowledgment
+                self._registered = True
                 logger.debug(f"Agent {self.agent_id} registered with router")
             elif msg_type == MessageType.ROUTER_MESSAGE:
                 # Regular message from the router

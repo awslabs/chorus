@@ -1,13 +1,7 @@
-import json
 import logging
-import re
 from typing import Dict, Optional, Any
 from typing import List
-from typing import Set
-from typing import Union
 
-from pydantic import BaseModel
-from pydantic import Field
 
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageRouter
 from chorus.data.dialog import Message
@@ -42,12 +36,19 @@ class ChorusGlobalContext:
         self.human_identifier = DEFAULT_HUMAN_IDENTIFIER
         self.zmq_router_port = zmq_router_port
         
+        # Set for tracking agent registrations
+        self._registered_agents = set()
+        
         # Initialize ZMQ router
         try:
             # Create a message router just for initialization, to check port availability
             self._message_router = ChorusMessageRouter(port=zmq_router_port)
             # Update with the actual port used (which might be different if the original was in use)
             self.zmq_router_port = self._message_router.port
+            
+            # Establish bidirectional link between router and global context
+            # This allows the router to notify the context about agent registrations
+            self._message_router.parent_context = self
             
             # Set up status manager
             self._status_manager = MultiAgentStatusManager()

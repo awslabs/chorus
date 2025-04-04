@@ -461,16 +461,63 @@ class Chorus(object):
 
     def start(self):
         """
-        Start Chorus in a new thread. If a thread is already running, this method will do nothing.
+        Start Chorus in a new thread and wait until all agents are connected to the router.
+        
+        This method starts the Chorus system in a background thread and blocks until all
+        agents have successfully connected to the ZMQ router and registered themselves.
+        This ensures that when this method returns, the entire system is properly initialized
+        and ready to handle messages.
         """
         if self._chorus_thread and self._chorus_thread.is_alive():
             return
+        
+        # Start the chorus thread
         self._chorus_thread = threading.Thread(target=self.run)
         self._chorus_thread.start()
-        # Wait for the thread to start
-        time.sleep(1)
-        while not self._chorus_thread.is_alive():
-            time.sleep(0.1)
+        
+        # Wait for the thread to initialize
+        time.sleep(0.5)
+        
+        # The maximum time to wait for all agents to connect (in seconds)
+        max_wait_time = 30
+        polling_interval = 0.5
+        start_time = time.time()
+        
+        # Get the expected agent IDs
+        expected_agent_ids = {agent.identifier() for agent_uuid, agent in self._agent_map.items()}
+        total_agents = len(expected_agent_ids)
+        
+        logger.info(f"Waiting for {total_agents} agents to connect to the router...")
+        last_registered_count = 0
+        
+        while time.time() - start_time < max_wait_time:
+            # Check if the global context is tracking registrations
+            if hasattr(self._global_context, '_registered_agents'):
+                registered_count = len(self._global_context._registered_agents)
+                
+                # Log progress only when the count changes
+                if registered_count > last_registered_count:
+                    logger.info(f"Progress: {registered_count}/{total_agents} agents connected")
+                    last_registered_count = registered_count
+                
+                # Check if all expected agents are registered
+                if self._global_context._registered_agents.issuperset(expected_agent_ids):
+                    logger.info(f"All {total_agents} agents successfully connected and registered")
+                    return
+            
+            # Sleep to avoid busy waiting
+            time.sleep(polling_interval)
+        
+        # If we're here, we timed out
+        if hasattr(self._global_context, '_registered_agents'):
+            registered_count = len(self._global_context._registered_agents)
+            missing_agents = expected_agent_ids - self._global_context._registered_agents
+            logger.warning(f"Timed out waiting for all agents to connect. {registered_count}/{total_agents} agents connected.")
+            if missing_agents:
+                logger.warning(f"Missing agents: {', '.join(missing_agents)}")
+        else:
+            logger.warning(f"Timed out waiting for agents to connect. Registration tracking not available.")
+        # Continue anyway, as agents might still connect later
     
     def stop(self):
         """Stop Chorus and wait for it to finish.

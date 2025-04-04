@@ -86,6 +86,7 @@ class Agent(AgentMeta):
             state = self.init_state()
             
         agent_id = context.agent_id
+        logger.info(f"Initializing agent {agent_id}")
             
         # Initialize ZMQ client
         self._comm_client = ChorusMessageClient(agent_id, router_host, router_port)
@@ -97,8 +98,21 @@ class Agent(AgentMeta):
         self._comm_client.start()
         self._running = True
         
-        # Give the client time to register and receive initial messages
-        time.sleep(0.5)
+        # Give the client time to register with the router
+        # Registration is crucial for the agent to receive messages
+        # and for the Chorus.start() method to detect that all agents are connected
+        max_registration_attempts = 3
+        for attempt in range(max_registration_attempts):
+            # Try registering with the router
+            if hasattr(self._comm_client, '_registered') and self._comm_client._registered:
+                logger.info(f"Agent {agent_id} registered with router on attempt {attempt+1}")
+                break
+                
+            if attempt < max_registration_attempts - 1:
+                logger.debug(f"Waiting for agent {agent_id} registration, attempt {attempt+1}")
+                time.sleep(1)
+        else:
+            logger.warning(f"Agent {agent_id} could not confirm registration with router after {max_registration_attempts} attempts")
         
         # Check if team info was received and update context
         team_info_dict = self._comm_client.get_team_info()
