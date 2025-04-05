@@ -12,7 +12,6 @@ from chorus.data.agent_status import AgentStatus
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.resource import Resource
 from chorus.data.team_info import TeamInfo
-from chorus.util.status_manager import MultiAgentStatusManager
 from chorus.communication.message_service import ChorusMessageClient
 
 
@@ -71,7 +70,6 @@ class AgentContext(OrchestrationContext):
     team_info: Optional[TeamInfo] = None
     message_client: Optional[ChorusMessageClient] = None
     message_view_selector: MessageViewSelector = Field(default_factory=GlobalMessageViewSelector)
-    status_manager: Optional[MultiAgentStatusManager] = None
     async_execution_cache: Dict[str, AsyncExecutionRecord] = Field(default_factory=dict)
 
     def get_tools(self) -> List[ExecutableTool]:
@@ -147,14 +145,16 @@ class AgentContext(OrchestrationContext):
         return self.message_client
 
     def report_status(self, agent_id: str, status: AgentStatus):
-        """Report an agent's status to the status manager.
+        """Report an agent's status through the message client.
 
         Args:
             agent_id: ID of the agent whose status is being reported.
             status: The AgentStatus to record.
         """
-        if self.status_manager is not None:
-            self.status_manager.record(agent_id, status)
+        if self.message_client:
+            self.message_client.send_status_update(status.value)
+        else:
+            logger.warning(f"Cannot report status for agent {agent_id}: no message client available")
     
 
 class TeamContext(AgentContext):

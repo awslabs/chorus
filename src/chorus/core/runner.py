@@ -15,7 +15,7 @@ from chorus.data.checkpoint import AgentSnapshot, ChorusCheckpoint
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message
 from chorus.data.state import AgentState
-from chorus.data.agent_status import AgentStatus
+from chorus.data.agent_status import AgentStatus, AgentStatusRecord
 from chorus.data.channel import Channel
 from chorus.data.team_info import TeamInfo
 from chorus.environment.global_context import ChorusGlobalContext
@@ -462,44 +462,39 @@ class Chorus(object):
         
         return checkpoint
 
-    def get_agents_status(self) -> Dict[str, AgentStatus]:
+    def get_agents_status(self) -> Dict[str, AgentStatusRecord]:
         """Get the status of all agents.
         
         Returns:
-            Dictionary mapping agent UUIDs to their current status
+            Dictionary mapping agent UUIDs to their AgentStatusRecord objects
         """
         agent_status_map = {}
+        current_time = int(time.time())
+        
+        # Initialize with process status
         for agent_uuid in self._agent_map.keys():
             if agent_uuid in self._agent_processes and self._agent_processes[agent_uuid].is_alive():
-                agent_status_map[agent_uuid] = AgentStatus.BUSY
+                agent_status_map[agent_uuid] = AgentStatusRecord(
+                    status=AgentStatus.BUSY,
+                    last_active_timestamp=current_time
+                )
             else:
-                agent_status_map[agent_uuid] = AgentStatus.AVAILABLE
+                agent_status_map[agent_uuid] = AgentStatusRecord(
+                    status=AgentStatus.IDLE,
+                    last_active_timestamp=current_time
+                )
                 
-        # Update with status from status manager if available
-        if self._global_context:
-            sm = self._global_context.status_manager()
-            for agent_uuid in self._agent_map.keys():
-                status = sm.get_status(agent_uuid)
-                if status is not None:
-                    agent_status_map[agent_uuid] = status
+        # Update with status from message router if available
+        if self._global_context and hasattr(self._global_context, '_message_router'):
+            router = self._global_context._message_router
+            status_map = router.get_agent_status_map()
+            
+            # Update our map with the router's status records
+            for agent_id, status_record in status_map.items():
+                agent_status_map[agent_id] = status_record
                     
         return agent_status_map
 
-    def get_last_activity_timestamp(self) -> Optional[int]:
-        """Get the timestamp of the last activity in the chorus.
-
-        Returns:
-            Optional[int]: The Unix timestamp of the last activity.
-        """
-        if self._global_context is None:
-            return None
-        sm = self._global_context.status_manager()
-        records = sm.get_records()
-        if records:
-            last_timestamp, _, _ = records[-1]
-            return max(self._last_busy_timestamp, last_timestamp)
-        else:
-            return self._last_busy_timestamp
 
     def register_signal_handler(self):
         signal.signal(signal.SIGINT, self.cleanup)
