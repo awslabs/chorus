@@ -5,24 +5,20 @@ import time
 import uuid
 import signal
 import logging
-import multiprocessing
 from multiprocessing import Process
-from os import getpid
 
 from typing import Dict, List, Optional, Any, Set, Union
 
-import contextlib
-
 from chorus.agents import Agent
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT
+from chorus.data.checkpoint import AgentSnapshot, ChorusCheckpoint
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message
 from chorus.data.state import AgentState
-from chorus.data.agent_status import AgentStatus
+from chorus.data.agent_status import AgentStatus, AgentStatusRecord
 from chorus.data.channel import Channel
 from chorus.data.team_info import TeamInfo
 from chorus.environment.global_context import ChorusGlobalContext
-from chorus.core.state import RunnerState
 from chorus.teams import Team
 from chorus.workspace.stop_conditions import MultiAgentStopCondition
 from chorus.util.visual_debugger import VisualDebugger
@@ -44,7 +40,6 @@ class Chorus(object):
         teams: List of teams (groups of agents) to be managed by the chorus.
         channels: List of communication channels for agents/teams to interact.
         global_context: Global context object containing shared state and resources.
-        simulator_state: State object tracking the status of all agents/teams.
         zmq_port: Port for ZMQ router socket.
         max_idle_time: Maximum time in seconds to wait while system is idle before stopping.
         tick_interval: Time in seconds between system update ticks.
@@ -64,7 +59,6 @@ class Chorus(object):
         teams: Optional[List[Team]] = None,
         channels: Optional[List[Channel]] = None,
         global_context: Optional[ChorusGlobalContext] = None,
-        simulator_state: Optional[RunnerState] = None,
         zmq_port: int = DEFAULT_ROUTER_PORT,
         max_idle_time: int = 300,
         tick_interval: int = 1,
@@ -80,7 +74,6 @@ class Chorus(object):
             teams (Optional[List[Team]]): List of teams to be managed.
             channels (Optional[List[Channel]]): List of channels to be managed.
             global_context (ChorusGlobalContext): Global context for the chorus.
-            simulator_state (RunnerState): State of the simulator.
             zmq_port (int): Port for ZMQ router socket.
             max_idle_time (int): Maximum idle time before stopping.
             tick_interval (int): Interval between ticks.
@@ -101,7 +94,6 @@ class Chorus(object):
         self._agent_team_map: Dict = {}
         self._team_info_map: Dict = {}  # Maps agent UUIDs to TeamInfo objects
         self._agent_processes: Dict[str, Process] = {}
-        self._agent_states: Dict[str, Optional[AgentState]] = {}
         self._global_context = global_context
         self._is_busy = False
         self._last_busy_timestamp = int(time.time())
@@ -124,9 +116,6 @@ class Chorus(object):
         if channels is not None:
             for channel in channels:
                 self._global_context.register_channel(channel)
-        self._simulator_state = simulator_state
-        if self._simulator_state is None:
-            self._simulator_state = RunnerState()
         self._stop_conditions = stop_conditions
         if self._stop_conditions is None:
             self._stop_conditions = []
@@ -164,12 +153,7 @@ class Chorus(object):
         
         # Store agent in the agent map
         self._agent_map[class_uuid] = agent
-        self._agent_states[class_uuid] = None
         
-        # Update simulator state
-        if self._simulator_state is not None:
-            self._simulator_state.update_agent_state(class_uuid, None)
-            
         # If this agent is part of a team, record that
         if team_info is not None:
             self._agent_team_map[class_uuid] = team_info.identifier
@@ -188,12 +172,11 @@ class Chorus(object):
             The spawned process
         """
         agent = self._agent_map[agent_uuid]
-        state = self._agent_states[agent_uuid]
         
         # Create a process for the agent
         proc = Process(
             target=Chorus.run_agent,
-            args=(agent, state, self._global_context.zmq_router_port)
+            args=(agent, self._global_context.zmq_router_port)
         )
         
         # Store the process
@@ -205,12 +188,11 @@ class Chorus(object):
         return proc
     
     @staticmethod
-    def run_agent(agent: Agent, state: Optional[AgentState], zmq_port: int):
+    def run_agent(agent: Agent, zmq_port: int):
         """Run an agent in a new process.
         
         Args:
             agent: The agent to run
-            state: Optional state for the agent
             zmq_port: Port for the ZMQ router
         """
         # Initialize the agent with its saved args
@@ -219,8 +201,7 @@ class Chorus(object):
         # Initialize context and state
         context = agent.init_context()
         agent_id = context.agent_id
-        if state is None:
-            state = agent.init_state()
+        state = agent.init_state()
         
         try:
             # Run the agent
@@ -272,7 +253,7 @@ class Chorus(object):
             # Register all agent states
             for agent_uuid in self._agent_map.keys():
                 # Register agent states
-                state = self._simulator_state.get_agent_state(agent_uuid)
+                state = self._global_context.get_agent_state(agent_uuid)
                 if state:
                     self._visual_debugger.register_state(agent_uuid, state)
 
@@ -397,66 +378,123 @@ class Chorus(object):
     def get_global_context(self) -> Optional[ChorusGlobalContext]:
         return self._global_context
     
-    def get_global_state(self) -> Optional[RunnerState]:
-        return self._simulator_state
-    
     def get_agent_context(self, agent_id: str) -> Optional[AgentContext]:
         raise NotImplementedError
     
-    def get_agent_state(self, agent_uuid: str) -> Optional[AgentState]:
+    def get_agent_state_dict(self, agent_id: str) -> Optional[dict]:
         """Get the current state of an agent.
         
         Args:
-            agent_uuid: UUID of the agent whose state to retrieve
+            agent_id: ID of the agent whose state to retrieve
             
         Returns:
             The agent's state if found, None otherwise
         """
-        if agent_uuid in self._agent_states:
-            return self._agent_states[agent_uuid]
+        if self._global_context and hasattr(self._global_context, '_message_router'):
+            # Get the agent state from the message router
+            return self._global_context._message_router.get_agent_state(agent_id)
         return None
 
-    def dump_environment_state(self):
-        pass
+    def get_agent_state_dicts(self) -> Dict[str, dict]:
+        """Get the current states of all agents.
+        
+        This method returns a dictionary of agent IDs to their current states.
+        """
+        if self._global_context and hasattr(self._global_context, '_message_router'):
+            router_states = self._global_context._message_router.get_agent_state_map()
+            return router_states
+        return {}
+            
+    def save_checkpoint(self) -> ChorusCheckpoint:
+        """Save a checkpoint of the current state of the Chorus.
+        
+        This method creates a checkpoint containing snapshots of all agents
+        with their initialization parameters and current state, allowing for
+        agent restoration with proper state.
+        
+        Returns:
+            A ChorusCheckpoint object containing configuration and state information for all agents.
+        """
+        # Get agent state dictionaries
+        agent_state_dicts = self.get_agent_state_dicts()
+        
+        # Create a new checkpoint
+        checkpoint = ChorusCheckpoint()
+        
+        # Create agent snapshots for all agents
+        agent_snapshots = {}
+        for agent_uuid, agent in self._agent_map.items():
+            try:
+                # Get agent class name
+                class_name = agent.__class__.__module__ + "." + agent.__class__.__name__
+                
+                # Get agent name and ID
+                agent_name = agent.get_name() if hasattr(agent, 'get_name') else ""
+                agent_id = agent.identifier()
+                
+                # Get initialization arguments
+                init_args, init_kwargs = agent.get_init_args()
+                
+                # Get current agent state
+                state_dump = {}
+                if agent_id in agent_state_dicts and agent_state_dicts[agent_id] is not None:
+                    # Use state dict directly
+                    state_dump = agent_state_dicts[agent_id]
+                
+                # Create the agent snapshot
+                snapshot = AgentSnapshot(
+                    class_name=class_name,
+                    agent_name=agent_name,
+                    agent_id=agent_id,
+                    init_args=init_args,
+                    init_kwargs=init_kwargs,
+                    state_dump=state_dump
+                )
+                
+                # Add to our snapshot map
+                agent_snapshots[agent_uuid] = snapshot
+                logger.debug(f"Created snapshot for agent {agent_id} ({class_name})")
+            except Exception as e:
+                logger.error(f"Error creating snapshot for agent {agent_uuid}: {e}")
+        
+        # Set agent snapshots in the checkpoint
+        checkpoint.agent_snapshot_map = agent_snapshots
+        
+        return checkpoint
 
-    def get_agents_status(self) -> Dict[str, AgentStatus]:
+    def get_agents_status(self) -> Dict[str, AgentStatusRecord]:
         """Get the status of all agents.
         
         Returns:
-            Dictionary mapping agent UUIDs to their current status
+            Dictionary mapping agent UUIDs to their AgentStatusRecord objects
         """
         agent_status_map = {}
+        current_time = int(time.time())
+        
+        # Initialize with process status
         for agent_uuid in self._agent_map.keys():
             if agent_uuid in self._agent_processes and self._agent_processes[agent_uuid].is_alive():
-                agent_status_map[agent_uuid] = AgentStatus.BUSY
+                agent_status_map[agent_uuid] = AgentStatusRecord(
+                    status=AgentStatus.BUSY,
+                    last_active_timestamp=current_time
+                )
             else:
-                agent_status_map[agent_uuid] = AgentStatus.AVAILABLE
+                agent_status_map[agent_uuid] = AgentStatusRecord(
+                    status=AgentStatus.IDLE,
+                    last_active_timestamp=current_time
+                )
                 
-        # Update with status from status manager if available
-        if self._global_context:
-            sm = self._global_context.status_manager()
-            for agent_uuid in self._agent_map.keys():
-                status = sm.get_status(agent_uuid)
-                if status is not None:
-                    agent_status_map[agent_uuid] = status
+        # Update with status from message router if available
+        if self._global_context and hasattr(self._global_context, '_message_router'):
+            router = self._global_context._message_router
+            status_map = router.get_agent_status_map()
+            
+            # Update our map with the router's status records
+            for agent_id, status_record in status_map.items():
+                agent_status_map[agent_id] = status_record
                     
         return agent_status_map
 
-    def get_last_activity_timestamp(self) -> Optional[int]:
-        """Get the timestamp of the last activity in the chorus.
-
-        Returns:
-            Optional[int]: The Unix timestamp of the last activity.
-        """
-        if self._global_context is None:
-            return None
-        sm = self._global_context.status_manager()
-        records = sm.get_records()
-        if records:
-            last_timestamp, _, _ = records[-1]
-            return max(self._last_busy_timestamp, last_timestamp)
-        else:
-            return self._last_busy_timestamp
 
     def register_signal_handler(self):
         signal.signal(signal.SIGINT, self.cleanup)

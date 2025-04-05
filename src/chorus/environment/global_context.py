@@ -1,13 +1,12 @@
 import logging
 from typing import Dict, Optional, Any
 from typing import List
+import time
 
 
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageRouter
 from chorus.data.dialog import Message
-from chorus.data.dialog import EventType
 from chorus.data.context import AgentContext
-from chorus.util.status_manager import MultiAgentStatusManager
 from chorus.data.channel import Channel
 
 logger = logging.getLogger(__name__)
@@ -49,9 +48,6 @@ class ChorusGlobalContext:
             # Establish bidirectional link between router and global context
             # This allows the router to notify the context about agent registrations
             self._message_router.parent_context = self
-            
-            # Set up status manager
-            self._status_manager = MultiAgentStatusManager()
             
             # Start the router
             self._message_router.start()
@@ -199,14 +195,6 @@ class ChorusGlobalContext:
             and (channel is None or msg.channel == channel)
         ]
 
-    def status_manager(self) -> MultiAgentStatusManager:
-        """Get the global status manager.
-
-        Returns:
-            The MultiAgentStatusManager instance.
-        """
-        return self._status_manager
-    
     def is_agent_in_channel(self, agent_id: str, channel_name: str) -> bool:
         """Check if an agent is a member of a channel.
         
@@ -255,6 +243,40 @@ class ChorusGlobalContext:
             logger.error(f"Error during global context shutdown: {e}")
             # Continue with shutdown even if there are errors
             
+    def get_agent_state_map(self) -> Dict:
+        """Get the current state map of all agents from the message router.
+        
+        Returns:
+            Dictionary mapping agent IDs to their latest state
+        """
+        if hasattr(self, "_message_router"):
+            return self._message_router.get_agent_state_map()
+        return {}
+    
+    def get_agent_state(self, agent_id: str) -> Optional[Dict]:
+        """Get the current state of a specific agent from the message router.
+        
+        Args:
+            agent_id: The agent ID to get state for
+            
+        Returns:
+            The agent's state if found, None otherwise
+        """
+        if hasattr(self, "_message_router"):
+            return self._message_router.get_agent_state(agent_id)
+        return None
+    
+    def get_agent_status_map(self) -> Dict:
+        """Get the current status map of all agents with timestamps.
+        
+        Returns:
+            Dictionary mapping agent IDs to their status records
+        """
+        if hasattr(self, "_message_router"):
+            return self._message_router.get_agent_status_map()
+        return {}
+    
+    
     def get_message_router(self):
         """Get the message router for backward compatibility.
         
