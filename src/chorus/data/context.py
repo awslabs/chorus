@@ -2,6 +2,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 import uuid
+import logging
 
 from pydantic import BaseModel
 from pydantic import ConfigDict
@@ -14,6 +15,7 @@ from chorus.data.resource import Resource
 from chorus.data.team_info import TeamInfo
 from chorus.communication.message_service import ChorusMessageClient
 
+logger = logging.getLogger(__name__)
 
 class AsyncExecutionRecord(BaseModel):
     """Record for tracking asynchronous action execution.
