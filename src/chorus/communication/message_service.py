@@ -63,6 +63,7 @@ class ChorusMessageRouter:
         self._thread = None
         self._agent_identities = {}
         self._global_message_ids = set()
+        self._agent_state_map = {}  # Store the latest state from each agent
         
     def start(self):
         """Start the message router in a background thread."""
@@ -241,9 +242,19 @@ class ChorusMessageRouter:
             identity: ZMQ identity of the agent
             zmq_message: Message containing the agent's state
         """
-        # This is handled at the router level (Chorus class)
-        # The router needs to update the agent's state in its RunnerState
-        pass
+        agent_id = zmq_message.agent_id
+        payload = zmq_message.payload
+        
+        if "state" not in payload:
+            logger.error(f"State update from agent {agent_id} missing state data")
+            return
+            
+        # Store the agent's state in the state map
+        self._agent_state_map[agent_id] = payload["state"]
+        logger.debug(f"Updated state for agent {agent_id}")
+        
+        # This is also handled at the runner level (Chorus class)
+        # The parent context can access this state map
     
     def _send_to_agent(self, identity: bytes, zmq_message: ZMQMessage):
         """Send a ZMQ message to an agent.
@@ -362,6 +373,25 @@ class ChorusMessageRouter:
         """
         # This is a stub - actual implementation needs channel info from global context
         return True  # Default to True for simple routing
+
+    def get_agent_state_map(self) -> Dict:
+        """Get the current state map of all agents.
+        
+        Returns:
+            Dictionary mapping agent IDs to their latest state
+        """
+        return self._agent_state_map.copy()
+    
+    def get_agent_state(self, agent_id: str) -> Optional[Dict]:
+        """Get the current state of a specific agent.
+        
+        Args:
+            agent_id: ID of the agent whose state to retrieve
+            
+        Returns:
+            The agent's state if found, None otherwise
+        """
+        return self._agent_state_map.get(agent_id, None)
 
 
 class ChorusMessageClient:

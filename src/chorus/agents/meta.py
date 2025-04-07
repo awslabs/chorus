@@ -1,4 +1,5 @@
 
+from typing import Any, Tuple
 from chorus.config.registrable import Registrable
 from chorus.util.agent_naming import get_unique_agent_name
 import uuid
@@ -127,4 +128,13 @@ class AgentMeta(Registrable):
             hash_obj = hashlib.md5(agent_str.encode())
             self._agent_uuid = str(uuid.UUID(hex=hash_obj.hexdigest()))
         return self._agent_uuid
-     
+    
+
+    def get_init_args(self) -> Tuple[Any, ...]:
+        """
+        Get the initialization arguments for the agent.
+        
+        Returns:
+            A tuple containing the initialization arguments.
+        """
+        return self._init_args, self._init_kwargs

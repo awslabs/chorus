@@ -255,6 +255,29 @@ class ChorusGlobalContext:
             logger.error(f"Error during global context shutdown: {e}")
             # Continue with shutdown even if there are errors
             
+    def get_agent_state_map(self) -> Dict:
+        """Get the current state map of all agents from the message router.
+        
+        Returns:
+            Dictionary mapping agent IDs to their latest state
+        """
+        if hasattr(self, "_message_router"):
+            return self._message_router.get_agent_state_map()
+        return {}
+    
+    def get_agent_state(self, agent_id: str) -> Optional[Dict]:
+        """Get the current state of a specific agent from the message router.
+        
+        Args:
+            agent_id: The agent ID to get state for
+            
+        Returns:
+            The agent's state if found, None otherwise
+        """
+        if hasattr(self, "_message_router"):
+            return self._message_router.get_agent_state(agent_id)
+        return None
+        
     def get_message_router(self):
         """Get the message router for backward compatibility.
         
