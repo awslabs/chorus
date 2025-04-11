@@ -4,3 +4,4 @@ from .passive_agent import PassiveAgent
 from .task_coordinator_agent import TaskCoordinatorAgent
 from .collaborative_agent import CollaborativeAgent
 from .langchain_agent_adapter import LangChainAgentAdapter
+from .llamaindex_agent_adapter import LlamaIndexAgentAdapter
