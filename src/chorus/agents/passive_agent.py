@@ -109,7 +109,7 @@ class PassiveAgent(Agent):
             state.processed_messages.add(new_incoming_msg.message_id)
             context.report_status(context.agent_id, AgentStatus.BUSY)
             downstream_state = self.respond(context, state, new_incoming_msg)
-            context.report_status(context.agent_id, AgentStatus.AVAILABLE)
+            context.report_status(context.agent_id, AgentStatus.IDLE)
             return downstream_state
         else:
             return state

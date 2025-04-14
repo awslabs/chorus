@@ -18,12 +18,20 @@ class NoActivityStopper(MultiAgentStopCondition):
         """
         runner = self.runner()
         agent_status_map = runner.get_agents_status()
-        last_activity_timestamp = runner.get_last_activity_timestamp()
+        
+        # If no agents are registered, we can't determine inactivity
+        if not agent_status_map:
+            return False
+            
+        most_recent_timestamp = None
+        for status_record in agent_status_map.values():
+            if most_recent_timestamp is None or status_record.last_active_timestamp > most_recent_timestamp:
+                most_recent_timestamp = status_record.last_active_timestamp
+                
         if (
-            last_activity_timestamp is not None
-            and all(status == AgentStatus.AVAILABLE for status in agent_status_map.values())
-            and time.time() - last_activity_timestamp > self._no_activity_time_threshold
+            most_recent_timestamp is not None
+            and all(status_record.status == AgentStatus.IDLE for status_record in agent_status_map.values())
+            and time.time() - most_recent_timestamp > self._no_activity_time_threshold
         ):
             return True
-        else:
-            return False
+        return False

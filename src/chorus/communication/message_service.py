@@ -5,12 +5,13 @@ import time
 import uuid
 import zmq
 import random
-from typing import Dict, List, Optional, Set, ClassVar
+from typing import Dict, List, Optional, Set, ClassVar, Tuple
 
 from pydantic import BaseModel, Field
 
 from chorus.data.dialog import Message
 from chorus.communication.zmq_protocol import MessageType, ZMQMessage
+from chorus.data.agent_status import AgentStatus, AgentStatusRecord
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,7 @@ class ChorusMessageRouter:
         self._agent_identities = {}
         self._global_message_ids = set()
         self._agent_state_map = {}  # Store the latest state from each agent
+        self._agent_status_map = {}  # Store the latest status from each agent (now using AgentStatusRecord)
         
     def start(self):
         """Start the message router in a background thread."""
@@ -146,6 +148,9 @@ class ChorusMessageRouter:
             elif msg_type == MessageType.STATE_UPDATE:
                 # Agent is reporting its state
                 self._handle_state_update(identity, zmq_message)
+            elif msg_type == MessageType.STATUS_UPDATE:
+                # Agent is reporting its status
+                self._handle_status_update(identity, zmq_message)
             elif msg_type == MessageType.HEARTBEAT:
                 # Heartbeat response
                 self._send_to_agent(identity, ZMQMessage(
@@ -255,6 +260,39 @@ class ChorusMessageRouter:
         
         # This is also handled at the runner level (Chorus class)
         # The parent context can access this state map
+    
+    def _handle_status_update(self, identity: bytes, zmq_message: ZMQMessage):
+        """Handle agent status update message.
+        
+        Args:
+            identity: ZMQ identity of the agent
+            zmq_message: Message containing the agent's status
+        """
+        agent_id = zmq_message.agent_id
+        payload = zmq_message.payload
+        
+        if "status" not in payload:
+            logger.error(f"Status update from agent {agent_id} missing status data")
+            return
+            
+        # Store the agent's status in the status map using AgentStatusRecord
+        try:
+            status_str = payload["status"]
+            status = AgentStatus(status_str)  # Convert string to enum
+            current_timestamp = int(time.time())
+            
+            # Create a new AgentStatusRecord with current timestamp
+            status_record = AgentStatusRecord(
+                status=status,
+                last_active_timestamp=current_timestamp
+            )
+            
+            # Store the record
+            self._agent_status_map[agent_id] = status_record
+            
+            logger.debug(f"Updated status for agent {agent_id} to {status} at {current_timestamp}")
+        except ValueError as e:
+            logger.error(f"Invalid status value for agent {agent_id}: {payload['status']} - {e}")
     
     def _send_to_agent(self, identity: bytes, zmq_message: ZMQMessage):
         """Send a ZMQ message to an agent.
@@ -393,6 +431,27 @@ class ChorusMessageRouter:
         """
         return self._agent_state_map.get(agent_id, None)
 
+    def get_agent_status(self, agent_id: str) -> Optional[AgentStatus]:
+        """Get the current status of a specific agent.
+        
+        Args:
+            agent_id: ID of the agent whose status to retrieve
+            
+        Returns:
+            The agent's status if found, None otherwise
+        """
+        if agent_id in self._agent_status_map:
+            return self._agent_status_map[agent_id].status
+        return None
+    
+    def get_agent_status_map(self) -> Dict[str, AgentStatusRecord]:
+        """Get the current status map of all agents with timestamps.
+        
+        Returns:
+            Dictionary mapping agent IDs to their latest status record with timestamp
+        """
+        return self._agent_status_map.copy()
+        
 
 class ChorusMessageClient:
     """
@@ -691,6 +750,22 @@ class ChorusMessageClient:
             ))
         except Exception as e:
             logger.error(f"Error sending state update: {e}")
+    
+    def send_status_update(self, status: str):
+        """Send agent status update to the router.
+        
+        Args:
+            status: String representation of agent status (from AgentStatus enum)
+        """
+        try:
+            self._send_to_router(ZMQMessage(
+                msg_type=MessageType.STATUS_UPDATE,
+                agent_id=self.agent_id,
+                payload={"status": status}
+            ))
+            logger.debug(f"Agent {self.agent_id} sent status update: {status}")
+        except Exception as e:
+            logger.error(f"Error sending status update: {e}")
     
     def send_stop_ack(self):
         """Send acknowledgment of stop request to the router."""

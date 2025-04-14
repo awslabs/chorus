@@ -21,6 +21,9 @@ class MessageType(str, Enum):
     # Team management
     TEAM_INFO = "team_info"
     
+    # Status tracking
+    STATUS_UPDATE = "status_update"
+    
     # Control signals
     STOP = "stop"
     STOP_ACK = "stop_ack"
