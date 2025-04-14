@@ -170,6 +170,20 @@ class LangChainAgentAdapter(PassiveAgent):
             self._langchain_agent = executor.agent
             self._initialized = True
 
+    def _ensure_message_client(self, context: AgentContext) -> bool:
+        """Ensure the context has a valid message client.
+        
+        Args:
+            context: The agent's context
+            
+        Returns:
+            bool: True if the message client is valid, False otherwise
+        """
+        if not hasattr(context, 'message_client') or context.message_client is None:
+            logger.error(f"Agent {self.identifier()} has no message client in context")
+            return False
+        return True
+        
     def run(self, router_host: str = "localhost", router_port: int = DEFAULT_ROUTER_PORT, 
             context: Optional[AgentContext] = None, state: Optional[AgentState] = None):
         """Run the agent in a continuous loop, initializing it first if needed."""
@@ -203,6 +217,11 @@ class LangChainAgentAdapter(PassiveAgent):
         """
         # Ensure initialization if it hasn't happened yet (e.g., if run() wasn't called)
         self._ensure_initialized()
+        
+        # Check if we have a valid message client
+        if not self._ensure_message_client(context):
+            logger.error("Cannot respond without a valid message client")
+            return state
         
         # Extract the inbound source to respond to
         inbound_source = inbound_message.source

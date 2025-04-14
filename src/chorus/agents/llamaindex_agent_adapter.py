@@ -175,6 +175,20 @@ class LlamaIndexAgentAdapter(PassiveAgent):
             self._llamaindex_agent = self._agent_factory()
             self._initialized = True
 
+    def _ensure_message_client(self, context: AgentContext) -> bool:
+        """Ensure the context has a valid message client.
+        
+        Args:
+            context: The agent's context
+            
+        Returns:
+            bool: True if the message client is valid, False otherwise
+        """
+        if not hasattr(context, 'message_client') or context.message_client is None:
+            logger.error(f"Agent {self.identifier()} has no message client in context")
+            return False
+        return True
+        
     def run(self, router_host: str = "localhost", router_port: int = DEFAULT_ROUTER_PORT, 
             context: Optional[AgentContext] = None, state: Optional[AgentState] = None):
         """Run the agent in a continuous loop, initializing it first if needed."""
@@ -194,20 +208,12 @@ class LlamaIndexAgentAdapter(PassiveAgent):
     def _is_function_agent(self) -> bool:
         """Check if the agent is a FunctionAgent."""
         try:
-            # Special handling for mocks in tests
-            if hasattr(self._llamaindex_agent, "__class__") and self._llamaindex_agent.__class__.__name__ == "MagicMock":
-                return False
-            
-            # Check for actual FunctionAgent types
             try:
                 from llama_index.core.agent.workflow import FunctionAgent
                 return isinstance(self._llamaindex_agent, FunctionAgent)
             except ImportError:
-                try:
-                    from llama_index.agent.workflow import FunctionAgent
-                    return isinstance(self._llamaindex_agent, FunctionAgent)
-                except ImportError:
-                    return False
+                from llama_index.agent.workflow import FunctionAgent
+                return isinstance(self._llamaindex_agent, FunctionAgent)
         except (ImportError, TypeError):
             # If we can't import or if isinstance throws an error
             return False
@@ -229,6 +235,11 @@ class LlamaIndexAgentAdapter(PassiveAgent):
         """
         # Ensure initialization if it hasn't happened yet (e.g., if run() wasn't called)
         self._ensure_initialized()
+        
+        # Check if we have a valid message client
+        if not self._ensure_message_client(context):
+            logger.error("Cannot respond without a valid message client")
+            return state
         
         # Extract the inbound source to respond to
         inbound_source = inbound_message.source
@@ -336,7 +347,7 @@ class LlamaIndexAgentAdapter(PassiveAgent):
             import traceback
             logger.error(traceback.format_exc())
             
-            # Send error message
+            # Send error message (we already checked message_client is valid)
             error_message = Message(
                 source=context.agent_id,
                 destination=inbound_source,

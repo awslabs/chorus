@@ -46,6 +46,9 @@ class TestLlamaIndexAgentAdapter(unittest.TestCase):
             preserve_history=True
         ).name("llamaindex_agent")
         
+        # Properly mock the _is_function_agent method to always return False in tests
+        self.agent._is_function_agent = MagicMock(return_value=False)
+        
         # Initialize the agent context
         self.context = AgentContext(agent_id=self.agent.identifier())
         self.context.message_client = MockMessageClient(self.agent.identifier())
