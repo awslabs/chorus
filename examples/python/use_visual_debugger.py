@@ -22,9 +22,6 @@ class SlowAgent(Agent):
         self.name = name
         self.delay_range = delay_range
         self.crash_after = crash_after
-        
-    def init_context(self) -> AgentContext:
-        return AgentContext(agent_id=self.name)
     
     def init_state(self) -> SlowAgentState:
         state = SlowAgentState()
@@ -45,7 +42,7 @@ class SlowAgent(Agent):
         time.sleep(delay)
         
         # Process any messages
-        for message in context.message_service.fetch_all_messages():
+        for message in context.message_client.fetch_all_messages():
             print(f"{context.agent_id}: Received message: {message.content}")
             if message.message_id not in state.processed_message_ids:
                 state.processed_message_ids.add(message.message_id)

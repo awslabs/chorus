@@ -2,10 +2,9 @@ import abc
 import logging
 from typing import List
 from typing import Optional
+from typing import TypeVar
 
-
-from chorus.agents.base import Agent
-from chorus.data.context import AgentContext
+from chorus.agents.base import Agent, TAgentContext
 from chorus.data.agent_status import AgentStatus
 from chorus.data.dialog import Message
 from chorus.data.dialog import EventType
@@ -13,8 +12,10 @@ from chorus.data.state import PassiveAgentState
 
 logger = logging.getLogger(__name__)
 
+# Update the TypeVar bound
+TPassiveAgentState = TypeVar('TPassiveAgentState', bound='PassiveAgentState')
 
-class PassiveAgent(Agent):
+class PassiveAgent(Agent[TAgentContext, TPassiveAgentState]):
     """Base class for passive agents that respond to incoming messages.
 
     A passive agent waits for messages directed to it and responds accordingly. Unlike active
@@ -43,8 +44,8 @@ class PassiveAgent(Agent):
 
     @abc.abstractmethod
     def respond(
-        self, context: AgentContext, state: PassiveAgentState, inbound_message: Message
-    ) -> PassiveAgentState:
+        self, context: TAgentContext, state: TPassiveAgentState, inbound_message: Message
+    ) -> TPassiveAgentState:
         """Process and respond to an incoming message.
 
         Args:
@@ -58,8 +59,8 @@ class PassiveAgent(Agent):
         pass
 
     def iterate(
-        self, context: AgentContext, state: PassiveAgentState
-    ) -> PassiveAgentState:
+        self, context: TAgentContext, state: TPassiveAgentState
+    ) -> TPassiveAgentState:
         """Execute one iteration of the agent's message processing loop.
 
         Checks for new messages directed to this agent and processes the first valid one found.
@@ -76,6 +77,8 @@ class PassiveAgent(Agent):
         Returns:
             PassiveAgentState: The updated agent state after message processing.
         """
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
         all_messages = context.message_client.fetch_all_messages()
         new_incoming_msg = None
         agent_id = context.agent_id

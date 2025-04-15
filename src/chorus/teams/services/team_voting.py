@@ -44,7 +44,7 @@ class TeamVoting(TeamService):
                     result = self.create_proposal(
                         team_context,
                         data_store,
-                        action.parameters.get("proposal_content"),
+                        action.parameters.get("proposal_content", ""),
                         action.parameters.get("reasoning", ""),
                         inbound_message.source
                     )
@@ -53,7 +53,7 @@ class TeamVoting(TeamService):
                 elif action.action_name == "vote":
                     result = self.cast_vote(
                         data_store,
-                        action.parameters.get("proposal_id"),
+                        action.parameters.get("proposal_id", ""),
                         inbound_message.source
                     )
                     observations.append(ObservationData(data=result))
@@ -61,7 +61,7 @@ class TeamVoting(TeamService):
                 elif action.action_name == "get_proposal":
                     result = self.get_proposal(
                         data_store,
-                        action.parameters.get("proposal_id")
+                        action.parameters.get("proposal_id", "")
                     )
                     observations.append(ObservationData(data=result))
                 
@@ -70,13 +70,15 @@ class TeamVoting(TeamService):
                     observations.append(ObservationData(data=result))
 
         if observations:
+            if team_context.message_client is None:
+                raise RuntimeError("Message client is not initialized.")
             outbound_event = Message(
                 destination=inbound_message.source,
                 observations=observations
             )
             team_context.message_client.send_message(outbound_event)
 
-    def create_proposal(self, team_context: TeamContext, data_store: Dict, content: str, reasoning: str, proposer: str) -> Dict:
+    def create_proposal(self, team_context: TeamContext, data_store: Dict, content: str, reasoning: str, proposer: Optional[str] = None) -> Dict:
         comm = CommunicationHelper(team_context)
         """Create a new proposal for voting."""
         if not content:
@@ -120,7 +122,7 @@ class TeamVoting(TeamService):
 
         return {"proposal_id": proposal_id, "proposal": proposal}
 
-    def cast_vote(self, data_store: Dict, proposal_id: str, voter: str) -> Dict:
+    def cast_vote(self, data_store: Dict, proposal_id: str, voter: Optional[str]) -> Dict:
         """Cast a vote for a proposal."""
         if proposal_id not in data_store["proposals"]:
             return {"error": "Proposal not found"}

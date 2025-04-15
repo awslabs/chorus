@@ -108,7 +108,7 @@ if __name__ == '__main__':
     chorus = Chorus(
         teams=[business_team],
         channels=[debate_channel],
-        stop_conditions=[MessageBasedStopper(source=business_team.get_identifier(), destination="human")],
+        stop_conditions=[MessageBasedStopper(source=business_team.identifier(), destination="human")],
         visual=True,
         visual_port=5000
     )
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     # Send a business proposal for evaluation
     chorus.get_environment().send_message(
         source="human",
-        destination=business_team.get_identifier(),
+        destination=business_team.identifier(),
         content="""
         Please evaluate the following business proposal:
 
