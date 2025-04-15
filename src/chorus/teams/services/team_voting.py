@@ -78,11 +78,16 @@ class TeamVoting(TeamService):
             )
             team_context.message_client.send_message(outbound_event)
 
-    def create_proposal(self, team_context: TeamContext, data_store: Dict, content: str, reasoning: str, proposer: Optional[str] = None) -> Dict:
+    def create_proposal(self, team_context: TeamContext, data_store: Dict, content: str, reasoning: str, proposer: Optional[str]) -> Dict:
         comm = CommunicationHelper(team_context)
-        """Create a new proposal for voting."""
+        """Create a new proposal for voting.
+        
+        NOTE: the proposer is automatically counted as 1 vote for its own proposal
+        """
         if not content:
             return {"error": "Proposal content is required"}
+        if not proposer:
+            return {"error": "Proposer name is required"}
         
         proposal_id = f"proposal_{len(data_store['proposals'])}"
         now = datetime.now()
@@ -126,6 +131,8 @@ class TeamVoting(TeamService):
         """Cast a vote for a proposal."""
         if proposal_id not in data_store["proposals"]:
             return {"error": "Proposal not found"}
+        if not voter:
+            return {"error": "Voter name must be provided"}
         
         proposal = data_store["proposals"][proposal_id]
         if proposal["status"] != "active":
@@ -147,7 +154,6 @@ class TeamVoting(TeamService):
         
         # Record vote as True (in favor)
         data_store["votes"][proposal_id][voter] = True
-        
         # Calculate current results
         votes = data_store["votes"][proposal_id]
         team_info = self.get_team_info()
@@ -272,9 +278,9 @@ class TeamVoting(TeamService):
                 total_required_votes = sum(len(votes) for votes in data_store["votes"].values())
             else:
                 total_required_votes = len(team_info.agent_ids)
-            votes_cast = len(data_store["votes"].get(winning_id, {}))
-            remaining_votes = total_required_votes - votes_cast
-            
+            votes_casted = sum(len(_) for _ in data_store["votes"].values())
+            remaining_votes = total_required_votes - votes_casted
+
             # If second place exists, check if remaining votes could change outcome
             if len(vote_counts) > 1:
                 second_place_votes = vote_counts[1][1]
@@ -282,11 +288,12 @@ class TeamVoting(TeamService):
                     return None
             
             # Return winner if all votes are in or remaining votes can't change outcome
-            if votes_cast == total_required_votes or remaining_votes == 0:
+            if votes_casted == total_required_votes or remaining_votes == 0:
                 return proposals[winning_id]["content"]
             return None
         
-        else:  # Majority vote
+        elif self.decision_making_strategy == DecisionMakingStrategy.MAJORITY_VOTE:
+            # Majority vote
             for proposal_id, proposal in active_proposals.items():
                 proposal_votes = data_store["votes"].get(proposal_id, {})
                 team_info = self.get_team_info()
@@ -298,5 +305,7 @@ class TeamVoting(TeamService):
 
                 if votes_in_favor > total_required_votes / 2:
                     return proposal["content"]
+        else:
+            raise ValueError(f"Unknown decision making strategy: {self.decision_making_strategy}")
 
         return None

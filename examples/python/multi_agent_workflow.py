@@ -1,4 +1,4 @@
-from chorus.agents.tool_chat_agent import ConversationalTaskAgent
+from chorus.agents import ConversationalTaskAgent
 from chorus.core import Chorus
 from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
 from chorus.helpers.communication import CommunicationHelper

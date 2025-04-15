@@ -4,7 +4,6 @@ from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
 from chorus.data.channel import Channel
 from chorus.data.trigger import MessageTrigger
-from chorus.data.dialog import Role
 from chorus.data.context import OrchestrationContext
 from chorus.toolbox import DuckDuckGoWebSearchTool, WebRetrieverTool, SerperWebSearchTool
 from chorus.workspace import NoActivityStopper

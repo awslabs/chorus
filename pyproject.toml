@@ -33,6 +33,11 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=7.0.0",
+    "mypy",
+    "hatch",
+    "boto3-stubs",
+    "botocore-stubs",
+    "pytest-cov",
     "requests>=2.31.0",
     "langchain>=0.3.0",
     "langchain-core>=0.3.0",
@@ -40,6 +45,7 @@ test = [
     "llama-index>=0.9.0",
     "llama-index-core>=0.10.0",
     "llama-index-llms-bedrock>=0.1.0",
+    "llama-index-llms-bedrock-converse",
 ]
 
 langchain = [
@@ -125,6 +131,5 @@ requires = [ "hatch-pip-compile" ]
 [tool.hatch.envs.default.scripts]
 typing = [
   "mkdir -p .mypy_cache",
-  "python -m pip install boto3-stubs botocore-stubs llama-index llama-index-core",
   "mypy --install-types --non-interactive src/chorus tests/chorus"
 ]

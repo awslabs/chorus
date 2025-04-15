@@ -29,4 +29,4 @@ jobs:
 
       - name: Run Tests with pytest
         run: |
-          python -m pytest -s tests  # Run the tests with pytest using python -m
+          python -m pytest -s tests --cov  # Run the tests with pytest using python -m
