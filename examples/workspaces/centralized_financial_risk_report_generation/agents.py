@@ -17,22 +17,22 @@ class FinancialAnalysisCoordinatorAgent(TaskCoordinatorAgent):
             source="Supervisor",
             content=inbound_message.content,
         )
-        context.message_service.send_message(first_message)
+        context.message_client.send_message(first_message)
         super().respond(context, state, first_message)
-        all_messages = context.message_service.fetch_all_messages()
+        all_messages = context.message_client.fetch_all_messages()
         all_messages[-1].source=context.agent_id
-        context.message_service.refresh_history(all_messages)
+        context.message_client.refresh_history(all_messages)
         second_message = Message(
             destination=context.agent_id,
             source="Supervisor",
             content="Discuss with sub agents for 3 rounds in order to clarify and align the opinions."
         )
-        context.message_service.send_message(second_message)
+        context.message_client.send_message(second_message)
         time.sleep(10)
         super().respond(context, state, second_message)
-        all_messages = context.message_service.fetch_all_messages()
+        all_messages = context.message_client.fetch_all_messages()
         all_messages[-1].source = context.agent_id
-        context.message_service.refresh_history(all_messages)
+        context.message_client.refresh_history(all_messages)
 
         # Final message is coming from supervisor
         comm.send(

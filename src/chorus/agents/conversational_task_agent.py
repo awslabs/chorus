@@ -80,6 +80,7 @@ class ConversationalTaskAgent(PassiveAgent):
         """
         context = AgentContext(
             agent_id=self.identifier(),
+            message_client=self._comm_client,
             agent_instruction=self._instruction,
             message_view_selector=DirectMessageViewSelector(include_internal_events=True),
         )
