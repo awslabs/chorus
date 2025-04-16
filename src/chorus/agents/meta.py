@@ -1,12 +1,11 @@
 
 from typing import Any, Tuple
-from chorus.config.registrable import Registrable
 from chorus.util.agent_naming import get_unique_agent_name
 import uuid
 import hashlib
 
 
-class AgentMeta(Registrable):
+class AgentMeta:
     """
     A metaclass for agent definitions that allows delayed initialization.
     

@@ -8,7 +8,7 @@ Finally, Chorus helps you deploy your solution to Amazon Bedrock Agents with a s
 
 ## Key Features
 
-| **🤖  Scalable multi-agent inter-communication and collaboration support** <br><br> Chorus is designed by prioritizing scalability. The inter-communication mechanism allows easy scaling up to hundreds of agents and communicate with each other in real-time. | **🧬  Simple, yet customizable** <br><br> With Chorus, you can develop your solution using jsonnet descriptional language and zero coding. However, Chorus also provides utility for building customized agent logic with minimal Python coding. |
+| **🤖  Scalable multi-agent inter-communication and collaboration support** <br><br> Chorus is designed by prioritizing scalability. The inter-communication mechanism allows easy scaling up to hundreds of agents and communicate with each other in real-time. | **🧬  Simple, yet customizable** <br><br> With Chorus, you can develop your solution using YAML descriptional language and zero coding. However, Chorus also provides utility for building customized agent logic with minimal Python coding. |
 |---|---|
 | **⚖  Build-in support for various tools, agents and multi-agent planners** <br><br> Chorus implements various useful tools, agents and dynamic planners for multi-agent collaboration. You can leverage them to create diverse agent teams for complex tasks such as developing a software. | **🖇️  Build upon examples and templates** <br><br> Chorus provides multiple examples with different collaboration patterns, allowing you easily boostrap for your own solution. |
 

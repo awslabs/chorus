@@ -12,7 +12,7 @@ sys.path.append(TMP_CODE_PATH)
 
 
 def load_workspace(workspace_folder):
-    def_path = f"{workspace_folder}/ws.jsonnet"
+    def_path = f"{workspace_folder}/ws.yaml"
     if not os.path.exists(def_path):
         ws = None
     else:

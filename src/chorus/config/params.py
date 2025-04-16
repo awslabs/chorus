@@ -22,12 +22,7 @@ from typing import Set
 from typing import TypeVar
 from typing import Union
 
-# _jsonnet doesn't work on Windows, so we have to use fakes.
-try:
-    from _jsonnet import evaluate_file
-    from _jsonnet import evaluate_snippet
-except ImportError:
-    raise ImportError("jsonnet is missing.")
+import yaml
 
 from chorus.config.checks import ConfigurationError
 
@@ -157,8 +152,13 @@ def parse_overrides(
 ) -> Dict[str, Any]:
     if serialized_overrides:
         ext_vars = {**_environment_variables(), **(ext_vars or {})}
-
-        return json.loads(evaluate_snippet("", serialized_overrides, ext_vars=ext_vars))
+        
+        # Replace environment variables in the overrides string
+        if ext_vars:
+            for key, value in ext_vars.items():
+                serialized_overrides = serialized_overrides.replace(f"${{{key}}}", str(value))
+                
+        return json.loads(serialized_overrides)
     else:
         return {}
 
@@ -484,7 +484,14 @@ class Params(MutableMapping):
 
         ext_vars = {**_environment_variables(), **ext_vars}
 
-        file_dict = json.loads(evaluate_file(params_file, ext_vars=ext_vars))
+        # Read YAML file
+        with open(params_file, 'r') as f:
+            # Apply environment variable substitution to YAML content
+            content = f.read()
+            for key, value in ext_vars.items():
+                content = content.replace(f"${{{key}}}", str(value))
+            
+            file_dict = yaml.safe_load(content)
 
         if isinstance(params_overrides, dict):
             params_overrides = json.dumps(params_overrides)

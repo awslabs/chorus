@@ -21,7 +21,7 @@ dependencies = [
     "jinja2>=3.1.2",
     "python-dotenv>=1.0.1",
     "arxiv>=2.1.0",
-    "jsonnet>=0.20.0",
+    "PyYAML>=6.0",
     "duckduckgo_search>=5.3.0",
     "beautifulsoup4>=4.12.3",
     "tenacity>=8.2.2",
@@ -72,8 +72,7 @@ dependencies = [
     "black",
     "isort",
     "flake8",
-    "pep8-naming",
-    "PyYAML"
+    "pep8-naming"
 ]
 
 [tool.pytest.ini_options]

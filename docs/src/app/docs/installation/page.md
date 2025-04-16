@@ -69,11 +69,11 @@ pip install "python-chorus[openai]"
 # For LangChain integration
 pip install "python-chorus[langchain]"
 
-# For JSONNet template support
-pip install "python-chorus[jsonnet]"
+# For YAML template support
+pip install "python-chorus"
 
-# For multiple optional dependencies
-pip install "python-chorus[langchain,jsonnet,openai]"
+# Get a full installation with all dependencies
+pip install "python-chorus[langchain,openai]"
 ```
 
 You can also install Chorus with specific versions of these dependencies:
@@ -85,8 +85,8 @@ pip install "python-chorus[openai]" "openai>=1.0.0"
 # Install with a specific version of LangChain
 pip install "python-chorus[langchain]" "langchain>=0.1.0"
 
-# Install with a specific version of JSONNet
-pip install "python-chorus[jsonnet]" "jsonnet>=0.20.0"
+# Install with a specific version of PyYAML
+pip install "python-chorus" "PyYAML>=6.0"
 ```
 
 ---

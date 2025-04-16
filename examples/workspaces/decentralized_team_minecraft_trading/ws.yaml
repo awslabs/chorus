@@ -1,0 +1,45 @@
+title: "Decentralized Minecraft Trading"
+description: "Simulating multiple minecraft players trading items to achieve individual goals."
+default_channel: "Organizer"
+start_messages:
+  - source: "Organizer"
+    destination: "human"
+    content: "Type 'start game' to start the trading competition."
+agents:
+  - type: "MinecraftOrganizer"
+    name: "Organizer"
+    admin_name: "Admin"
+    players:
+      - "Bob"
+      - "Thomas"
+  - type: "MinecraftTradingAdmin"
+    name: "Admin"
+    organizer_name: "Organizer"
+    players:
+      - "Bob"
+      - "Thomas"
+    initial_inventory:
+      "Bob":
+        "stone": 100
+        "diamond": 50
+        "gold_ingot": 20
+        "coin": 1000
+      "Thomas":
+        "wood": 32
+        "coin": 3000
+  - type: "MinecraftPlayer"
+    name: "Bob"
+    players:
+      - "Bob"
+      - "Thomas"
+    organizer_name: "Organizer"
+    admin_name: "Admin"
+    instruction: "Your goal is to get as many coins as possible."
+  - type: "MinecraftPlayer"
+    name: "Thomas"
+    players:
+      - "Bob"
+      - "Thomas"
+    organizer_name: "Organizer"
+    admin_name: "Admin"
+    instruction: "Your goal is to get at least 10 diamond and keep at least 1000 coins." 

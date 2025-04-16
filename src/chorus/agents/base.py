@@ -1,4 +1,3 @@
-from abc import ABCMeta
 from abc import abstractmethod
 import logging
 import signal
@@ -7,13 +6,14 @@ import time
 from typing import Dict, Optional, Any
 
 from chorus.agents.meta import AgentMeta
+from chorus.config.registrable import Registrable
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageClient
 
 logger = logging.getLogger(__name__)
 
-class Agent(AgentMeta):
+class Agent(AgentMeta, Registrable):
     """Base class for all agents in the Chorus framework.
 
     This abstract class defines the core interface that all agents must implement.
