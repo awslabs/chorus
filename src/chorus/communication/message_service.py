@@ -5,13 +5,14 @@ import time
 import uuid
 import zmq
 import random
-from typing import Dict, List, Optional, Set, ClassVar, Tuple
-
-from pydantic import BaseModel, Field
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 from chorus.data.dialog import Message
 from chorus.communication.zmq_protocol import MessageType, ZMQMessage
 from chorus.data.agent_status import AgentStatus, AgentStatusRecord
+
+if TYPE_CHECKING:
+    from chorus.environment.global_context import ChorusGlobalContext
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +60,14 @@ class ChorusMessageRouter:
                     logger.error(f"Failed to bind ZMQ router to port after {retries} retries: {e}")
                     raise
         
-        self._message_history = []
-        self._running = False
-        self._thread = None
-        self._agent_identities = {}
-        self._global_message_ids = set()
-        self._agent_state_map = {}  # Store the latest state from each agent
-        self._agent_status_map = {}  # Store the latest status from each agent (now using AgentStatusRecord)
+        self._message_history: List[Message] = []
+        self._running: bool = False
+        self._thread: Optional[threading.Thread] = None
+        self._agent_identities: Dict = {}
+        self._global_message_ids: Set = set()
+        self._agent_state_map: Dict = {}  # Store the latest state from each agent
+        self._agent_status_map: Dict = {}  # Store the latest status from each agent (now using AgentStatusRecord)
+        self.parent_context: Optional[ChorusGlobalContext] = None
         
     def start(self):
         """Start the message router in a background thread."""
@@ -172,7 +174,7 @@ class ChorusMessageRouter:
         self._agent_identities[agent_id] = identity
         
         # Track registration for parent context if available
-        if hasattr(self, 'parent_context') and hasattr(self.parent_context, '_registered_agents'):
+        if self.parent_context is not None and hasattr(self.parent_context, '_registered_agents'):
             self.parent_context._registered_agents.add(agent_id)
             logger.info(f"Agent {agent_id} registered with router")
         
@@ -477,12 +479,12 @@ class ChorusMessageClient:
         self._dealer_socket.identity = agent_id.encode('utf-8')
         self._dealer_socket.connect(f"tcp://{router_host}:{router_port}")
         
-        self._message_history = []
-        self._local_message_ids = set()
-        self._running = False
-        self._thread = None
-        self._team_info = None
-        self._registered = False
+        self._message_history: List[Message] = []
+        self._local_message_ids: Set[str] = set()
+        self._running: bool = False
+        self._thread: Optional[threading.Thread] = None
+        self._team_info: Optional[Dict] = None
+        self._registered: bool = False
         
         # Register with the router
         self._register()

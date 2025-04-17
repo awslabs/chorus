@@ -21,7 +21,7 @@ from chorus.data.dialog import EventType
 
 TOOL_ACTION_SEPARATOR = "__"
 
-class BedrockConverseToolChatPrompter(InteractPrompter):
+class BedrockConverseToolChatPrompter(InteractPrompter[StructuredCompletion]):
     """Prompter for tool-enabled chat using Bedrock Converse API.
 
     This prompter handles formatting messages and tool calls into the structured format
@@ -86,7 +86,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
         """
 
         # Create tool config
-        tool_config = None
+        tool_config: Optional[dict] = None
         if tools:
             tool_config = {"tools": []}
             for tool_schema in tools:
@@ -112,38 +112,39 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
             system_instruction += f"\n\n{planner_instruction}"
 
         converse_messages = []            
-        for turn in messages:
+        for message in messages:
             role = None
-            content = None
-            is_internal = turn.event_type == EventType.INTERNAL_EVENT
-            is_from_myself = turn.source == current_agent_id
+            content: Optional[list] = None
+            is_internal = message.event_type == EventType.INTERNAL_EVENT
+            is_from_myself = message.source == current_agent_id
             
             if not is_internal and not is_from_myself:
                 role = "user"
                 content = [
                     {
-                        "text": turn.content
+                        "text": message.content
                     }
                 ]
             elif not is_internal and is_from_myself:
                 role = "assistant"
                 content = [
                     {
-                        "text": turn.content
+                        "text": message.content
                     }
                 ]
-            elif is_internal and turn.actions:
+            elif is_internal and message.actions:
                 role = "assistant"
                 content = []
-                if turn.actions:
-                    for action in turn.actions:
-                        content.append(self._get_action_dict(action))
-                if turn.content is not None:
-                    content.append({"text": turn.content})
-            elif is_internal and turn.observations:
+                if message.actions:
+                    for action_data in message.actions:
+                        content.append(self._get_action_dict(action_data))
+                if message.content is not None:
+                    content.append({"text": message.content})
+            elif is_internal and message.observations:
                 role = "user"
                 content = []
-                for observation in turn.observations:
+                observation_content: List = []
+                for observation in message.observations:
                     if type(observation.data) == str:
                         observation_content = [
                             {"text": observation.data}
@@ -169,7 +170,7 @@ class BedrockConverseToolChatPrompter(InteractPrompter):
             ]
         else:
             system = None
-        prompt_dict = {
+        prompt_dict: dict = {
             "messages": converse_messages,
         }
         if system is not None:

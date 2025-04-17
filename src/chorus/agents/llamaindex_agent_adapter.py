@@ -51,6 +51,9 @@ class ChorusLlamaIndexCallbackHandler:
     # Implementation of handler methods
     def on_agent_action(self, action: Any, **kwargs) -> None:
         """Log the agent's action to the Chorus environment."""
+        if self.context.message_client is None:
+            raise RuntimeError("Message client not initialized.")
+        
         tool_name = getattr(action, "tool", "unknown tool")
         tool_input = getattr(action, "input", "unknown input")
         
@@ -65,6 +68,9 @@ class ChorusLlamaIndexCallbackHandler:
 
     def on_agent_finish(self, response: Any, **kwargs) -> None:
         """Log the agent's final output to the Chorus environment."""
+        if self.context.message_client is None:
+            raise RuntimeError("Message client not initialized.")
+        
         self.context.message_client.send_message(
             Message(
                 source=self.context.agent_id,
@@ -209,10 +215,10 @@ class LlamaIndexAgentAdapter(PassiveAgent):
         """Check if the agent is a FunctionAgent."""
         try:
             try:
-                from llama_index.core.agent.workflow import FunctionAgent
+                from llama_index.core.agent.workflow import FunctionAgent  # type: ignore
                 return isinstance(self._llamaindex_agent, FunctionAgent)
             except ImportError:
-                from llama_index.agent.workflow import FunctionAgent
+                from llama_index.agent.workflow import FunctionAgent  # type: ignore
                 return isinstance(self._llamaindex_agent, FunctionAgent)
         except (ImportError, TypeError):
             # If we can't import or if isinstance throws an error
@@ -233,8 +239,13 @@ class LlamaIndexAgentAdapter(PassiveAgent):
         Returns:
             LlamaIndexAgentState: The updated agent state after processing the message.
         """
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        
         # Ensure initialization if it hasn't happened yet (e.g., if run() wasn't called)
         self._ensure_initialized()
+        if self._llamaindex_agent is None:
+            raise RuntimeError("LlamaIndex agent is not initialized.")
         
         # Check if we have a valid message client
         if not self._ensure_message_client(context):

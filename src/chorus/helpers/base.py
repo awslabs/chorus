@@ -1,6 +1,5 @@
 from chorus.data.context import AgentContext
 
-
 class AgentHelper(object):
     """
     Base class for helping develop custom orchestration logic for agents.

@@ -15,7 +15,7 @@ class RemotePDFReaderTool(SimpleExecutableTool):
     """
     def __init__(self):
         try:
-            import pdfplumber
+            import pdfplumber  # type: ignore
         except:
             raise ValueError("Error: Please install pdfplumber package to use this tool.")
         schema = {

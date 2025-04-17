@@ -31,14 +31,14 @@ class ActionData(BaseModel):
 
     Attributes:
         tool_name: Name of the tool to execute.
-        action_name: Optional specific action name within the tool.
+        action_name: specific action name within the tool.
         parameters: Optional parameters to pass to the tool action.
         tool_use_id: Optional identifier for tracking specific tool usage.
         async_execution_id: Optional identifier for tracking async executions.
     """
 
     tool_name: str
-    action_name: Optional[str] = None
+    action_name: str
     parameters: Dict = Field(default_factory=dict)
     tool_use_id: Optional[str] = None
     async_execution_id: Optional[str] = None

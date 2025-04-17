@@ -24,8 +24,8 @@ from typing import Union
 
 # _jsonnet doesn't work on Windows, so we have to use fakes.
 try:
-    from _jsonnet import evaluate_file
-    from _jsonnet import evaluate_snippet
+    from _jsonnet import evaluate_file  # type: ignore
+    from _jsonnet import evaluate_snippet  # type: ignore
 except ImportError:
     raise ImportError("jsonnet is missing.")
 
