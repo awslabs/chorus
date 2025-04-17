@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -63,6 +63,10 @@ class TeamScratchpad(TeamService):
                     end_line = action.parameters.get("end_line_number", 0)
                     new_content = action.parameters.get("new_content", "")
                     editor = action.parameters.get("editor", "")
+
+                    if start_line < 0 or end_line < start_line:
+                        observations.append(ObservationData(data={"error": f"Invalid line range: {start_line}-{end_line}"}))
+                        continue
                     
                     if scratchpad_id not in data_store["scratchpads"]:
                         observations.append(ObservationData(data={"error": "Scratchpad not found"}))
@@ -70,6 +74,10 @@ class TeamScratchpad(TeamService):
                         
                     scratchpad = data_store["scratchpads"][scratchpad_id]
                     
+                    if start_line > len(scratchpad):
+                        observations.append(ObservationData(data={"error": f"Start line range out of bounds: {start_line}; scratchpad {scratchpad_id} only has {len(scratchpad)} lines"}))
+                        continue
+
                     # Split content into lines
                     new_lines = new_content.splitlines(keepends=False)
                     new_line_infos = [
@@ -79,6 +87,11 @@ class TeamScratchpad(TeamService):
                             last_modified_time=datetime.now()
                         ) for line in new_lines
                     ]
+                    if len(new_line_infos) != (end_line - start_line + 1):
+                        observations.append(ObservationData(data={"error": f"New content does not match the number of lines to replace: {len(new_line_infos)} vs {(end_line - start_line + 1)}"}))
+                        continue
+
+                    # Update the scratchpad with new lines
                     new_scratchpad = scratchpad[:start_line] + new_line_infos + scratchpad[end_line + 1:]
                     
                     # Insert new lines at the same position

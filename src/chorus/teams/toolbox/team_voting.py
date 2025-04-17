@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 from chorus.data.schema import JsonData
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool

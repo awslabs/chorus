@@ -6,7 +6,6 @@ from chorus.data import ToolSchema
 from chorus.data import Message, EventType
 from chorus.data.data_types import ActionData
 from chorus.data.schema import JsonData
-from chorus.helpers import CommunicationHelper
 from chorus.util.async_actions import make_async_observation_data
 
 NOT_IN_A_TEAM_ERROR_MESSAGE = "Error: This agent is not part of a team."
