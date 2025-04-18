@@ -5,7 +5,7 @@ from chorus.core.runner import Chorus
 from chorus.teams.services.team_voting import TeamVoting
 from chorus.teams.toolbox.team_voting import TeamVotingClient
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
-from chorus.workspace.stop_conditions.message_based import MessageBasedStopper
+from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 from chorus.data.channel import Channel
 from chorus.toolbox import SerperWebSearchTool, WebRetrieverToolV2
 

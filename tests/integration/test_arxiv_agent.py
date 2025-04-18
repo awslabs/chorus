@@ -5,7 +5,7 @@ from chorus.data.dialog import Message, EventType
 from chorus.agents import ConversationalTaskAgent
 from chorus.data.state import PassiveAgentState
 from chorus.toolbox.arxiv_tool import ArxivRetrieverTool
-from chorus.util.testing_util import MockMessageClient
+from tests.testing_util import MockMessageClient
 from chorus.data.prompt import StructuredCompletion
 
 class TestArxivAgent(unittest.TestCase):

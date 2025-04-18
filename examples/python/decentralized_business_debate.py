@@ -7,7 +7,7 @@ from chorus.teams.toolbox.team_voting import TeamVotingClient
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
 from chorus.workspace.stop_conditions import NoActivityStopper
 from chorus.data.channel import Channel
-from chorus.workspace.stop_conditions.message_based import MessageBasedStopper
+from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 
 if __name__ == '__main__':
     # Create a team channel for business debate
