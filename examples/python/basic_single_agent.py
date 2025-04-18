@@ -2,7 +2,7 @@ from chorus.agents import ConversationalTaskAgent
 from chorus.toolbox import ArxivRetrieverTool
 from chorus.core import Chorus
 
-if __name__ == '__main__':
+def main():
     paper_research_agent = ConversationalTaskAgent(
         tools=[ArxivRetrieverTool()],
         instruction="You are a paper research agent that can help find academic papers on Arxiv."
@@ -32,3 +32,6 @@ if __name__ == '__main__':
         
     # Stop the chorus
     chorus.stop()
+
+if __name__ == "__main__":
+    main()

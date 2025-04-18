@@ -9,18 +9,13 @@ from chorus.toolbox import DuckDuckGoWebSearchTool
 
 from chorus.helpers.communication import CommunicationHelper
 
-from chorus.workspace import NoActivityStopper
-import threading
-import time
-
 
 def run_chorus(chorus):
     chorus.run()
 
 
-if __name__ == '__main__':
+def main():
     coordinator_agent = TaskCoordinatorAgent(
-        "FitnessAnsweringAgent",
         instruction="""
         Do not do any task by yourself, always try to call other agents.
         If there is no relevant agent available, tell the user that you do not have a agent to answer the question.
@@ -30,19 +25,17 @@ if __name__ == '__main__':
             "FactResearchAgent": "An agent that can help user to find facts related to fitness and summarize them by search web and access pages.",
             "KnowledgeAgent": "An agent that can help user to answer general questions about fitness, healthy lifestyle, nutrition, exercise, etc." 
         }
-    )
+    ).name("FitnessAnsweringAgent")
     fact_research_agent = ConversationalTaskAgent(
-        "FactResearchAgent",
         instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
         tools=[
             DuckDuckGoWebSearchTool(),
             WebRetrieverTool()
         ]
-    )
+    ).name("FactResearchAgent")
     knowledge_agent = ConversationalTaskAgent(
-        "KnowledgeAgent",
         instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
-    )
+    ).name("KnowledgeAgent")
 
     team = Team(
         name="HelloWorldTeam",
@@ -73,3 +66,6 @@ if __name__ == '__main__':
     print(response.content)
 
     chorus.stop()
+
+if __name__ == "__main__":
+    main()

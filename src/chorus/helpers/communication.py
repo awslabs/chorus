@@ -1,7 +1,6 @@
-from typing import Optional, Union
+from typing import Optional
 import time
 
-from chorus.communication.message_service import ChorusMessageClient, ChorusMessageRouter
 from chorus.data.dialog import Message
 from chorus.data.context import AgentContext
 from chorus.environment.global_context import ChorusGlobalContext

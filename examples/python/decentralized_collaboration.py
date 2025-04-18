@@ -9,7 +9,7 @@ from chorus.workspace.stop_conditions import NoActivityStopper
 from chorus.data.channel import Channel
 from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 
-if __name__ == '__main__':
+def main():
     # Create a team channel for agent communication
     team_channel = Channel(
         name="team_discussion",
@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     # Create agents with voting tool
     agent1 = CollaborativeAgent(
-        "Agent1",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -34,11 +33,10 @@ if __name__ == '__main__':
         6. Make your message content as short as possible. No more than 2 sentences.
         Always explain your reasoning when proposing or voting.
         Make sure to actively participate in team discussions.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("Agent1")]
+    ).name("Agent1")
 
     agent2 = CollaborativeAgent(
-        "Agent2",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -55,11 +53,10 @@ if __name__ == '__main__':
         Try to propose different solutions than others.
         Always explain your reasoning when proposing or voting.
         Actively participate in team discussions and respond to others' points.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("Agent2")]
+    ).name("Agent2")
 
     agent3 = CollaborativeAgent(
-        "Agent3",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -76,8 +73,8 @@ if __name__ == '__main__':
         Focus on practical and efficient solutions.
         Always explain your reasoning when proposing or voting.
         Engage in constructive discussion about the trade-offs of each proposal.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("Agent3")]
+    ).name("Agent3")
 
     # Create team with voting service and decentralized collaboration
     team = Team(
@@ -102,12 +99,13 @@ if __name__ == '__main__':
         visual=True,
         visual_port=5000
     )
+    chorus.start()
 
     # Send a task to the team
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination=team.identifier(),
-        content="""
+        message="""
         We need to decide on a programming language for our new microservices project.
         The requirements are:
         1. Good performance
@@ -120,5 +118,7 @@ if __name__ == '__main__':
         """
     )
 
-    # Run the collaboration
-    chorus.run() 
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

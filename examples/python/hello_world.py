@@ -10,7 +10,7 @@ from chorus.toolbox import DuckDuckGoWebSearchTool
 
 from chorus.workspace import NoActivityStopper
 
-if __name__ == '__main__':
+def main():
     coordinator_agent = TaskCoordinatorAgent(
         instruction="""
         Do not do any task by yourself, always try to call other agents.
@@ -55,3 +55,6 @@ if __name__ == '__main__':
     )
     print(msg.content)
     chorus.stop()
+
+if __name__ == "__main__":
+    main()

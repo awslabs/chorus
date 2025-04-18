@@ -1,4 +1,3 @@
-import os
 import sys
 import threading
 import time
@@ -7,14 +6,13 @@ import signal
 import logging
 from multiprocessing import Process
 
-from typing import Dict, List, Optional, Any, Set, Union
+from typing import Dict, List, Optional, Union
 
 from chorus.agents import Agent
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT
 from chorus.data.checkpoint import AgentSnapshot, ChorusCheckpoint
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message
-from chorus.data.state import AgentState
 from chorus.data.agent_status import AgentStatus, AgentStatusRecord
 from chorus.data.channel import Channel
 from chorus.data.team_info import TeamInfo
@@ -22,7 +20,6 @@ from chorus.environment.global_context import ChorusGlobalContext
 from chorus.teams import Team
 from chorus.workspace.stop_conditions import MultiAgentStopCondition
 from chorus.util.visual_debugger import VisualDebugger
-from chorus.communication.zmq_protocol import MessageType, ZMQMessage
 from chorus.data.dialog import Message
 
 logger = logging.getLogger(__name__)
@@ -41,7 +38,6 @@ class Chorus(object):
         channels: List of communication channels for agents/teams to interact.
         global_context: Global context object containing shared state and resources.
         zmq_port: Port for ZMQ router socket.
-        max_idle_time: Maximum time in seconds to wait while system is idle before stopping.
         tick_interval: Time in seconds between system update ticks.
         stop_conditions: List of conditions that will trigger the chorus to stop.
         debug: Whether to run in debug mode with additional logging.
@@ -60,7 +56,6 @@ class Chorus(object):
         channels: Optional[List[Channel]] = None,
         global_context: Optional[ChorusGlobalContext] = None,
         zmq_port: int = DEFAULT_ROUTER_PORT,
-        max_idle_time: int = 300,
         tick_interval: int = 1,
         stop_conditions: Optional[List[MultiAgentStopCondition]] = None,
         debug: bool = False,
@@ -75,7 +70,6 @@ class Chorus(object):
             channels (Optional[List[Channel]]): List of channels to be managed.
             global_context (ChorusGlobalContext): Global context for the chorus.
             zmq_port (int): Port for ZMQ router socket.
-            max_idle_time (int): Maximum idle time before stopping.
             tick_interval (int): Interval between ticks.
             stop_conditions (Optional[List[MultiAgentStopCondition]]): List of stop conditions.
             debug (bool): Debug mode flag.
@@ -84,7 +78,6 @@ class Chorus(object):
         """
         if not agents and not teams:
             raise ValueError("Either agents or teams need to be specified for launching the Chorus runner.")
-        self._max_idle_time = max_idle_time
         self._tick_interval = tick_interval
         self._agents = agents if agents is not None else []
         self._teams = teams if teams is not None else []
@@ -185,6 +178,7 @@ class Chorus(object):
         
         # Start the process
         proc.start()
+        logger.info(f"Spawned new process for agent {agent.get_name()} with UUID {agent_uuid}")
         
         return proc
     
@@ -242,6 +236,7 @@ class Chorus(object):
         Raises:
             RunnerError: If there is an error during execution.
         """
+        logger.info("Starting Chorus runner")
         self._is_busy = True
         self._last_busy_timestamp = int(time.time())
         
@@ -250,6 +245,7 @@ class Chorus(object):
 
         # Start visual debugger if enabled
         if self._visual and self._visual_debugger:
+            logger.info("Starting visual debugger")
             self._visual_debugger.start()
             # Register all agent states
             for agent_uuid in self._agent_map.keys():
@@ -265,6 +261,8 @@ class Chorus(object):
                 
             # Monitor agent processes
             while True:
+                logger.info("Checking on agent processes...")
+
                 # Check if any processes have terminated
                 for agent_uuid, proc in list(self._agent_processes.items()):
                     if not proc.is_alive():
@@ -323,6 +321,9 @@ class Chorus(object):
                     
                 # Sleep to avoid busy waiting
                 time.sleep(self._tick_interval)
+        except Exception as e:
+            logger.error(f"Error during Chorus execution: {e}")
+            raise RuntimeError(f"Error during Chorus execution: {e}")
         finally:
             # Stop all agent processes
             self.stop_all_agents()

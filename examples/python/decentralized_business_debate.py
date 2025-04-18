@@ -9,7 +9,7 @@ from chorus.workspace.stop_conditions import NoActivityStopper
 from chorus.data.channel import Channel
 from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 
-if __name__ == '__main__':
+def main():
     # Create a team channel for business debate
     debate_channel = Channel(
         name="business_debate",
@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     # Create agents with different business expertise
     financial_analyst = CollaborativeAgent(
-        "FinancialAnalyst",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -38,11 +37,10 @@ if __name__ == '__main__':
         6. Vote based on financial viability
         Keep messages concise and focused on financial aspects.
         Actively participate in discussions about financial implications.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("FinancialAnalyst")]
+    ).name("FinancialAnalyst")
 
     market_strategist = CollaborativeAgent(
-        "MarketStrategist",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -62,11 +60,10 @@ if __name__ == '__main__':
         6. Vote based on market viability
         Keep messages concise and focused on market aspects.
         Actively participate in discussions about market dynamics.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("MarketStrategist")]
+    ).name("MarketStrategist")
 
     operations_expert = CollaborativeAgent(
-        "OperationsExpert",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -86,8 +83,8 @@ if __name__ == '__main__':
         6. Vote based on operational viability
         Keep messages concise and focused on operational aspects.
         Actively participate in discussions about implementation challenges.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("OperationsExpert")]
+    ).name("OperationsExpert")
 
     # Create team with voting service and decentralized collaboration
     business_team = Team(
@@ -112,12 +109,13 @@ if __name__ == '__main__':
         visual=True,
         visual_port=5000
     )
+    chorus.start()
 
     # Send a business proposal for evaluation
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination=business_team.identifier(),
-        content="""
+        message="""
         Please evaluate the following business proposal:
 
         Business Concept: AI-Powered Personal Shopping Assistant
@@ -146,5 +144,7 @@ if __name__ == '__main__':
         """
     )
 
-    # Run the collaboration
-    chorus.run() 
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()
