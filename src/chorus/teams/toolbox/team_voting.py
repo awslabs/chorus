@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 from chorus.data.schema import JsonData
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
@@ -13,7 +13,8 @@ TIMEOUT = 10
 class TeamVotingClient(SimpleExecutableTool):
     """A tool for participating in team voting, allowing agents to create proposals and vote on them."""
 
-    def __init__(self):
+    def __init__(self, voter: str):
+        self.voter = voter
         schema = {
             "tool_name": "TeamVotingClient",
             "name": "TeamVotingClient",
@@ -77,6 +78,7 @@ class TeamVotingClient(SimpleExecutableTool):
         context.message_client.send_message(
             Message(
                 event_type=EventType.TEAM_SERVICE,
+                source=self.voter,
                 destination=team_name,
                 actions=[
                     ActionData(
@@ -107,6 +109,7 @@ class TeamVotingClient(SimpleExecutableTool):
         context.message_client.send_message(
             Message(
                 event_type=EventType.TEAM_SERVICE,
+                source=self.voter,
                 destination=team_name,
                 actions=[
                     ActionData(

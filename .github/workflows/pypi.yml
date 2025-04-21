@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install hatch mypy
+          pip install -e .[test]  # Install package with test dependencies
           
       - name: Run type checking
         run: |
