@@ -35,7 +35,7 @@ class Agent(AgentMeta, Registrable, Generic[TAgentContext, TAgentState]):
         self._running = False
         self._comm_client = None
 
-    def init_context(self) -> AgentContext:
+    def init_context(self):
         """Initialize the agent's context.
 
         Creates a new AgentContext instance with a unique ID for this agent.
@@ -45,7 +45,7 @@ class Agent(AgentMeta, Registrable, Generic[TAgentContext, TAgentState]):
         """
         return AgentContext(agent_id=self.identifier())
 
-    def init_state(self) -> AgentState:
+    def init_state(self):
         """Initialize the agent's state.
 
         Creates a new AgentState instance with default values.
@@ -75,7 +75,7 @@ class Agent(AgentMeta, Registrable, Generic[TAgentContext, TAgentState]):
         pass
     
     def run(self, router_host: str = "localhost", router_port: int = DEFAULT_ROUTER_PORT, 
-            context: Optional[AgentContext] = None, state: Optional[AgentState] = None):
+            context: Optional[TAgentContext] = None, state: Optional[TAgentState] = None):
         """Run the agent in a continuous loop, connecting to the ZMQ router.
         
         This method should be called in a subprocess. It initializes a ZMQ client

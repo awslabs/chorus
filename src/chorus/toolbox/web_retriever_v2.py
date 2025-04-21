@@ -40,8 +40,8 @@ class WebRetrieverToolV2(SimpleExecutableTool):
 
     def retrieve(self, url, max_chars=12000):
         try:
-            from fake_useragent import UserAgent
-            from bs4 import BeautifulSoup, NavigableString, Tag
+            from fake_useragent import UserAgent  # type: ignore
+            from bs4 import BeautifulSoup, NavigableString, Tag  # type: ignore
         except ImportError:
             print("Please install the required packages: fake_useragent and beautifulsoup4")
             return None

@@ -22,7 +22,7 @@ ACCEPT = "application/json"
 CONTENT_TYPE = "application/json"
 
 
-class BedrockConverseAPIClient(LanguageModelClient):
+class BedrockConverseAPIClient(LanguageModelClient[StructuredPrompt, StructuredCompletion]):
     """Client for interacting with Amazon Bedrock Converse API.
 
     Handles communication with Bedrock's Converse API, managing the 
@@ -66,10 +66,11 @@ class BedrockConverseAPIClient(LanguageModelClient):
         """
         if prompt is None and prompt_dict is None:
             raise ValueError("Either prompt or prompt_dict has to be supplied.")
-        if prompt and not isinstance(prompt, StructuredPrompt):
-            raise ValueError("Prompt should be of type StructuredPrompt for using BedrockConverseClient.")
-        if prompt_dict is None and prompt is not None and isinstance(prompt, StructuredPrompt):
-            prompt_dict = prompt.to_dict()
+        if prompt_dict is None:
+            if prompt is not None and isinstance(prompt, StructuredPrompt):
+                prompt_dict = prompt.to_dict()
+            else:
+                raise ValueError("Prompt should be of type StructuredPrompt for using BedrockConverseClient.")
 
         # Prepare client
         try:
@@ -97,7 +98,6 @@ class BedrockConverseAPIClient(LanguageModelClient):
             lm_options.update(options)
 
         # Call client
-        completion = None
         prompt_dict["inferenceConfig"] = lm_options
         prompt_dict["modelId"] = model_name
 

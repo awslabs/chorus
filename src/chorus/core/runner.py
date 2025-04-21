@@ -94,7 +94,6 @@ class Chorus(object):
         self._agent_team_map: Dict = {}
         self._team_info_map: Dict = {}  # Maps agent UUIDs to TeamInfo objects
         self._agent_processes: Dict[str, Process] = {}
-        self._global_context = global_context
         self._is_busy = False
         self._last_busy_timestamp = int(time.time())
         self._debug = debug
@@ -111,7 +110,9 @@ class Chorus(object):
             if channels:
                 for channel in channels:
                     self._visual_debugger.add_channel(channel)
-        if self._global_context is None:
+        if global_context is not None:
+            self._global_context = global_context
+        else:
             self._global_context = ChorusGlobalContext(zmq_router_port=zmq_port)
         if channels is not None:
             for channel in channels:

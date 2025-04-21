@@ -1,19 +1,17 @@
 import logging
-from typing import Any, List, Optional, Type, Dict, Union, Callable, TYPE_CHECKING, ClassVar
+from typing import Any, List, Optional, Type, Dict, Callable, TYPE_CHECKING, ClassVar
 import json
 
 if TYPE_CHECKING:
-    from langchain.agents import AgentExecutor, BaseSingleActionAgent
-    from langchain.schema import AgentAction, AgentFinish
-    from langchain.callbacks.base import BaseCallbackHandler
-    from langchain.callbacks.manager import CallbackManager
+    from langchain.agents import AgentExecutor, BaseSingleActionAgent  # type: ignore
+    from langchain.schema import AgentAction, AgentFinish  # type: ignore
+    from langchain.callbacks.base import BaseCallbackHandler  # type: ignore
+    from langchain.callbacks.manager import CallbackManager  # type: ignore
 
 from chorus.agents.passive_agent import PassiveAgent
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message, EventType
 from chorus.data.state import AgentState, PassiveAgentState
-from chorus.data.executable_tool import ExecutableTool
-from pydantic import Field
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT
 
 logger = logging.getLogger(__name__)
@@ -76,6 +74,8 @@ class ChorusCallbackHandler:
             action: The action the agent is about to take.
             **kwargs: Additional arguments.
         """
+        if self.context.message_client is None:
+            raise RuntimeError("Message client not initialized.")
         # Send an internal event to log the action
         self.context.message_client.send_message(
             Message(
@@ -93,6 +93,8 @@ class ChorusCallbackHandler:
             finish: The final output of the agent.
             **kwargs: Additional arguments.
         """
+        if self.context.message_client is None:
+            raise RuntimeError("Message client not initialized.")
         # This is just for logging, the actual response is sent elsewhere
         self.context.message_client.send_message(
             Message(
@@ -146,7 +148,7 @@ class LangChainAgentAdapter(PassiveAgent):
     ):
         # First check if langchain is installed
         try:
-            import langchain
+            import langchain  # type: ignore
             self._langchain_available = True
         except ImportError:
             logger.error("LangChain not installed. Please install it with `pip install langchain`")
@@ -217,6 +219,8 @@ class LangChainAgentAdapter(PassiveAgent):
         """
         # Ensure initialization if it hasn't happened yet (e.g., if run() wasn't called)
         self._ensure_initialized()
+        if self._langchain_agent is None:
+            raise RuntimeError("LangChain agent is not initialized.")
         
         # Check if we have a valid message client
         if not self._ensure_message_client(context):

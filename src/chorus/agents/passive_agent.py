@@ -34,7 +34,7 @@ class PassiveAgent(Agent[TAgentContext, TPassiveAgentState]):
         super().__init__()
         self._no_response_sources = no_response_sources
 
-    def init_state(self) -> PassiveAgentState:
+    def init_state(self):
         """Initialize the agent's state.
 
         Returns:

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Set
 from typing import List
 import time
 
@@ -30,13 +30,13 @@ class ChorusGlobalContext:
             process_manager: Legacy parameter for compatibility, not used in ZMQ implementation
         """
         # Initialize attributes with defaults
-        self.global_message_ids = set()
-        self.channels = {}
+        self.global_message_ids: Set = set()
+        self.channels: Dict = {}
         self.human_identifier = DEFAULT_HUMAN_IDENTIFIER
         self.zmq_router_port = zmq_router_port
         
         # Set for tracking agent registrations
-        self._registered_agents = set()
+        self._registered_agents: Set = set()
         
         # Initialize ZMQ router
         try:
@@ -53,7 +53,7 @@ class ChorusGlobalContext:
             self._message_router.start()
             
             # Store messages directly in context instead of in router
-            self._message_history = []
+            self._message_history: List[Message] = []
             
             logger.info(f"ZMQ router started on port {self.zmq_router_port}")
         except Exception as e:
@@ -77,7 +77,7 @@ class ChorusGlobalContext:
         Returns:
             The agent's context if found, None otherwise.
         """
-        return NotImplementedError
+        return None
 
 
     def sync_agent_messages(self, agent_id: str):
@@ -91,15 +91,6 @@ class ChorusGlobalContext:
         """
         # This method is not needed with ZMQ as messages are routed directly
         pass
-
-    def update_agent_context(self, agent_id: str, context: AgentContext):
-        """Update an agent's context.
-
-        Args:
-            agent_id: The ID of the agent whose context to update.
-            context: The new AgentContext to set.
-        """
-        self.agent_context_map[agent_id] = context
 
     def send_message(
         self, message: Optional[Message] = None, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, content: Optional[str] = None
@@ -177,7 +168,9 @@ class ChorusGlobalContext:
                     
         return self._message_history
     
-    def filter_messages(self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None) -> List[Message]:
+    def filter_messages(
+        self, source: Optional[str] = None, destination: Optional[str] = None, channel: Optional[str] = None, exclude_actions_observations: bool = True
+    ) -> List[Message]:
         """Filter messages based on source, destination, and channel.
 
         Args:

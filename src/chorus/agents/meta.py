@@ -1,5 +1,4 @@
-
-from typing import Any, Tuple
+from typing import Any, Tuple, Optional
 from chorus.util.agent_naming import get_unique_agent_name
 import uuid
 import hashlib
@@ -14,6 +13,11 @@ class AgentMeta:
     agent definitions to be created first and initialized later, which is useful
     for dependency injection and configuration management in agent systems.
     """
+
+    _init_args: Tuple[Any, ...]
+    _init_kwargs: dict
+    _agent_name: Optional[str]
+    _agent_uuid: Optional[str]
 
     def __new__(cls, *args, **kwargs):
         """Create a new agent without initializing it (delayed initialization).
