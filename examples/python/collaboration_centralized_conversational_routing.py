@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     chorus.get_environment().send_message(
         source="human",
-        destination=team.get_identifier(),
+        destination=team.identifier(),
         content="Explain what is logistic regression."
     )
     chorus.run()

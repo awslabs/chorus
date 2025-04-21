@@ -134,7 +134,7 @@ if __name__ == '__main__':
     chorus = Chorus(
         teams=[investigation_team],
         channels=[investigation_channel],
-        stop_conditions=[MessageBasedStopper(source=investigation_team.get_identifier(), destination="human")],
+        stop_conditions=[MessageBasedStopper(source=investigation_team.identifier(), destination="human")],
         visual=True,
         visual_port=5000
     )
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # Send a news topic for investigation
     chorus.get_environment().send_message(
         source="human",
-        destination=investigation_team.get_identifier(),
+        destination=investigation_team.identifier(),
         content="""
         Please investigate this news topic:
 

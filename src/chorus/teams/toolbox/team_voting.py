@@ -3,7 +3,7 @@ from chorus.data.schema import JsonData
 from chorus.data import ExecutableTool
 from chorus.data import SimpleExecutableTool
 from chorus.data import ToolSchema
-from chorus.data import Message
+from chorus.data import Message, EventType
 from chorus.data.data_types import ActionData
 
 NOT_IN_A_TEAM_ERROR_MESSAGE = "Error: This agent is not part of a team."
@@ -69,13 +69,14 @@ class TeamVotingClient(SimpleExecutableTool):
     def propose(self, proposal_content: str, reasoning: Optional[str] = "") -> Optional[JsonData]:
         """Create a new proposal for the team to vote on."""
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[
                     ActionData(
@@ -98,13 +99,14 @@ class TeamVotingClient(SimpleExecutableTool):
     def vote(self, proposal_id: str) -> Optional[JsonData]:
         """Cast a vote in favor of a proposal."""
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[
                     ActionData(
@@ -127,13 +129,14 @@ class TeamVotingClient(SimpleExecutableTool):
     def get_proposal(self, proposal_id: str) -> Optional[JsonData]:
         """Get details of a specific proposal including current votes."""
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[
                     ActionData(
@@ -156,13 +159,14 @@ class TeamVotingClient(SimpleExecutableTool):
     def list_active_proposals(self) -> Optional[JsonData]:
         """List all currently active proposals."""
         context = self.get_context()
-        if context.team_info is None:
+        if context is None or context.team_info is None:
             return NOT_IN_A_TEAM_ERROR_MESSAGE
-        
-        team_name = context.team_info.get_identifier()
+        if context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        team_name = context.team_info.name
         context.message_client.send_message(
             Message(
-                event_type="team_service",
+                event_type=EventType.TEAM_SERVICE,
                 destination=team_name,
                 actions=[
                     ActionData(

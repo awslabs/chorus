@@ -3,7 +3,9 @@ import logging
 import signal
 import sys
 import time
-from typing import Dict, Optional, Any
+from typing import Optional
+from typing import TypeVar
+from typing import Generic
 
 from chorus.agents.meta import AgentMeta
 from chorus.config.registrable import Registrable
@@ -12,8 +14,13 @@ from chorus.data.state import AgentState
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageClient
 
 logger = logging.getLogger(__name__)
+from chorus.data.dialog import Message
 
-class Agent(AgentMeta, Registrable):
+TAgentContext = TypeVar('TAgentContext', bound='AgentContext')
+TAgentState = TypeVar('TAgentState', bound='AgentState')
+
+class Agent(AgentMeta, Registrable, Generic[TAgentContext, TAgentState]):
+
     """Base class for all agents in the Chorus framework.
 
     This abstract class defines the core interface that all agents must implement.
@@ -49,7 +56,13 @@ class Agent(AgentMeta, Registrable):
         return AgentState()
 
     @abstractmethod
-    def iterate(self, context: AgentContext, state: AgentState) -> AgentState:
+    def respond(
+        self, context: TAgentContext, state: TAgentState, inbound_message: Message
+    ) -> TAgentState:
+        pass
+
+    @abstractmethod
+    def iterate(self, context: TAgentContext, state: TAgentState) -> TAgentState:
         """Execute one iteration of the agent's processing loop.
 
         Args:

@@ -59,10 +59,10 @@ class TeamScratchpad(TeamService):
                 
                 elif action.action_name == "edit_lines":
                     scratchpad_id = action.parameters.get("scratchpad_id")
-                    start_line = action.parameters.get("start_line_number")
-                    end_line = action.parameters.get("end_line_number") 
-                    new_content = action.parameters.get("new_content")
-                    editor = action.parameters.get("editor")
+                    start_line = action.parameters.get("start_line_number", 0)
+                    end_line = action.parameters.get("end_line_number", 0)
+                    new_content = action.parameters.get("new_content", "")
+                    editor = action.parameters.get("editor", "")
                     
                     if scratchpad_id not in data_store["scratchpads"]:
                         observations.append(ObservationData(data={"error": "Scratchpad not found"}))
@@ -107,12 +107,16 @@ class TeamScratchpad(TeamService):
                         observations.append(ObservationData(data={"error": "Scratchpad not found"}))
 
         if observations:
+            if team_context.message_client is None:
+                raise RuntimeError("Message client is not initialized.")
             outbound_event = Message(
                 destination=inbound_message.source,
                 observations=observations
             )
             team_context.message_client.send_message(outbound_event)
     
-    def get_scratchpads(self, team_context: TeamContext) -> Dict[str, List[LineInfo]]:
-        data_store = team_context.team_state.get_service_data_store(self.get_name())
+    def get_scratchpads(self, team_context: TeamContext, team_state: TeamState) -> Dict[str, List[LineInfo]]:
+        if team_context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
+        data_store = team_state.get_service_data_store(self.get_name())
         return data_store["scratchpads"]

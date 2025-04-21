@@ -64,6 +64,8 @@ class TeamStorage(TeamService):
                     )
         if not observations:
             return
+        if team_context.message_client is None:
+            raise RuntimeError("Message client is not initialized.")
         outbound_event = Message(
             destination=inbound_message.source,
             observations=observations
