@@ -65,6 +65,6 @@ team = Team(
 
 ## Building multi-agent solutions with Chorus
 
-Building multi-agent solutions with Chorus is easy. You can start by going through our tutorials, which provide step-by-step guidance and examples. In general, we provide two ways for you to build your multi-agent solutions: 1) Develop with descriptive language (JSONnet) and 2) Develop with code (Python).
+Building multi-agent solutions with Chorus is easy. You can start by going through our tutorials, which provide step-by-step guidance and examples. In general, we provide two ways for you to build your multi-agent solutions: 1) Develop with descriptive language (YAML) and 2) Develop with code (Python).
 
-For simple multi-agent solutions, we recommend you use the declarative way by writing a small JSONnet file. JSONnet is a terse and expressive language that allows you to configure your multi-agent solution in a very intuitive way. For more complex use cases, you can customize your own agents, collaboration mechanisms, etc. by writing Python code. 
+For simple multi-agent solutions, we recommend you use the declarative way by writing a small YAML file. YAML is a human-friendly data serialization language that allows you to configure your multi-agent solution in a very intuitive way. For more complex use cases, you can customize your own agents, collaboration mechanisms, etc. by writing Python code. 

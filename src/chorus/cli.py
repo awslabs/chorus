@@ -24,23 +24,26 @@ load_dotenv()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 DEFAULT_WORKSPACE_ROOT = f"."
-EXAMPLE_WORKSPACE_ROOT = f"{ROOT}/example_workspaces"
+EXAMPLE_WORKSPACE_ROOT = f"{ROOT}/examples/workspaces"
 HELLO_WORLD_WORKSPACE = f"{EXAMPLE_WORKSPACE_ROOT}/hello_world"
 
 
 if __name__ == "__main__":
     ap = ArgumentParser()
-    ap.add_argument(
-        "command", help="Command to execute", choices=["create", "run", "check", "deploy"]
-    )
     ap.add_argument("-r", "--root", default=DEFAULT_WORKSPACE_ROOT, help="Root directory for workspaces")
-    ap.add_argument("-w", "--workspace", help="Name of workspace to create or use", required=True)
+    ap.add_argument("-w", "--workspace", help="Name of workspace to create or use")
     ap.add_argument("-i", "--input", help="Initial message to default agent", default=None)
     ap.add_argument("--debug", action="store_true", help="Enable debug mode")
     ap.add_argument("--visual", action="store_true", help="Enable visual debugger")
     ap.add_argument("--visual-port", type=int, default=5000, help="Port for visual debugger (default: 5000)")
     args = ap.parse_args()
 
+    # All other commands require a workspace
+    if not args.workspace:
+        print("Error: Workspace name is required for this command")
+        ap.print_help()
+        sys.exit(1)
+        
     ws_name = args.workspace
     ws_folder = os.path.join(args.root, ws_name)
 
@@ -52,7 +55,7 @@ if __name__ == "__main__":
             print(f"Created workspace {ws_name} in [{ws_folder}]")
         print()
         print(f"Configure your workspace by:")
-        print(f"vim {ws_folder}/ws.jsonnet")
+        print(f"vim {ws_folder}/ws.yaml")
         print()
         print(f"Run your workspace with:")
         print(f"python -m chorus.cli run -w {ws_name}")

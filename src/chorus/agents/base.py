@@ -8,6 +8,7 @@ from typing import TypeVar
 from typing import Generic
 
 from chorus.agents.meta import AgentMeta
+from chorus.config.registrable import Registrable
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
 from chorus.communication.message_service import DEFAULT_ROUTER_PORT, ChorusMessageClient
@@ -18,7 +19,8 @@ from chorus.data.dialog import Message
 TAgentContext = TypeVar('TAgentContext', bound='AgentContext')
 TAgentState = TypeVar('TAgentState', bound='AgentState')
 
-class Agent(AgentMeta, Generic[TAgentContext, TAgentState]):
+class Agent(AgentMeta, Registrable, Generic[TAgentContext, TAgentState]):
+
     """Base class for all agents in the Chorus framework.
 
     This abstract class defines the core interface that all agents must implement.
