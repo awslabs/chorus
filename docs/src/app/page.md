@@ -8,7 +8,7 @@ Build powerful multi-agent systems with Chorus, the open source framework for ad
 
 {% quick-link title="Getting Started" icon="installation" href="/" description="Step-by-step guides to setting up Chorus and building your first multi-agent system." /%}
 
-{% quick-link title="Architecture Guide" icon="presets" href="/" description="Learn how Chorus works internally and how to contribute to the project." /%}
+{% quick-link title="Concepts" icon="presets" href="/" description="Learn how Chorus works internally and how to contribute to the project." /%}
 
 {% quick-link title="Examples" icon="plugins" href="/" description="Explore sample applications and use cases built with Chorus." /%}
 
@@ -18,7 +18,7 @@ Build powerful multi-agent systems with Chorus, the open source framework for ad
 
 ## What is Chorus?
 
-Chorus is a generalizable framework for collaborating with and orchestrating teams of autonomous agents. It focuses on the collaboration layer, simplifies the development and scaling of agent teams, and facilitates seamless collaboration between agents.
+Chorus is a generalizable framework for collaborating with and orchestrating teams of autonomous agents with advanced collaboration patterns. It focuses on the collaboration layer, simplifies the development and scaling of agent teams, and facilitates seamless collaboration between agents.
 
 ---
 
@@ -34,9 +34,9 @@ Explore major collaboration patterns to jump-start your multi-agent systems:
 
 Chorus provides a comprehensive framework focused on solving the collaboration problem, enabling developers to prototype and perfect multi-agent solutions with maximum flexibility for agent autonomy and behavior.
 
-### Flexible Collaboration Mechanisms
+### Scaling up fully distributed multi-agent collaboration
 
-Developers and researchers can prototype customized collaboration mechanisms using Chorus. They can leverage built-in collaboration utilities such as shared storage, scratchpads, agent recruiting, voting mechanisms, or customize the collaboration logic.
+Developers and researchers can prototype various collaboration mechanisms using Chorus with all agents running in a fully distributed manner. 
 
 ```python
 # Example: Creating a collaborative agent team
@@ -44,11 +44,9 @@ from chorus.core import Chorus
 from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
-from chorus.workspace import NoActivityStopper
 
 # Create specialized agents
 coordinator_agent = TaskCoordinatorAgent(
-    "FitnessAnsweringAgent",
     instruction="""
     Do not do any task by yourself, always try to call other agents.
     If there is no relevant agent available, tell the user that you do not have a agent to answer the question.
@@ -58,7 +56,19 @@ coordinator_agent = TaskCoordinatorAgent(
         "FactResearchAgent": "An agent that can help user to find facts related to fitness and summarize them by search web and access pages.",
         "KnowledgeAgent": "An agent that can help user to answer general questions about fitness." 
     }
-)
+).name("FitnessAnsweringAgent")
+
+fact_research_agent = ConversationalTaskAgent(
+    instruction="Find facts related to fitness and summarize them by search web and access pages.",
+    tools=[
+        DuckDuckGoWebSearchTool(),
+        WebRetrieverTool()
+    ]
+).name("FactResearchAgent")
+
+knowledge_agent = ConversationalTaskAgent(
+    instruction="Answer general questions about fitness.",
+).name("KnowledgeAgent")
 
 # Form a collaborative team with centralized collaboration
 team = Team(
@@ -70,30 +80,33 @@ team = Team(
 )
 
 # Initialize Chorus with the team
-chorus = Chorus(
-    teams=[team],
-    stop_conditions=[NoActivityStopper()]
-)
+chorus = Chorus(teams=[team])
+chorus.start()
 
 # Send a message to the team and run the collaboration
-chorus.get_environment().send_message(
-    source="human",
-    destination=team.get_identifier(),
-    content="What are the best parks in New York City for running?"
+response = chorus.send_and_wait(
+    destination=team.identifier(),
+    message="What are the best parks in New York City for running?"
 )
-chorus.run()
+
+print(response.content)
+chorus.stop()
 ```
 
-### Execution Environment
+### Advanced agent-to-agent collaboration mechanisms
 
-Chorus provides an execution environment for teams of autonomous agents to collaborate and be optimized over time. Developers can debug their solutions easily with Chorus.
+Chorus provides an optimized inter-agent communication and collaboration support. You can leverage built-in collaboration utilities such as shared storage, scratchpads, agent recruiting, voting mechanisms, or customize the collaboration logic.
 
 {% callout type="info" title="Key Differentiators" %}
-Chorus focuses on solving the collaboration problem with multiple agents. While other frameworks try to be all-encompassing solutions, Chorus specializes in enabling effective agent collaboration through three key aspects:
-- Distributed autonomous agents for enabling complex collaboration patterns
-- Highly customizable collaboration logic with heterogeneous agents
-- Built-in utilities for enhanced group collaboration
+Chorus simplifies the development of collaboration mechanisms with a large number of agents. While other frameworks try to be all-encompassing solutions, Chorus focuses on building an effective agent collaboration layer through three key aspects:
+- Fully distributed autonomous agents for enabling complex collaboration patterns
+- Highly customizable collaboration logic with heterogeneous agents - out-of-the-box inter-operability
+- Built-in utilities and toolboxesfor advanced collaboration patterns
 {% /callout %}
+
+### Heterogeneous Agent Support
+
+Chorus provides native support for seamless collaboration between heterogeneous agents, such as Langchain agents, LlamaIndex agents, and more. As an open framework, Chorus empowers agents with the flexibility to define their own triggering conditions and orchestration logic.
 
 ---
 
@@ -103,46 +116,44 @@ Agents in Chorus function as distributed autonomous entities with persistent lif
 
 ### Building Effective Teams
 
-Chorus encourages developers to focus on assembling effective teams of specialized agents rather than designing rigid workflows, leading to more flexible and adaptable solutions.
+Chorus encourages developers to focus on assembling effective teams of specialized agents rather than designing rigid graph-alike workflows, leading to more flexible and adaptable solutions. For example, Chorus supports context-aware agents using a trigger system. Agents can dynamically switch behavior based on message conditions:
 
 ```python
-# Example: Defining agent specializations
-from chorus.agents import ConversationalTaskAgent
-from chorus.toolbox import WebRetrieverTool, DuckDuckGoWebSearchTool
+# Create agent with base instruction
+agent = ConversationalTaskAgent(
+    instruction="Default behavior when no triggers match"
+).name("SupportAgent")
 
-# Create specialized agents with different capabilities
-fact_research_agent = ConversationalTaskAgent(
-    "FactResearchAgent",
-    instruction="You can help user to find facts related to fitness and summarize them by search web and access pages.",
-    tools=[
-        DuckDuckGoWebSearchTool(),
-        WebRetrieverTool()
-    ]
+# Create contexts for different scenarios
+technical_context = OrchestrationContext(
+    agent_instruction="You are a technical support specialist who helps with code issues"
 )
 
-knowledge_agent = ConversationalTaskAgent(
-    "KnowledgeAgent",
-    instruction="Help user to answer general questions about fitness, nutrition, exercise and healthy lifestyle.",
+billing_context = OrchestrationContext(
+    agent_instruction="You are a billing support specialist who helps with account charges"
 )
+
+# Register triggers to automatically switch contexts based on message properties
+agent.on(MessageTrigger(source="TechnicalTeam"), technical_context)
+agent.on(MessageTrigger(source="BillingTeam"), billing_context)
+agent.on(MessageTrigger(channel="billing-channel"), billing_context)
 ```
 
-### Heterogeneous Agent Support
 
-Chorus provides native support for seamless collaboration between heterogeneous agents, such as Bedrock Agents, Langchain agents, OpenAI Assistant agents, and more. As an open framework, Chorus empowers agents with the flexibility to define their own triggering conditions and orchestration logic.
+### Multi-agent reflection and optimization
 
-{% callout type="warning" title="Flexibility vs. Complexity" %}
-With great flexibility comes the need for thoughtful design. While Chorus allows for highly customizable agent interactions, it's important to design your multi-agent systems with clear communication protocols and well-defined responsibilities.
-{% /callout %}
+Ultimately, Chorus enables multi-agent systems to engage in collective reflection and optimization processes. Teams of agents can evaluate their past trajectroies, identify bottlenecks, and adjust their collaboration strategies for better collaboraiton in the future. This optimization capability allows agent systems to evolve over time, becoming more efficient and effective at solving complex problems through continuous learning and adaptation.
 
 ---
 
-## Enhanced Group Collaboration
+## Advanced Group Collaboration
 
 Chorus enhances group synergy through comprehensive built-in collaboration utilities. The framework enables concurrent task execution with real-time coordination, allowing specialized agents to work simultaneously on different aspects of a problem.
 
 ### Collaboration Utilities
 
-The framework includes comprehensive utilities that enable agents to maintain state, dynamically toggle their availability, and scale horizontally through agent instance forking - all essential capabilities for building sophisticated multi-agent solutions.
+The framework includes comprehensive utilities that enable agents to maintain state, dynamically toggle their availability, and scale horizontally through agent instance forking - all essential capabilities for building sophisticated multi-agent solutions. 
+
 
 ### Getting Help
 
@@ -153,9 +164,5 @@ Join our community to get help with Chorus and contribute to its development.
 {% quick-link title="GitHub Repository" icon="installation" href="https://github.com/awslabs/chorus" description="Star the repository, report issues, and contribute to the codebase." /%}
 
 {% quick-link title="Documentation" icon="presets" href="/" description="Read the comprehensive documentation to learn all about Chorus." /%}
-
-{% quick-link title="Community Forum" icon="plugins" href="/" description="Join the discussion, ask questions, and share your projects." /%}
-
-{% quick-link title="Discord Channel" icon="theming" href="/" description="Chat with other Chorus users and the development team." /%}
 
 {% /quick-links %}

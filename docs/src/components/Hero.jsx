@@ -9,36 +9,36 @@ import blurCyanImage from '@/images/blur-cyan.png'
 import blurIndigoImage from '@/images/blur-indigo.png'
 
 const codeLanguage = 'python'
-const code = `from chorus.core import Chorus
-from chorus.agents import TaskCoordinatorAgent, ConversationalTaskAgent
-from chorus.teams import Team
-from chorus.collaboration import CentralizedCollaboration
-
-# Create specialized agents
-coordinator = TaskCoordinatorAgent(
-    "CoordinatorAgent",
+const code = `# Define a team of agents
+coordinator_agent = TaskCoordinatorAgent(
     instruction="Coordinate the team to answer user questions",
     reachable_agents={
-        "ResearchAgent": "Finds facts via web search",
-        "KnowledgeAgent": "Provides domain expertise"
+        "WeatherAgent": "Provides weather information",
+        "NewsAgent": "Provides news information"
     }
-)
+).name("CoordinatorAgent")
 
-# Form a collaborative team
+...
+
 team = Team(
-    name="AnsweringTeam",
-    agents=[coordinator, research_agent, knowledge_agent],
-    collaboration=CentralizedCollaboration(
-        coordinator=coordinator.get_name()
-    )
-)
+    agents=[coordinator_agent, ...],
+    collaboration=CentralizedCollaboration(coordinator_agent.identifier())
+).name("AnsweringTeam")
 
 # Run the collaboration
 chorus = Chorus(teams=[team])
-chorus.run()`
+chorus.start()
+
+response = chorus.send_and_wait(
+    destination=team.identifier(),
+    message="What are the best practices for machine learning?"
+)
+
+print(response.content)
+chorus.stop()`
 
 const tabs = [
-  { name: 'chorus_example.py', isActive: true },
+  { name: 'example.py', isActive: true },
   { name: 'README.md', isActive: false },
 ]
 
