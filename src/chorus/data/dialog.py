@@ -6,24 +6,19 @@ complete dialogs, and sets of dialogs with associated tools.
 """
 
 from enum import Enum
-from pathlib import Path
 import time
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Union
 import uuid
 
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import TypeAdapter
-from pydantic import field_validator
-from pydantic_core.core_schema import ValidationInfo
 
 from chorus.data.data_types import ActionData
 from chorus.data.data_types import ObservationData
 from chorus.data.schema import JsonData
-from chorus.data.toolschema import ToolDB
 from chorus.data.utils import unique_hash_for_model
 
 
@@ -38,13 +33,11 @@ class EventType(str, Enum):
     Attributes:
         EVENT: the base event type
         MESSAGE: a message event
-        NOTIFICATION: an event representing a notification
         INTERNAL_EVENT: an event used for internal system communication
         TEAM_SERVICE: an event related to team service operations
     """
     EVENT = "event"
     MESSAGE = "message"
-    NOTIFICATION = "notification"
     INTERNAL_EVENT = "internal_event"
     TEAM_SERVICE = "team_service"
 

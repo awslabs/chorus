@@ -1,7 +1,7 @@
 from typing import List, Optional
 from chorus.agents import Agent
 from chorus.collaboration import Collaboration
-from chorus.data.dialog import Message
+from chorus.data.dialog import Message, EventType
 from chorus.data.state import PassiveAgentState, TeamState
 from chorus.data.team_info import TeamInfo
 from chorus.data.context import AgentContext, TeamContext
@@ -38,7 +38,7 @@ class Team(BaseTeam):
         return obj
 
     def respond(self, context: TeamContext, state: TeamState, inbound_message: Message) -> TeamState:
-        if inbound_message.event_type == "team_service":
+        if inbound_message.event_type == EventType.TEAM_SERVICE:
             for service in self._services:
                 service.process_message(context, state, inbound_message)
         else:
