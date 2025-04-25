@@ -1008,7 +1008,7 @@ class VisualDebugger:
 
     def _get_team_state(self, team) -> Optional[TeamState]:
         """Get the team state if it exists."""
-        team_agent_id = f"team:{team._name}"
+        team_agent_id = f"team:{team.name}"
         return self._states.get(team_agent_id)
 
     def _get_agent_messages(self, messages_log_file: str, agent_id: str) -> List[Dict]:
@@ -1060,7 +1060,7 @@ class VisualDebugger:
         try:
             team_state = self._get_team_state(team)
             if not team_state:
-                print(f"No state found for team agent team:{team._name}")
+                print(f"No state found for team agent team:{team.name}")
                 return scratchpads
 
             for service in team._services:
@@ -1107,7 +1107,7 @@ class VisualDebugger:
                 if has_scratchpad:
                     scratchpads = self._get_team_scratchpads(team)
                     panels.append({
-                        'agent_id': f'{team._name} Scratchpads',
+                        'agent_id': f'{team.name} Scratchpads',
                         'content': json.dumps(scratchpads, indent=2),
                         'messages': [],
                         'last_message_count': 0
@@ -1157,7 +1157,7 @@ class VisualDebugger:
                 if has_scratchpad:
                     scratchpads = self._get_team_scratchpads(team)
                     panels.append({
-                        'agent_id': f'{team._name} Scratchpads',
+                        'agent_id': f'{team.name} Scratchpads',
                         'content': json.dumps(scratchpads, indent=2),
                         'messages': []
                     })
@@ -1248,7 +1248,7 @@ class VisualDebugger:
                             collaboration_info = team.collaboration.__class__.__name__
 
                     team_data = {
-                        'name': team._name if hasattr(team, '_name') else str(team),
+                        'name': team.name if hasattr(team, '_name') else str(team),
                         'collaboration': collaboration_info,
                         'agents': []
                     }

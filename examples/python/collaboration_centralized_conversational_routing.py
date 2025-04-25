@@ -9,9 +9,8 @@ from chorus.toolbox import DuckDuckGoWebSearchTool
 from chorus.workspace.stop_conditions import NoActivityStopper
 
 
-if __name__ == '__main__':
+def main():
     routing_agent = TaskCoordinatorAgent(
-        "MachineLearningQARoutingAgent",
         instruction="""
         Do not do any task by yourself, if you don't have a agent to answer the question, tell the user that don't have a agent to answer the question.
         """,
@@ -20,24 +19,21 @@ if __name__ == '__main__':
             "ResearchPaperSearchAgent": "An agent that can help user to find research papers and summarize them by search arxiv and access pages.",
             "MachineLearningQAAgent": "An agent that can help user to explain the concept of machine learning and artificial intelligence."
         }
-    )
+    ).name("MachineLearningQARoutingAgent")
     news_search_agent = ConversationalTaskAgent(
-        "NewsSearchAgent",
         instruction="You can help user to find news and summarize them by search web and access pages.",
         tools=[
             DuckDuckGoWebSearchTool(),
             WebRetrieverTool()
         ]
-    )
+    ).name("NewsSearchAgent")
     research_paper_search_agent = ConversationalTaskAgent(
-        "ResearchPaperSearchAgent",
         instruction="You can help user to find research papers and summarize them by search arxiv and access pages.",
         tools=[ArxivRetrieverTool()]
-    )
+    ).name("ResearchPaperSearchAgent")
     machine_learning_qa_agent = ConversationalTaskAgent(
-        "MachineLearningQAAgent",
         instruction="You can help user to explain the concept of machine learning and artificial intelligence."
-    )
+    ).name("MachineLearningQAAgent")
 
     team = Team(
         name="MachineLearningQATeam",
@@ -52,9 +48,15 @@ if __name__ == '__main__':
         stop_conditions=[NoActivityStopper()]
     )
 
-    chorus.get_environment().send_message(
+    chorus.start()
+    
+    chorus.send_and_wait(
         source="human",
         destination=team.identifier(),
-        content="Explain what is logistic regression."
+        message="Explain what is logistic regression."
     )
-    chorus.run()
+
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

@@ -8,7 +8,7 @@ from chorus.teams.agent_team import Team
 from chorus.teams.services.team_voting import TeamVoting
 from chorus.teams.toolbox.team_voting import TeamVotingClient
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
-from chorus.util.testing_util import MockMessageClient
+from tests.testing_util import MockMessageClient
 from chorus.data.data_types import ActionData
 
 

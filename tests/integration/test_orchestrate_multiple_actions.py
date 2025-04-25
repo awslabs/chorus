@@ -1,11 +1,9 @@
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock
 
 from chorus.data import (
     Message,
     EventType,
     ActionData,
-    ObservationData,
     AgentContext,
     AgentState,
 )

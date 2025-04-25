@@ -7,7 +7,7 @@ from chorus.toolbox import DuckDuckGoWebSearchTool, WebRetrieverTool, SerperWebS
 from chorus.workspace import NoActivityStopper
 import argparse
 
-if __name__ == '__main__':
+def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--use_serper_search', action='store_true', help='Use SerperWebSearch instead of DuckDuckGo')
@@ -24,17 +24,15 @@ if __name__ == '__main__':
 
     # Create agents
     news_anchor = CollaborativeAgent(
-        "NewsAnchor",
         instruction="""You are a news anchor who coordinates news broadcasts.
         - Monitor the news_channel for all updates
         - When receiving news from reporters, format it for broadcast
         - Send all formatted broadcasts to human
         - Maintain a professional broadcasting tone
         - Prioritize urgent news when received""",
-    )
+    ).name("NewsAnchor")
 
     news_reporter = CollaborativeAgent(
-        "NewsReporter",
         instruction="""You are a news reporter who gathers and reports news.
         - Use web search to find current news
         - Report all news (both regular and urgent) on "news_channel" channel
@@ -44,10 +42,9 @@ if __name__ == '__main__':
             search_tool,
             WebRetrieverTool()
         ]
-    )
+    ).name("NewsReporter")
 
     weather_reporter = CollaborativeAgent(
-        "WeatherReporter",
         instruction="""You are a weather reporter who reports weather updates.
         - Use web search to find weather information
         - Report weather updates on "news_channel" channel
@@ -56,7 +53,7 @@ if __name__ == '__main__':
             search_tool,
             WebRetrieverTool()
         ]
-    )
+    ).name("WeatherReporter")
 
     # Create team
     news_team = Team(
@@ -73,13 +70,16 @@ if __name__ == '__main__':
         channels=[news_channel],
         stop_conditions=[NoActivityStopper()]
     )
-
+    chorus.start()
+    
     # Start with an initial message
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination="NewsReporter",
-        content="Please find and report some current technology news."
+        message="Please find and report some current technology news."
     )
 
-    # Run the simulation
-    chorus.run() 
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,5 @@
 import time
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from chorus.data.agent_status import AgentStatus, AgentStatusRecord
 from chorus.workspace.stop_conditions import NoActivityStopper

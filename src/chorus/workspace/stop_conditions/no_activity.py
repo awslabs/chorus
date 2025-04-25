@@ -14,7 +14,7 @@ class NoActivityStopper(MultiAgentStopCondition):
         """Check if there has been no activity for too long.
 
         Returns:
-            bool: True if there has been no activity for longer than max_idle_time.
+            bool: True if there has been no activity for longer than self._no_activity_time_threshold.
         """
         runner = self.runner()
         agent_status_map = runner.get_agents_status()

@@ -1,12 +1,9 @@
-import multiprocessing
 import unittest
 import time
-from unittest.mock import MagicMock
 from chorus.core import Chorus
 from chorus.agents import ConversationalTaskAgent, TaskCoordinatorAgent
 from chorus.teams import Team
 from chorus.collaboration import CentralizedCollaboration
-from chorus.helpers.communication import CommunicationHelper
 
 class TestChorusInThread(unittest.TestCase):
 

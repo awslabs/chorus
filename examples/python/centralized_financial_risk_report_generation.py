@@ -46,7 +46,7 @@ class FinancialAnalysisCoordinatorAgent(TaskCoordinatorAgent):
         return state
     
 
-if __name__ == '__main__':
+def main():
     reachable_agents = {
         "FinancialStatementRetriever": "This is an agent helps to retrieve financial statements of the company",
         "SentimentRiskAnalyzerAgent": "This is an agent analyzes the sentiment of the company's news and social media posts",
@@ -179,9 +179,15 @@ if __name__ == '__main__':
         visual_port=5000
     )
 
-    chorus.get_environment().send_message(
+    chorus.start()
+    
+    chorus.send_and_wait(
         source="human",
         destination=team.get_name(),
-        content="SBUX, quarter report can be found at https://s203.q4cdn.com/326826266/files/doc_financials/2024/q3/3Q24-Earnings-Release-Final-7-30-24.pdf"
+        message="SBUX, quarter report can be found at https://s203.q4cdn.com/326826266/files/doc_financials/2024/q3/3Q24-Earnings-Release-Final-7-30-24.pdf"
     )
-    chorus.run()
+
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

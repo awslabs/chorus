@@ -1,7 +1,5 @@
 import pytest
-import threading
 import time
-from chorus.data import Message
 from chorus.agents import CollaborativeAgent
 from chorus.toolbox import ArxivRetrieverTool
 from chorus.core.runner import Chorus

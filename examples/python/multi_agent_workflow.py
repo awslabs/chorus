@@ -5,7 +5,7 @@ from chorus.helpers.communication import CommunicationHelper
 from chorus.helpers.smart_logic import SmartLogicHelper
 
 
-if __name__ == '__main__':
+def main():
     # Create specialized agents for different aspects of website creation
     content_agent = ConversationalTaskAgent(
         instruction="""
@@ -141,3 +141,6 @@ if __name__ == '__main__':
         print("\nReached maximum refinement iterations. Please review the final implementation manually.")
 
     chorus.stop()
+
+if __name__ == "__main__":
+    main()

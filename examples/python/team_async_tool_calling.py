@@ -7,13 +7,12 @@ from chorus.toolbox import ArxivRetrieverTool
 from chorus.core import Chorus
 from chorus.workspace import NoActivityStopper
 
-if __name__ == '__main__':
+def main():
     arxiv_retriever_tool = ArxivRetrieverTool()
     paper_research_agent = ConversationalTaskAgent(
-        name="PaperResearchAgent",
         tools=[AsyncTeamToolClient(arxiv_retriever_tool)],
         instruction="You are a paper research agent that can help find academic papers on Arxiv."
-    )
+    ).name("PaperResearchAgent")
 
     team = Team(
         name="PaperResearchTeam",
@@ -27,13 +26,15 @@ if __name__ == '__main__':
         teams=[team],
         stop_conditions=[NoActivityStopper()],
     )
+    chorus.start()
 
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination="PaperResearchAgent",
-        content="List papers on Arxiv about speculative decoding."
+        message="List papers on Arxiv about speculative decoding."
     )
-    chorus.run()
+    chorus.stop()
+    
     # Print out the answer
     answer_message = chorus.get_environment().filter_messages(
         source="PaperResearchAgent",
@@ -42,3 +43,6 @@ if __name__ == '__main__':
     print("===========================================")
     print("Final Answer:")
     print(answer_message.content)
+
+if __name__ == "__main__":
+    main()

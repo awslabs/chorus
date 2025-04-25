@@ -7,7 +7,7 @@ from chorus.collaboration.centralized import CentralizedCollaboration
 from chorus.teams.agent_team import Team
 from chorus.teams.services.team_storage import TeamStorage
 from chorus.teams.toolbox.team_storage import TeamStorageClient
-from chorus.util.testing_util import MockMessageClient
+from tests.testing_util import MockMessageClient
 from chorus.data.data_types import ActionData
 
 

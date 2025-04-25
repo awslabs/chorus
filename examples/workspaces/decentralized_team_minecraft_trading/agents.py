@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Optional, Dict
+from typing import Dict
 
 from jinja2 import Template
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from chorus.agents import Agent, ClaudeATaskCoordinatorAgent
 from chorus.data.state import PassiveAgentState
 from chorus.helpers.communication import CommunicationHelper
-from chorus.data import Message, AgentContext, AgentState, SimpleExecutableTool, ToolSchema
+from chorus.data import Message, AgentContext, SimpleExecutableTool, ToolSchema
 from chorus.agents import PassiveAgent
 
 from datetime import datetime
