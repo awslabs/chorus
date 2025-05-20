@@ -2,13 +2,12 @@ import json
 import os
 import sys
 import time
-from typing import Dict
-from typing import Optional
+from typing import Dict, Any, Optional
 
-import boto3
-import botocore.errorfactory
-import botocore.exceptions
-from botocore.config import Config
+import boto3  # type: ignore
+import botocore.errorfactory  # type: ignore
+import botocore.exceptions  # type: ignore
+from botocore.config import Config  # type: ignore
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -17,7 +16,7 @@ from chorus.data.prompt import StructuredPrompt
 from chorus.lms.base import LanguageModelClient
 
 AWS_DEFAULT_REGION = "us-west-2"
-BEDROCK_DEFAULT_CONFIG: Dict = {}
+BEDROCK_DEFAULT_CONFIG: Dict[str, Any] = {}
 ACCEPT = "application/json"
 CONTENT_TYPE = "application/json"
 
@@ -43,8 +42,8 @@ class BedrockConverseAPIClient(LanguageModelClient[StructuredPrompt, StructuredC
     def generate(
         self,
         prompt: Optional[StructuredPrompt] = None,
-        prompt_dict: Optional[Dict] = None,
-        options: Optional[Dict] = None,
+        prompt_dict: Optional[Dict[Any, Any]] = None,
+        options: Optional[Dict[Any, Any]] = None,
         model_name: Optional[str] = None,
         region: Optional[str] = AWS_DEFAULT_REGION,
     ) -> StructuredCompletion:
@@ -98,6 +97,7 @@ class BedrockConverseAPIClient(LanguageModelClient[StructuredPrompt, StructuredC
             lm_options.update(options)
 
         # Call client
+        assert prompt_dict is not None
         prompt_dict["inferenceConfig"] = lm_options
         prompt_dict["modelId"] = model_name
 

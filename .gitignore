@@ -107,3 +107,4 @@ my_workspaces
 *.code-workspace
 # Ignore PeruHatch local cache directory
 /.hatch
+.mypy_cache

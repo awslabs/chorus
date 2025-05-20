@@ -52,6 +52,29 @@ class Action(BaseModel):
     requires_confirmation: bool = False
     meta: Dict[str, Dict] = Field(default_factory=dict)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the Action to a dictionary.
+        
+        Returns:
+            Dict with the action's attributes
+        """
+        result = {
+            "name": self.name,
+            "description": self.description,
+            "parameters": self.input_schema.model_dump(exclude_none=True),
+        }
+        
+        if self.output_schema:
+            result["output_schema"] = self.output_schema.model_dump(exclude_none=True)
+        
+        if self.requires_confirmation:
+            result["requires_confirmation"] = self.requires_confirmation
+            
+        if self.meta:
+            result["meta"] = self.meta
+            
+        return result
+
 
 class ToolSchema(BaseModel):
     """Tool definition.
@@ -95,6 +118,26 @@ class ToolSchema(BaseModel):
             KeyError: If no action exists with the given name
         """
         return self.actions_by_name()[action]
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the ToolSchema to a dictionary.
+        
+        Returns:
+            Dict with the tool's attributes
+        """
+        result = {
+            "name": self.name,
+            "description": self.description,
+            "tool_type": self.tool_type,
+        }
+        
+        if self.actions:
+            result["actions"] = [action.to_dict() for action in self.actions]
+            
+        if self.meta:
+            result["meta"] = self.meta
+            
+        return result
 
     @staticmethod
     def load_native_format(path: str) -> 'ToolSchema':

@@ -20,6 +20,7 @@ from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverse
 from chorus.util.communication import select_message_view
 from chorus.util.interact import orchestrate_generate_next_actions, orchestrate_execute_actions
 from chorus.config.globals import DEFAULT_AGENT_LLM_NAME
+import os
 
 @Agent.register("ConversationalTaskAgent")
 class ConversationalTaskAgent(PassiveAgent):
@@ -127,7 +128,7 @@ class ConversationalTaskAgent(PassiveAgent):
         return lm_client
 
     def infer_agent_prompter(self, model_name: str) -> Optional[InteractPrompter]:
-        """Infer an interact prompter based on the agent model name.
+        """Infer an interact prompter based on the agent model name or LM client.
 
         Args:
             model_name: The name of the model to infer a prompter for.
@@ -135,6 +136,23 @@ class ConversationalTaskAgent(PassiveAgent):
         Returns:
             Optional[InteractPrompter]: A prompter if one can be inferred, None otherwise.
         """
+        from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverseToolChatPrompter
+        from chorus.prompters.interact.openai_tool_chat import OpenAIToolChatPrompter
+        from chorus.prompters.interact.anthropic_tool_chat import AnthropicToolChatPrompter
+        from chorus.lms.openai_client import OpenAIClient
+        from chorus.lms.anthropic_client import AnthropicClient
+        from chorus.lms.deepseek_client import DeepseekClient
+        
+        # Check if we're using the lm directly
+        if hasattr(self, '_lm'):
+            lm = self._lm
+            
+            if isinstance(lm, OpenAIClient) or isinstance(lm, DeepseekClient):
+                return OpenAIToolChatPrompter()
+            elif isinstance(lm, AnthropicClient):
+                return AnthropicToolChatPrompter()
+        
+        # Fall back to model name-based inference
         prompter = None
         if model_name.startswith("anthropic."):
             prompter = BedrockConverseToolChatPrompter()
