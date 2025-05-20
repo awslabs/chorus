@@ -16,10 +16,15 @@ logger = logging.getLogger(__name__)
 # Check if LlamaIndex is available
 LLAMAINDEX_AVAILABLE = False
 try:
-    import llama_index
+    if not TYPE_CHECKING:
+        import llama_index  # type: ignore
     LLAMAINDEX_AVAILABLE = True
 except ImportError:
     logger.debug("LlamaIndex not installed. LlamaIndexAgentAdapter will be available but requires llama-index to function.")
+
+if TYPE_CHECKING:
+    import llama_index  # type: ignore
+    from llama_index.core.agent.workflow import FunctionAgent  # type: ignore
 
 
 # Define a custom state class for LlamaIndex agent

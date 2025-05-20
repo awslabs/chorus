@@ -1,7 +1,8 @@
 import os
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 
 from openai import OpenAI
+import openai.types.chat
 
 from chorus.data.prompt import StructuredPrompt, StructuredCompletion
 from chorus.lms.base import LanguageModelClient
@@ -34,19 +35,15 @@ class OpenAIClient(LanguageModelClient[StructuredPrompt, StructuredCompletion]):
         self.set_default_options(OPENAI_DEFAULT_CONFIG)
         
         # Initialize client
-        self._client_kwargs = {"api_key": self._api_key}
-        if self._base_url:
-            self._client_kwargs["base_url"] = self._base_url
-            
-        self._client = None
+        self._client: Optional[OpenAI] = None
     
     def generate(
         self,
         prompt: Optional[StructuredPrompt] = None,
-        prompt_dict: Optional[Dict] = None,
-        options: Optional[Dict] = None,
+        prompt_dict: Optional[Dict[Any, Any]] = None,
+        options: Optional[Dict[Any, Any]] = None,
         model_name: Optional[str] = None,
-        **kwargs
+        region: Optional[str] = None
     ) -> StructuredCompletion:
         """Generate text using the OpenAI chat completion model.
 
@@ -55,6 +52,7 @@ class OpenAIClient(LanguageModelClient[StructuredPrompt, StructuredCompletion]):
             prompt_dict (Dict): Input prompt dictionary for generation.
             options (Dict): Additional generation parameters that override defaults.
             model_name (str): Name of the OpenAI model.
+            region (str): Region for the API, not used for OpenAI.
 
         Returns:
             StructuredCompletion: Generated text response.
@@ -62,9 +60,10 @@ class OpenAIClient(LanguageModelClient[StructuredPrompt, StructuredCompletion]):
         Raises:
             ValueError: If neither prompt nor prompt_dict is provided.
         """
+        # Initialize client if not already done
         if self._client is None:
-            self._client = OpenAI(**self._client_kwargs)
-
+            self._client = OpenAI(api_key=self._api_key, base_url=self._base_url)
+            
         if prompt is None and prompt_dict is None:
             raise ValueError("Either prompt or prompt_dict has to be supplied.")
         if prompt_dict is None:
@@ -77,7 +76,7 @@ class OpenAIClient(LanguageModelClient[StructuredPrompt, StructuredCompletion]):
         lm_options = self.get_default_options().copy()
         if options is not None:
             lm_options.update(options)
-        if "tools" in prompt_dict:
+        if prompt_dict and "tools" in prompt_dict:
             lm_options["tools"] = prompt_dict["tools"]
 
         # Use specified model or default model

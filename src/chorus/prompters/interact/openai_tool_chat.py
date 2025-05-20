@@ -6,8 +6,8 @@ the structured format expected by the API, and parsing responses back into messa
 """
 
 import json
-from typing import List
-from typing import Optional, Dict
+import re
+from typing import Dict, List, Optional, Any, Collection, Sequence, Union, cast
 
 from chorus.data.data_types import ActionData
 from chorus.data.dialog import Message
@@ -18,7 +18,7 @@ from chorus.data.toolschema import ToolSchema
 from chorus.prompters.interact import InteractPrompter
 from chorus.data.dialog import EventType
 
-TOOL_ACTION_SEPARATOR = "__"
+TOOL_ACTION_SEPARATOR = "."
 
 class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
     """Prompter for tool-enabled chat using OpenAI Chat API.
@@ -33,25 +33,26 @@ class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
         """Initialize the OpenAIToolChatPrompter."""
         super().__init__()
 
-    def _get_action_dict(self, action: ActionData) -> Dict:
-        """Convert an ActionData object into an OpenAI function call dictionary.
+    def _get_action_dict(self, action: ActionData) -> Dict[str, Any]:
+        """Convert an ActionData object to a dictionary for OpenAI tools format.
 
         Args:
-            action: The ActionData object to convert.
+            action: The action data to convert
 
         Returns:
-            A dictionary containing the function call formatted for OpenAI Chat API.
+            Dict: The action in OpenAI tool format
         """
         action_name = action.tool_name
         if action.action_name is not None:
             action_name += f"{TOOL_ACTION_SEPARATOR}{action.action_name}"
             
         return {
-            "type": "function",
+            "id": action.tool_use_id or action_name,
             "function": {
-                "name": action_name,
+                "name": action_name, 
                 "arguments": json.dumps(action.parameters)
-            }
+            },
+            "type": "function"
         }
 
     def get_prompt(
@@ -64,86 +65,94 @@ class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
         reference_time: Optional[str] = None,
         planner_instruction: Optional[str] = None,
     ) -> StructuredPrompt:
-        """Generate a structured prompt for the OpenAI Chat API.
+        """Create an OpenAI-formatted prompt from messages and tools.
 
         Args:
-            current_agent_id: ID of the current agent, used to identify if messages are inbound/outbound.
-            messages: List of conversation messages.
-            tools: Optional list of tool schemas defining available tools.
-            agent_instruction: Optional instruction text for the agent.
-            resources: Optional list of resources available to the agent.
-            reference_time: Optional reference time for the conversation.
-            planner_instruction: Optional planning instruction for multi-agent scenarios.
+            current_agent_id: The ID of the current agent
+            messages: List of messages in the conversation
+            tools: List of available tools
+            agent_instruction: Optional instruction for the agent
+            resources: Optional list of resources
+            reference_time: Optional reference time
+            planner_instruction: Optional instruction for planning
 
         Returns:
-            A StructuredPrompt formatted for the OpenAI Chat API.
+            StructuredPrompt: The formatted prompt for OpenAI
         """
-        # Create tool config
-        openai_tools = []
+        # Track tool IDs to names for response parsing
+        tool_id_to_name_map: Dict[str, str] = {}
+        
+        # Convert tools to OpenAI format if provided
+        openai_tools: List[Dict[str, Any]] = []
         if tools:
-            for tool_schema in tools:
-                for action in tool_schema.actions:
-                    tool_use_name = f"{tool_schema.name}{TOOL_ACTION_SEPARATOR}{action.name}"
-                    tool_use_description = action.description
+            for tool in tools:
+                tool_dict = tool.to_dict()
+                name = tool_dict.get("name", "")
+                
+                # Check for action functions
+                if "actions" in tool_dict and tool_dict["actions"]:
+                    for action in tool_dict["actions"]:
+                        action_name = action.get("name", "")
+                        full_name = f"{name}{TOOL_ACTION_SEPARATOR}{action_name}"
+                        
+                        function_dict = {
+                            "name": full_name,
+                            "description": action.get("description", ""),
+                        }
+                        
+                        if "parameters" in action:
+                            function_dict["parameters"] = action["parameters"]
+                        
+                        openai_tools.append({
+                            "type": "function",
+                            "function": function_dict
+                        })
+                else:
+                    # Tool with no actions - make it a direct function
+                    function_dict = {
+                        "name": name,
+                        "description": tool_dict.get("description", ""),
+                    }
                     
-                    # Convert the JSON schema to the format OpenAI expects
-                    properties = {}
-                    required = []
-                    
-                    if hasattr(action.input_schema, "properties"):
-                        schema_dict = json.loads(action.input_schema.model_dump_json(exclude_none=True, by_alias=True))
-                        properties = schema_dict.get("properties", {})
-                        required = schema_dict.get("required", [])
+                    if "parameters" in tool_dict:
+                        function_dict["parameters"] = tool_dict["parameters"]
                     
                     openai_tools.append({
                         "type": "function",
-                        "function": {
-                            "name": tool_use_name,
-                            "description": tool_use_description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": properties,
-                                "required": required
-                            }
-                        }
+                        "function": function_dict
                     })
-
-        # Create formatted messages for OpenAI
+        
+        # Convert messages to OpenAI format
         openai_messages = []
         
-        # Add system message if provided
-        system_instruction = agent_instruction if agent_instruction is not None else ""
-        if planner_instruction is not None:
-            system_instruction += f"\n\n{planner_instruction}"
-            
-        if system_instruction:
+        # Add agent instruction as system message if provided
+        if agent_instruction:
             openai_messages.append({
                 "role": "system",
-                "content": system_instruction
+                "content": agent_instruction
             })
-        tool_id_to_name_map = {}
-            
-        # Process conversation messages
+        
+        # Add each message
         for message in messages:
-            # Skip messages without a clear role
             role = None
-            content = None
+            content = message.content or ""
             is_internal = message.event_type == EventType.INTERNAL_EVENT
-            is_from_myself = message.source == current_agent_id
             
-            if not is_internal and not is_from_myself:
-                # Regular user message
+            # Skip internal messages without actions or observations
+            if is_internal and not message.actions and not message.observations:
+                continue
+            
+            # Determine role based on source
+            if message.source == "user":
                 role = "user"
-                content = message.content
-                
-            elif not is_internal and is_from_myself:
-                # Regular assistant message
+            elif message.source == current_agent_id:
                 role = "assistant"
-                content = message.content
-                
-            elif is_internal and message.actions:
-                # Function/tool call from assistant
-                role = "assistant"
+            elif message.source == "system":
+                role = "system"
+            
+            # Handle actions (function/tool calls from assistant)
+            if is_internal and message.actions:
+                # Create tool calls
                 tool_calls = []
                 
                 for action_data in message.actions:
@@ -162,12 +171,15 @@ class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
                     if action_data.tool_use_id:
                         tool_id_to_name_map[action_data.tool_use_id] = action_name
 
-                    
-                openai_messages.append({
+                # Using type annotations to help mypy
+                message_content: Optional[str] = message.content if message.content else None
+                message_dict: Dict[str, Any] = {
                     "role": "assistant",
-                    "content": message.content if message.content else "",
+                    "content": message_content,
                     "tool_calls": tool_calls
-                })
+                }
+                
+                openai_messages.append(message_dict)
                 continue
                 
             elif is_internal and message.observations:
@@ -185,7 +197,7 @@ class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
                     openai_messages.append({
                         "role": "tool",
                         "tool_call_id": observation.tool_use_id or "",
-                        "name": tool_id_to_name_map.get(observation.tool_use_id, ""),
+                        "name": tool_id_to_name_map.get(observation.tool_use_id or "", ""),
                         "content": result_content
                     })
                     
@@ -202,7 +214,7 @@ class OpenAIToolChatPrompter(InteractPrompter[StructuredCompletion]):
             })
             
         # Create the final prompt dictionary
-        prompt_dict = {
+        prompt_dict: Dict[str, Any] = {
             "messages": openai_messages
         }
         

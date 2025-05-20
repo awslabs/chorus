@@ -6,8 +6,7 @@ the structured format expected by the API, and parsing responses back into messa
 """
 
 import json
-from typing import List
-from typing import Optional, Dict
+from typing import List, Optional, Dict, Any, Union, Collection, Sequence
 
 from chorus.data.data_types import ActionData
 from chorus.data.dialog import Message
@@ -15,10 +14,10 @@ from chorus.data.resource import Resource
 from chorus.data.prompt import StructuredPrompt
 from chorus.data.prompt import StructuredCompletion
 from chorus.data.toolschema import ToolSchema
-from chorus.prompters.interact import InteractPrompter
+from chorus.prompters.interact.base import InteractPrompter
 from chorus.data.dialog import EventType
 
-TOOL_ACTION_SEPARATOR = "__"
+TOOL_ACTION_SEPARATOR = "."
 
 class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
     """Prompter for tool-enabled chat using Anthropic Claude API.
@@ -33,7 +32,7 @@ class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
         """Initialize the AnthropicToolChatPrompter."""
         super().__init__()
 
-    def _get_action_dict(self, action: ActionData) -> Dict:
+    def _get_action_dict(self, action: ActionData) -> Dict[str, Any]:
         """Convert an ActionData object into an Anthropic tool use dictionary.
 
         Args:
@@ -77,46 +76,70 @@ class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
         Returns:
             A StructuredPrompt formatted for the Anthropic Claude API.
         """
-        # Create tool config for Anthropic
-        anthropic_tools = []
-        if tools:
-            for tool_schema in tools:
-                for action in tool_schema.actions:
-                    tool_use_name = f"{tool_schema.name}{TOOL_ACTION_SEPARATOR}{action.name}"
-                    tool_use_description = action.description
-                    
-                    # Convert the JSON schema to the format Anthropic expects
-                    schema_dict = json.loads(action.input_schema.model_dump_json(exclude_none=True, by_alias=True))
-                    
-                    anthropic_tools.append({
-                        "name": tool_use_name,
-                        "description": tool_use_description,
-                        "input_schema": schema_dict
-                    })
-
-        # Create formatted messages for Anthropic
-        anthropic_messages = []
+        # Create system instruction if agent_instruction or planner_instruction provided
+        system_instruction = ""
+        if agent_instruction:
+            system_instruction = agent_instruction
+        if planner_instruction:
+            if system_instruction:
+                system_instruction += "\n\n"
+            system_instruction += planner_instruction
         
-        # System instruction is handled separately by Anthropic
-        system_instruction = agent_instruction if agent_instruction is not None else ""
-        if planner_instruction is not None:
-            system_instruction += f"\n\n{planner_instruction}"
-            
-        # Process conversation messages
+        # Convert tools to Anthropic format if provided
+        anthropic_tools: List[Dict[str, Any]] = []
+        if tools:
+            for tool in tools:
+                tool_dict = tool.to_dict()
+                name = tool_dict.get("name", "")
+                
+                # Check for action functions
+                if "actions" in tool_dict and tool_dict["actions"]:
+                    for action in tool_dict["actions"]:
+                        action_name = action.get("name", "")
+                        full_name = f"{name}{TOOL_ACTION_SEPARATOR}{action_name}"
+                        
+                        tool_dict = {
+                            "name": full_name,
+                            "description": action.get("description", ""),
+                        }
+                        
+                        if "parameters" in action:
+                            tool_dict["input_schema"] = action["parameters"]
+                        
+                        anthropic_tools.append(tool_dict)
+                else:
+                    # Tool with no actions - make it a direct function
+                    tool_dict = {
+                        "name": name,
+                        "description": tool_dict.get("description", ""),
+                    }
+                    
+                    if "parameters" in tool_dict:
+                        tool_dict["input_schema"] = tool_dict["parameters"]
+                    
+                    anthropic_tools.append(tool_dict)
+        
+        # Convert messages to Anthropic format
+        anthropic_messages: List[Dict[str, Any]] = []
+        
+        # Add each message
         for message in messages:
-            # Skip messages without a clear role
-            role = None
-            content_parts = []
+            role: Optional[str] = None
+            content_parts: List[Dict[str, Any]] = []
             is_internal = message.event_type == EventType.INTERNAL_EVENT
-            is_from_myself = message.source == current_agent_id
             
-            if not is_internal and not is_from_myself:
+            # Skip internal messages without actions or observations
+            if is_internal and not message.actions and not message.observations:
+                continue
+            
+            # Determine role based on source
+            if message.source == "user":
                 # Regular user message
                 role = "user"
                 if message.content:
                     content_parts.append({"type": "text", "text": message.content})
                 
-            elif not is_internal and is_from_myself:
+            elif message.source == current_agent_id:
                 # Regular assistant message
                 role = "assistant"
                 if message.content:
@@ -146,17 +169,12 @@ class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
                 role = "user"
                 
                 for observation in message.observations:
-                    
-                    tool_result_content = None
-                    if isinstance(observation.data, str):
-                        tool_result_content = observation.data
-                    else:
-                        tool_result_content = observation.data
+                    tool_result = observation.data
                     
                     content_parts.append({
                         "type": "tool_result",
                         "tool_use_id": observation.tool_use_id,
-                        "content": json.dumps(observation.data)
+                        "content": json.dumps(tool_result)
                     })
             
             # Skip if no valid role was determined or no content
@@ -170,7 +188,7 @@ class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
             })
             
         # Create the final prompt dictionary
-        prompt_dict = {
+        prompt_dict: Dict[str, Any] = {
             "messages": anthropic_messages
         }
         
@@ -252,9 +270,9 @@ class AnthropicToolChatPrompter(InteractPrompter[StructuredCompletion]):
             elif part_type == "tool_use":
                 # Tool use / function call
                 tool_use_id = part.get("id")
-                tool_use_name = part.get("name")
+                tool_use_name = part.get("name", "")
                 
-                if TOOL_ACTION_SEPARATOR in tool_use_name:
+                if tool_use_name and TOOL_ACTION_SEPARATOR in tool_use_name:
                     tool_name, action_name = tool_use_name.split(TOOL_ACTION_SEPARATOR, maxsplit=1)
                 else:
                     tool_name = tool_use_name
