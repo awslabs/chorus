@@ -4,8 +4,7 @@ from unittest.mock import patch, MagicMock
 from chorus.agents.langchain_agent_adapter import LangChainAgentAdapter
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message, EventType
-from chorus.data.state import PassiveAgentState
-from chorus.util.testing_util import MockMessageClient
+from tests.testing_util import MockMessageClient
 
 
 class MockFunction:

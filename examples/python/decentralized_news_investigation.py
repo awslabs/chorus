@@ -5,11 +5,11 @@ from chorus.core.runner import Chorus
 from chorus.teams.services.team_voting import TeamVoting
 from chorus.teams.toolbox.team_voting import TeamVotingClient
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
-from chorus.workspace.stop_conditions.message_based import MessageBasedStopper
+from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 from chorus.data.channel import Channel
-from chorus.toolbox import SerperWebSearchTool, WebRetrieverToolV2
+from chorus.toolbox import SerperWebSearchTool
 
-if __name__ == '__main__':
+def main():
     # Create channels for different aspects of investigation
     investigation_channel = Channel(
         name="investigation_updates",
@@ -18,7 +18,6 @@ if __name__ == '__main__':
 
     # Create investigator agents for different aspects
     fact_checker = CollaborativeAgent(
-        "FactChecker",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -39,10 +38,9 @@ if __name__ == '__main__':
         Focus on key facts and verification status.
         Use both web search and web retrieval to gather comprehensive information.""",
         tools=[SerperWebSearchTool()]
-    )
+    ).name("FactChecker")
 
     main_news_investigator = CollaborativeAgent(
-        "MainNewsInvestigator",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -63,10 +61,9 @@ if __name__ == '__main__':
         Focus on the most important aspects of the story.
         Use both web search and web retrieval to gather comprehensive information.""",
         tools=[SerperWebSearchTool()]
-    )
+    ).name("MainNewsInvestigator")
 
     source_analyzer = CollaborativeAgent(
-        "SourceAnalyzer",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -86,10 +83,9 @@ if __name__ == '__main__':
         Focus on key findings about source reliability.
         Use both web search and web retrieval to gather comprehensive information.""",
             tools=[SerperWebSearchTool()]
-    )
+    ).name("SourceAnalyzer")
 
     summarizer = CollaborativeAgent(
-        "Summarizer",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -112,8 +108,8 @@ if __name__ == '__main__':
         
         Your proposal should be a clear, concise summary of the key findings.
         Since we're using first-come-first-serve voting, your summary will be automatically accepted as the team's decision.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("Summarizer")]
+    ).name("Summarizer")
 
     # Create team with voting service and decentralized collaboration
     investigation_team = Team(
@@ -138,12 +134,13 @@ if __name__ == '__main__':
         visual=True,
         visual_port=5000
     )
+    chorus.start()
 
     # Send a news topic for investigation
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination=investigation_team.identifier(),
-        content="""
+        message="""
         Please investigate this news topic:
 
         "OpenAI Announces GPT-5: Claims Major Breakthrough in Reasoning Capabilities"
@@ -157,5 +154,7 @@ if __name__ == '__main__':
         """
     )
 
-    # Run the collaboration
-    chorus.run() 
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

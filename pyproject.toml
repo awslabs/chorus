@@ -130,5 +130,5 @@ requires = [ "hatch-pip-compile" ]
 [tool.hatch.envs.default.scripts]
 typing = [
   "mkdir -p .mypy_cache",
-  "mypy --install-types --non-interactive src/chorus tests/chorus"
+  "mypy --install-types --non-interactive src/chorus tests/"
 ]

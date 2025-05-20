@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, PropertyMock
 
 from chorus.agents import ConversationalTaskAgent
 from chorus.data.trigger import MessageTrigger
@@ -9,7 +9,6 @@ from chorus.data.executable_tool import ExecutableTool
 from chorus.data.channel import Channel
 from chorus.data.prompt import StructuredCompletion
 from chorus.data.state import PassiveAgentState
-from chorus.prompters.interact.bedrock_converse_tool_chat import BedrockConverseToolChatPrompter
 
 
 class MockContext(MagicMock):
@@ -69,7 +68,6 @@ class TestAgentTriggers(unittest.TestCase):
             instruction="Test instruction",
             tools=[self.mock_tool],
             lm=self.mock_lm,
-            prompter=BedrockConverseToolChatPrompter()
         ).name("TestAgent")
 
         # Create test channel

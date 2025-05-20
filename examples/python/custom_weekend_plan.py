@@ -5,12 +5,12 @@ from chorus.core.runner import Chorus
 from chorus.teams.services.team_voting import TeamVoting
 from chorus.teams.toolbox.team_voting import TeamVotingClient
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
-from chorus.workspace.stop_conditions.message_based import MessageBasedStopper
+from chorus.workspace.stop_conditions.message_based_stopper import MessageBasedStopper
 from chorus.data.channel import Channel
 from chorus.toolbox import SerperWebSearchTool, WebRetrieverToolV2
 from datetime import datetime, timedelta
 
-if __name__ == '__main__':
+def main():
     # Create a channel for trip planning discussion
     planning_channel = Channel(
         name="trip_planning",
@@ -19,7 +19,6 @@ if __name__ == '__main__':
 
     # Create specialized agents
     geo_expert = CollaborativeAgent(
-        "GeoExpert",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -38,10 +37,9 @@ if __name__ == '__main__':
         Focus on location-specific details and accessibility.
         Use web search to find current information about locations.""",
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
-    )
+    ).name("GeoExpert")
 
     budget_advisor = CollaborativeAgent(
-        "BudgetAdvisor",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -60,10 +58,9 @@ if __name__ == '__main__':
         Focus on cost-related aspects and budget considerations.
         Use web search to find current pricing information.""",
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
-    )
+    ).name("BudgetAdvisor")
 
     experience_advisor = CollaborativeAgent(
-        "ExperienceAdvisor",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -82,10 +79,9 @@ if __name__ == '__main__':
         Focus on experience quality and variety of activities.
         Use web search to find current activity information.""",
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
-    )
+    ).name("ExperienceAdvisor")
 
     safety_advisor = CollaborativeAgent(
-        "SafetyAdvisor",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -104,10 +100,9 @@ if __name__ == '__main__':
         Focus on safety-related aspects and precautions.
         Use web search to find current safety information.""",
         tools=[SerperWebSearchTool(), WebRetrieverToolV2()]
-    )
+    ).name("SafetyAdvisor")
 
     planner = CollaborativeAgent(
-        "TripPlanner",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -130,8 +125,8 @@ if __name__ == '__main__':
         
         Your proposal should be a clear, actionable weekend plan.
         Since we're using first-come-first-serve voting, your plan will be automatically accepted as the team's decision.""",
-        tools=[TeamVotingClient()]
-    )
+        tools=[TeamVotingClient("TripPlanner")]
+    ).name("TripPlanner")
 
     # Create team with voting service and decentralized collaboration
     planning_team = Team(
@@ -163,11 +158,13 @@ if __name__ == '__main__':
     next_sunday = next_saturday + timedelta(days=1)
     weekend_dates = f"{next_saturday.strftime('%m/%d/%Y')}, {next_sunday.strftime('%m/%d/%Y')}"
 
+    chorus.start()
+
     # Send a trip planning request
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination=planning_team.identifier(),
-        content=f"""
+        message=f"""
         Please help plan a weekend trip for the following dates: {weekend_dates}
 
         Location Area: San Francisco Bay Area
@@ -189,5 +186,7 @@ if __name__ == '__main__':
         """
     )
 
-    # Run the collaboration
-    chorus.run() 
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

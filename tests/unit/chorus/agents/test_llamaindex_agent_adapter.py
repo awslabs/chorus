@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock, PropertyMock
 
-from chorus.agents.llamaindex_agent_adapter import LlamaIndexAgentAdapter, LLAMAINDEX_AVAILABLE
+from chorus.agents.llamaindex_agent_adapter import LlamaIndexAgentAdapter
 from chorus.data.context import AgentContext
 from chorus.data.dialog import Message, EventType
-from chorus.util.testing_util import MockMessageClient
+from tests.testing_util import MockMessageClient
 
 
 class TestLlamaIndexAgentAdapter(unittest.TestCase):

@@ -1,13 +1,11 @@
 import unittest
-import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from chorus.agents import Agent
 from chorus.core.runner import Chorus
 from chorus.data.context import AgentContext
 from chorus.data.state import AgentState
 from chorus.data.checkpoint import ChorusCheckpoint, AgentSnapshot
-from chorus.data.team_info import TeamInfo
 
 class SimpleTestAgentState(AgentState):
     """Simple agent state implementation for testing."""

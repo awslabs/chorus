@@ -27,7 +27,6 @@ class ChorusGlobalContext:
 
         Args:
             zmq_router_port: Port for the ZMQ router socket
-            process_manager: Legacy parameter for compatibility, not used in ZMQ implementation
         """
         # Initialize attributes with defaults
         self.global_message_ids: Set = set()

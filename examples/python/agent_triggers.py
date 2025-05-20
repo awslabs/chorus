@@ -9,7 +9,7 @@ from chorus.toolbox import DuckDuckGoWebSearchTool, WebRetrieverTool, SerperWebS
 from chorus.workspace import NoActivityStopper
 import argparse
 
-if __name__ == '__main__':
+def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--use_serper_search', action='store_true', help='Use SerperWebSearch instead of DuckDuckGo')
@@ -56,7 +56,6 @@ if __name__ == '__main__':
 
     # Create agents
     monitor = CollaborativeAgent(
-        "NewsMonitor",
         instruction="""
         Here are the channels available for communication:
         <channels>
@@ -69,16 +68,15 @@ if __name__ == '__main__':
         - Send all news to the news_channel
         - For urgent news, send to NewsAnalyst directly""",
         tools=[search_tool, WebRetrieverTool()]
-    )
+    ).name("NewsMonitor")
 
     analyst = CollaborativeAgent(
-        "NewsAnalyst",
         instruction="""You are a news analysis agent:
         - Analyze news shared in the news_channel
         - Provide detailed analysis of news impact
         - Switch between regular and urgent analysis modes based on triggers""",
         tools=[search_tool, WebRetrieverTool()]
-    )
+    ).name("NewsAnalyst")
 
     # Create triggers for context switching
     urgent_trigger = MessageTrigger(
@@ -111,12 +109,18 @@ if __name__ == '__main__':
         visual_port=5001
     )
 
+    # Start the chorus
+    chorus.start()
+
     # Start with an initial message
-    chorus.get_environment().send_message(
+    chorus.send_and_wait(
         source="human",
         destination="NewsMonitor",
-        content="Please monitor and analyze current technology news, with special attention to any urgent developments."
+        message="Please monitor and analyze current technology news, with special attention to any urgent developments."
     )
 
-    # Run the simulation
-    chorus.run()
+    # Stop the chorus
+    chorus.stop()
+
+if __name__ == "__main__":
+    main()

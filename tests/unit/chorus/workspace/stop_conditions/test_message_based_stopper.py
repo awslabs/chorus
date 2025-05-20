@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from chorus.workspace.stop_conditions import MessageBasedStopper
 from chorus.data.dialog import Message
@@ -10,7 +10,7 @@ class TestMessageBasedStopper(unittest.TestCase):
     def setUp(self):
         # Create a mock runner and global context for testing
         self.mock_runner = MagicMock()
-        self.global_context = ChorusGlobalContext(process_manager=MagicMock())
+        self.global_context = ChorusGlobalContext()
         self.mock_runner.get_global_context.return_value = self.global_context
 
     def test_stop_on_exact_match(self):
