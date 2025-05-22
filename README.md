@@ -1,16 +1,16 @@
-# Chorus
+# DMACF: Distributed Multi-Agent Collaboration Framework
 
 A easy-to-use framework for building scalable solutions with LLM-driven multi-agent collaboration
 
-Chorus allows you to develop and test solutions using multi-agent collaboration with zero or minimal coding. Chorus provides a multi-agent playground for easy visualization and testing.
-Finally, Chorus helps you deploy your solution to Amazon Bedrock Agents with a single command (coming soon).
+DMAC allows you to develop and test solutions using multi-agent collaboration with zero or minimal coding. DMAC provides a multi-agent playground for easy visualization and testing.
+Finally, DMAC helps you deploy your solution to Amazon Bedrock Agents with a single command (coming soon).
 
 
 ## Key Features
 
-| **🤖  Scalable multi-agent inter-communication and collaboration support** <br><br> Chorus is designed by prioritizing scalability. The inter-communication mechanism allows easy scaling up to hundreds of agents and communicate with each other in real-time. | **🧬  Simple, yet customizable** <br><br> With Chorus, you can develop your solution using YAML descriptional language and zero coding. However, Chorus also provides utility for building customized agent logic with minimal Python coding. |
+| **🤖  Scalable multi-agent inter-communication and collaboration support** <br><br> DMAC is designed by prioritizing scalability. The inter-communication mechanism allows easy scaling up to hundreds of agents and communicate with each other in real-time. | **🧬  Simple, yet customizable** <br><br> With DMAC, you can develop your solution using YAML descriptional language and zero coding. However, DMAC also provides utility for building customized agent logic with minimal Python coding. |
 |---|---|
-| **⚖  Build-in support for various tools, agents and multi-agent planners** <br><br> Chorus implements various useful tools, agents and dynamic planners for multi-agent collaboration. You can leverage them to create diverse agent teams for complex tasks such as developing a software. | **🖇️  Build upon examples and templates** <br><br> Chorus provides multiple examples with different collaboration patterns, allowing you easily boostrap for your own solution. |
+| **⚖  Build-in support for various tools, agents and multi-agent planners** <br><br> DMAC implements various useful tools, agents and dynamic planners for multi-agent collaboration. You can leverage them to create diverse agent teams for complex tasks such as developing a software. | **🖇️  Build upon examples and templates** <br><br> DMAC provides multiple examples with different collaboration patterns, allowing you easily boostrap for your own solution. |
 
 **Current features and up-coming features:**
 
@@ -30,8 +30,8 @@ To get started, clone the repository and install the package.
 
 
 ```bash
-git clone ssh://git.amazon.com/pkg/AWSChorus
-cd AWSChorus
+git clone ssh://git.amazon.com/pkg/AWSDMAC
+cd AWSDMAC
 pip install -e .
 ```
 
@@ -52,7 +52,7 @@ export AWS_SESSION_TOKEN=...
 
 ## Hello World Example
 
-In the Chorus package, we provide a hello world example allows you to get started with Chorus quickly.
+In the DMAC package, we provide a hello world example allows you to get started with DMAC quickly.
 
 
 
@@ -69,14 +69,14 @@ In the hello world example, we built a simple agent team for answering questions
 
 ### Running the example
 
-In general, there are two ways in Chorus for running a multi-agent solution: 1) Create a workspace and run it using Chorus CLI, 2) Write python code for your solution and run it directly.
+In general, there are two ways in DMAC for running a multi-agent solution: 1) Create a workspace and run it using DMAC CLI, 2) Write python code for your solution and run it directly.
 
-#### Part 1: Run the workspace using Chorus CLI
+#### Part 1: Run the workspace using DMAC CLI
 
-Let first try to run a configured workspace using Chorus CLI. All the configurations and codes for the hello world example are already included in the Chorus package, so we can directly run it by executing the following command from the root folder of the Chorus package:
+Let first try to run a configured workspace using DMAC CLI. All the configurations and codes for the hello world example are already included in the DMAC package, so we can directly run it by executing the following command from the root folder of the DMAC package:
 
 ```bash
-python -m chorus.cli --root examples/workspaces -w hello_world run
+python -m DMAC.cli --root examples/workspaces -w hello_world run
 ```
 
 You should see the following prompt:
@@ -113,7 +113,7 @@ In rare cases, you might get `RateLimitError` from the web search tool if you ru
 
 #### Part 2: Run the example using python code
 
-The Chorus package includes a Python implementation of the exactly same agent team. You can run it by simply executing the following command:
+The DMAC package includes a Python implementation of the exactly same agent team. You can run it by simply executing the following command:
 
 ```bash
 python examples/python/hello_world.py
