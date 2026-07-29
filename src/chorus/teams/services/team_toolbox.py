@@ -1,5 +1,5 @@
 from typing import List
-from chorus.data.dialog import Message
+from chorus.data.dialog import Message, EventType
 from chorus.data.data_types import ObservationData
 from chorus.data.executable_tool import ExecutableTool
 from chorus.data.state import TeamState
@@ -18,7 +18,7 @@ class TeamToolbox(TeamService):
         super().__init__("team_toolbox")
 
     def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
-        if inbound_message.event_type != "team_service":
+        if inbound_message.event_type != EventType.TEAM_SERVICE:
             return
         observations = []
         if inbound_message.actions is None:

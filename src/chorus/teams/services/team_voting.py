@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from chorus.data.collaboration_strategies import DecisionMakingStrategy
 from chorus.data.state import TeamState
 from chorus.data.data_types import ObservationData
-from chorus.data.dialog import Message
+from chorus.data.dialog import Message, EventType
 from chorus.data.context import TeamContext
 from chorus.helpers.communication import CommunicationHelper
 from chorus.teams.services.base import TeamService
@@ -31,7 +31,7 @@ class TeamVoting(TeamService):
         data_store["votes"] = {}  # Dict[str, Dict[str, bool]] to store votes per proposal
 
     def process_message(self, team_context: TeamContext, team_state: TeamState, inbound_message: Message):
-        if inbound_message.event_type != "team_service":
+        if inbound_message.event_type != EventType.TEAM_SERVICE:
             return
         
         data_store = team_state.get_service_data_store(self.get_name())
